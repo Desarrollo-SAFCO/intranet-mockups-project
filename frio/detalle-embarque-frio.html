@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle Embarque Frío - SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Iconos Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        body {
+            background-color: transparent;
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 2.2rem;
+            color: var(--text-main);
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-back {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            border-color: var(--safco-red);
+            color: var(--safco-red);
+            background-color: #fef2f2;
+        }
+
+        .page-title {
+            color: var(--text-title);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* Summary Header Info */
+        .summary-card {
+            background: white;
+            padding: 1.2rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .summary-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-title);
+        }
+
+        /* Main Workspace: 2 Column Layout on Desktop */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .left-col, .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Panel Card */
+        .panel-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background-color: #fafbfc;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-title);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-body {
+            padding: 1.5rem;
+        }
+
+        /* Scanning form */
+        .scan-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-input-custom, .form-select-custom {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input-custom:focus, .form-select-custom:focus {
+            border-color: var(--safco-red);
+            background-color: white;
+        }
+
+        .sensor-checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .sensor-checkbox-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .sensor-checkbox-row label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .btn-assign {
+            background-color: var(--safco-green-dark);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 0.7rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-assign:hover {
+            opacity: 0.9;
+        }
+
+        /* Alerts */
+        .alert-banner {
+            background-color: #fef2f2;
+            border: 1px solid #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #b91c1c;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-banner.show {
+            display: flex;
+        }
+
+        /* Packing list checklist lateral */
+        .packing-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            gap: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 6px;
+            background-color: #f8fafc;
+        }
+
+        .packing-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .packing-item:hover {
+            background-color: #e2e8f0;
+        }
+
+        .packing-item.assigned {
+            color: #94a3b8;
+            text-decoration: line-through;
+        }
+
+        /* 2D CONTAINER VISUAL GRID STYLE */
+        .container-visual-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .legend-box {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        .legend-ok { background-color: #22c55e; border: 1px solid #16a34a; }
+        .legend-err { background-color: #ef4444; border: 1px solid #dc2626; }
+        .legend-empty { background-color: #e2e8f0; border: 1px dashed #94a3b8; }
+
+        .container-structure {
+            width: 100%;
+            max-width: 380px;
+            background-color: #475569; /* Slate container border background */
+            border: 6px solid #1e293b;
+            border-radius: 12px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        /* Indicator text */
+        .container-tag {
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .container-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+        }
+
+        .container-cell {
+            min-height: 52px;
+            border-radius: 6px;
+            padding: 4px 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: all 0.25s;
+            cursor: pointer;
+        }
+
+        /* States */
+        .cell-empty {
+            background-color: #1e293b;
+            border: 2px dashed #64748b;
+            color: #94a3b8;
+        }
+
+        .cell-empty:hover {
+            border-color: white;
+            background-color: #334155;
+        }
+
+        .cell-ok {
+            background-color: #22c55e;
+            border: 2px solid #16a34a;
+            color: white;
+        }
+
+        .cell-err {
+            background-color: #ef4444;
+            border: 2px solid #dc2626;
+            color: white;
+        }
+
+        .cell-num {
+            font-size: 0.65rem;
+            font-weight: bold;
+            opacity: 0.75;
+            position: absolute;
+            top: 2px;
+            left: 5px;
+        }
+
+        .cell-num-right {
+            left: auto;
+            right: 5px;
+        }
+
+        .cell-content {
+            margin-top: 10px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-align: center;
+            word-break: break-all;
+            line-height: 1.1;
+        }
+
+        .cell-sensor {
+            font-size: 0.55rem;
+            background-color: rgba(15, 23, 42, 0.4);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+            align-self: center;
+            margin-top: 2px;
+        }
+
+        /* Conclusion form card */
+        .conclusion-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            padding: 1.5rem;
+        }
+
+        .btn-save-all {
+            background-color: var(--safco-red);
+            color: white;
+            width: 100%;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-save-all:hover {
+            background-color: var(--safco-red-dark);
+        }
+
+        .container-panel {
+            padding: 1.5rem;
+        }
+
+        /* Responsive Layout styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .page-title {
+                font-size: 1.35rem;
+            }
+            .details-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .panel-body {
+                padding: 1rem;
+            }
+            .summary-card {
+                padding: 1rem;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+            }
+            .container-panel {
+                padding: 1rem;
+            }
+            .panel-header h3 {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 0.5rem;
+            }
+            .summary-card {
+                grid-template-columns: 1fr;
+                gap: 0.6rem;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            .container-structure {
+                padding: 0.8rem;
+                gap: 1rem;
+            }
+            .container-grid {
+                gap: 0.4rem;
+            }
+            .container-cell {
+                min-height: 46px;
+                padding: 2px 4px;
+            }
+            .cell-content {
+                font-size: 0.65rem;
+                margin-top: 8px;
+            }
+            .cell-sensor {
+                font-size: 0.5rem;
+                padding: 1px 3px;
+            }
+            .container-legend {
+                gap: 0.8rem;
+                flex-wrap: wrap;
+            }
+            .container-panel {
+                padding: 0.75rem;
+            }
+        }
+
+        /* ========================================= */
+        /* Estilos de Pestañas (Tabset) y Evidencias */
+        /* ========================================= */
+        .tabs-nav {
+            display: flex;
+            background-color: #f1f5f9;
+            border-radius: 10px;
+            padding: 0.35rem;
+            margin-bottom: 1.5rem;
+            gap: 0.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn i {
+            font-size: 1.1rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-title);
+            background-color: rgba(255,255,255,0.5);
+        }
+
+        .tab-btn.active {
+            background-color: white;
+            color: var(--safco-green-dark);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Contenido de pestañas */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .details-tab-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .left-panel-col, .right-panel-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Panel de Evidencias */
+        .evidences-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .evidence-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .evidence-card-header {
+            background-color: #fafbfc;
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .evidence-card-title {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-title);
+        }
+
+        .evidence-card-source {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .evidence-card-counter {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--safco-green-dark);
+            background-color: #ecfdf5;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .evidence-slots-grid {
+            padding: 1.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        /* Slots de Fotos */
+        .photo-slot {
+            width: 75px;
+            height: 75px;
+            border-radius: 8px;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .photo-slot.empty {
+            border: 2px dashed var(--input-border);
+            background-color: #f8fafc;
+            color: var(--text-muted);
+        }
+
+        .photo-slot.empty:hover {
+            border-color: var(--safco-red);
+            background-color: #fef2f2;
+            color: var(--safco-red);
+        }
+
+        .photo-slot.empty i {
+            font-size: 1.4rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .photo-slot.empty span {
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .photo-slot.filled {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .photo-slot.filled img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s ease;
+        }
+
+        .photo-slot.filled:hover img {
+            transform: scale(1.08);
+        }
+
+        .btn-delete-photo {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background-color: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+            z-index: 10;
+        }
+
+        .btn-delete-photo:hover {
+            background-color: #dc2626;
+        }
+
+        /* Lightbox modal */
+        .lightbox-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.9);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .lightbox-modal.open {
+            display: flex;
+        }
+
+        .lightbox-modal img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            object-fit: contain;
+            animation: zoomIn 0.25s ease;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        @media (max-width: 768px) {
+            .details-tab-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .tab-btn {
+                padding: 0.6rem 0.5rem;
+                font-size: 0.75rem;
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+            .tab-btn i {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <button class="btn-back" onclick="goBack()"><i class='bx bx-left-arrow-alt' style="font-size: 1.5rem;"></i></button>
+        <h1 class="page-title">Detalle de Inspección de Carga</h1>
+    </div>
+
+    <!-- Cabecera de Datos Clave -->
+    <div class="summary-card">
+        <div class="summary-item">
+            <span class="summary-label">Instrucción</span>
+            <span class="summary-value" id="sumInstruccion">ASP001</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Contenedor</span>
+            <span class="summary-value" id="sumContenedor">GMOU9050950</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Booking</span>
+            <span class="summary-value" id="sumBooking">qwdaazsdas</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Packing List</span>
+            <span class="summary-value" id="sumPackinglist">PL-UV-001-A</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Cliente</span>
+            <span class="summary-value" id="sumCliente">Vanguard Logistics</span>
+        </div>
+    </div>
+
+    <!-- Navegación por Pestañas (Tabset) -->
+    <div class="tabs-nav">
+        <button class="tab-btn active" id="btn-tab-registro" onclick="switchTab('tab-registro')">
+            <i class='bx bx-scan'></i> Registro y Asignación
+        </button>
+        <button class="tab-btn" id="btn-tab-grid" onclick="switchTab('tab-grid')">
+            <i class='bx bx-cube'></i> Distribución de Contenedor
+        </button>
+        <button class="tab-btn" id="btn-tab-evidencias" onclick="switchTab('tab-evidencias')">
+            <i class='bx bx-camera'></i> Evidencias Visuales
+        </button>
+    </div>
+
+    <!-- Pestaña 1: Distribución del Contenedor -->
+    <div id="tab-grid" class="tab-content">
+        <div class="panel-card container-panel">
+            <div class="container-visual-panel">
+                <div class="container-legend">
+                    <div class="legend-item"><div class="legend-box legend-ok"></div> OK (En PL)</div>
+                    <div class="legend-item"><div class="legend-box legend-err"></div> NO EN PL</div>
+                    <div class="legend-item"><div class="legend-box legend-empty"></div> Vacío</div>
+                </div>
+
+                <!-- Representación del contenedor de carga -->
+                <div class="container-structure">
+                    <div class="container-tag">Fondo del Contenedor</div>
+                    
+                    <div class="container-grid" id="containerGrid">
+                        <!-- Inyectado dinámicamente de arriba a abajo -->
+                    </div>
+                    
+                    <div class="container-tag">Salida / Puerta</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestaña 2: Registro y Asignación -->
+    <div id="tab-registro" class="tab-content active">
+        <div class="details-tab-grid">
+            <!-- Columna Izquierda: Escaneo y Packing List -->
+            <div class="left-panel-col">
+                <!-- Escáner / Formulario -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class='bx bx-scan'></i> Asignación y Escaneo de Paletas</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form id="scanForm" class="scan-form" onsubmit="assignPaleta(event)">
+                            <!-- Alerta no bloqueante -->
+                            <div class="alert-banner" id="alertBanner">
+                                <i class='bx bx-error-circle' style="font-size: 1.2rem;"></i>
+                                <span id="alertText">Alerta: La paleta no pertenece al packing list de esta inspección.</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="scanPaletaCode">Código de Paleta (QR)</label>
+                                    <input type="text" id="scanPaletaCode" placeholder="Ej: ASP4" class="form-input-custom" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="scanPosition">Posición en Contenedor</label>
+                                    <select id="scanPosition" class="form-select-custom" required>
+                                        <!-- Posiciones 1 a 24 -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row" style="align-items: center;">
+                                <div class="sensor-checkbox-row">
+                                    <input type="checkbox" id="hasSensor" onchange="toggleSensorInput()">
+                                    <label for="hasSensor">¿Llevará Sensor?</label>
+                                </div>
+                                <div class="form-group" id="sensorCodeGroup" style="display: none;">
+                                    <label for="sensorCode">Código de Sensor</label>
+                                    <input type="text" id="sensorCode" placeholder="Ej: SENSOR6565" class="form-input-custom">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-assign"><i class='bx bx-check-double'></i> Asignar a Contenedor</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lista de Packing List -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class='bx bx-list-check'></i> Packing List Referencial (Total: <span id="plTotal">23</span> Paletas)</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top:0; margin-bottom: 0.50rem; font-weight: 600;">
+                            * Haz clic en una paleta pendiente para autocompletar el código de escaneo de forma rápida.
+                        </p>
+                        <div class="packing-list-grid" id="packingListGrid">
+                            <!-- Inyectado dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Finalización -->
+            <div class="right-panel-col">
+                <!-- Conclusión / Guardado Final -->
+                <div class="conclusion-card">
+                    <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem; font-weight: 700; color: var(--text-title);"><i class='bx bx-save'></i> Finalizar Inspección</h3>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="inspectResultado">Resultado Final</label>
+                        <select id="inspectResultado" class="form-select-custom">
+                            <option value="Conforme">Conforme</option>
+                            <option value="Observado">Observado</option>
+                            <option value="Rechazado">Rechazado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inspectMotivo">Motivo / Observaciones</label>
+                        <textarea id="inspectMotivo" rows="4" placeholder="Ingresar motivo (ej. Senasa le llego al pincho)" class="form-input-custom" style="resize: none; font-family: inherit;"></textarea>
+                    </div>
+                    <button class="btn-save-all" onclick="saveAllDetail()"><i class='bx bx-cloud-upload'></i> Guardar Todo el Detalle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestaña 3: Evidencias Visuales -->
+    <div id="tab-evidencias" class="tab-content">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+            <button class="btn-assign" onclick="loadDemoEvidences()" style="margin: 0; background-color: var(--safco-red);"><i class='bx bx-party'></i> Cargar Fotos de Demostración</button>
+        </div>
+        <div class="evidences-panel">
+            <div class="evidences-grid" id="evidencesGridContainer">
+                <!-- Inyectado dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Input file oculto para cargar fotos -->
+    <input type="file" id="hiddenPhotoInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+
+    <!-- Lightbox Visor de Fotos -->
+    <div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox(event)"><i class='bx bx-x'></i></button>
+        <img id="lightboxImg" src="" alt="Vista Previa de Evidencia" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Mocks de packing lists posibles
+        let validPaletas = []; // Lista de paletas esperadas de esta inspección
+        let loadedPaletas = {}; // Mapeo de posicion -> { code: code, sensor: sensor, isValid: isValid }
+        let currentInspection = {};
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadActiveInspection();
+            initPositions();
+            populatePositionsSelect();
+            renderPackingList();
+            renderContainerGrid();
+            renderEvidences(); // Cargar evidencias visuales iniciales
+        });
+
+        function loadActiveInspection() {
+            const inspections = JSON.parse(localStorage.getItem("safco_inspections")) || [];
+            const activeId = localStorage.getItem("active_inspection_id") || "INS-001";
+            
+            currentInspection = inspections.find(i => i.id === activeId) || inspections[0];
+
+            if (currentInspection) {
+                document.getElementById("sumInstruccion").textContent = currentInspection.instruccion;
+                document.getElementById("sumContenedor").textContent = currentInspection.contenedor;
+                document.getElementById("sumBooking").textContent = currentInspection.booking;
+                document.getElementById("sumPackinglist").textContent = currentInspection.packinglist;
+                
+                // Mapear un cliente mock según la instrucción
+                let client = "Vanguard Logistics";
+                if (currentInspection.instruccion.startsWith("ASP012") || currentInspection.instruccion.startsWith("ASP009") || currentInspection.instruccion.startsWith("ASP005")) {
+                    client = "Dole Food Company";
+                } else if (currentInspection.instruccion.startsWith("ASP013") || currentInspection.instruccion.startsWith("ASP010")) {
+                    client = "Chiquita Brands";
+                } else if (currentInspection.instruccion.startsWith("ASP011") || currentInspection.instruccion.startsWith("ASP014")) {
+                    client = "Global Fruit Imports";
+                }
+                document.getElementById("sumCliente").textContent = client;
+                document.getElementById("plTotal").textContent = currentInspection.paletas;
+
+                // Generar lista de paletas válidas del packing list (ej: ASP1 a ASP23)
+                validPaletas = [];
+                for(let i = 1; i <= currentInspection.paletas; i++) {
+                    validPaletas.push("ASP" + i);
+                }
+            }
+        }
+
+        function initPositions() {
+            // Clave única en localstorage por instrucción para guardar estado parcial
+            const storageKey = "loaded_container_" + currentInspection.instruccion;
+            const savedState = localStorage.getItem(storageKey);
+
+            if (savedState) {
+                loadedPaletas = JSON.parse(savedState);
+            } else {
+                // Estado inicial mockeado idéntico al screenshot de excel
+                loadedPaletas = {
+                    2: { code: "PAL-999", sensor: "", isValid: false }, // Rojo
+                    4: { code: "ASP8", sensor: "SENSOR6565", isValid: true }, // Verde con sensor
+                    7: { code: "PAL-888", sensor: "", isValid: false }, // Rojo
+                    12: { code: "PAL-777", sensor: "", isValid: false }, // Rojo
+                    16: { code: "PAL-666", sensor: "", isValid: false }, // Rojo
+                    21: { code: "PAL-555", sensor: "", isValid: false } // Rojo
+                };
+
+                // Llenar algunas verdes válidas por defecto
+                const initialGreens = [1, 3, 5, 6, 8, 9, 10, 11, 13, 14, 15, 17, 18, 19, 20, 22, 23];
+                initialGreens.forEach((pos, idx) => {
+                    // Evitar pasarnos del número de paletas configurado en la inspección
+                    if (pos <= currentInspection.paletas) {
+                        loadedPaletas[pos] = { code: "ASP" + pos, sensor: "", isValid: true };
+                    }
+                });
+                
+                localStorage.setItem(storageKey, JSON.stringify(loadedPaletas));
+            }
+
+            // Asegurar que exista la estructura de evidencias
+            if (!loadedPaletas.evidences) {
+                loadedPaletas.evidences = {
+                    5: [],
+                    6: [],
+                    7: [],
+                    8: [],
+                    9: [],
+                    10: []
+                };
+            }
+
+            // Cargar resultado y motivo si ya se habían preestablecido en el registro
+            if (currentInspection.resultado !== "Pendiente") {
+                document.getElementById("inspectResultado").value = currentInspection.resultado;
+            }
+        }
+
+        function populatePositionsSelect() {
+            const select = document.getElementById("scanPosition");
+            select.innerHTML = "";
+            
+            // Sugerir la primera posición libre por defecto
+            let suggestedPos = 1;
+            for (let i = 1; i <= 24; i++) {
+                if (!loadedPaletas[i]) {
+                    suggestedPos = i;
+                    break;
+                }
+            }
+
+            for (let i = 1; i <= 24; i++) {
+                const opt = document.createElement("option");
+                opt.value = i;
+                opt.textContent = "Posición " + i;
+                if (i === suggestedPos) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            }
+        }
+
+        function renderPackingList() {
+            const grid = document.getElementById("packingListGrid");
+            grid.innerHTML = "";
+
+            // Mapeamos qué paletas ya están cargadas en el contenedor
+            const assignedCodes = Object.values(loadedPaletas).map(item => item.code);
+
+            validPaletas.forEach(code => {
+                const isAssigned = assignedCodes.includes(code);
+                
+                const item = document.createElement("div");
+                item.className = "packing-item" + (isAssigned ? " assigned" : "");
+                item.innerHTML = `
+                    <input type="checkbox" ${isAssigned ? "checked" : ""} disabled>
+                    <span>${code}</span>
+                `;
+                
+                // Si no está asignado, permitir clic para autocompletar
+                if (!isAssigned) {
+                    item.addEventListener("click", () => {
+                        document.getElementById("scanPaletaCode").value = code;
+                    });
+                }
+                
+                grid.appendChild(item);
+            });
+        }
+
+        function toggleSensorInput() {
+            const hasSensor = document.getElementById("hasSensor").checked;
+            document.getElementById("sensorCodeGroup").style.display = hasSensor ? "flex" : "none";
+            if(!hasSensor) {
+                document.getElementById("sensorCode").value = "";
+            }
+        }
+
+        function assignPaleta(e) {
+            e.preventDefault();
+            const code = document.getElementById("scanPaletaCode").value.trim();
+            const position = parseInt(document.getElementById("scanPosition").value);
+            const hasSensor = document.getElementById("hasSensor").checked;
+            const sensor = hasSensor ? document.getElementById("sensorCode").value.trim() : "";
+            const alertBanner = document.getElementById("alertBanner");
+
+            if (!code) return;
+
+            // Validar si la paleta está en el packing list
+            const isValid = validPaletas.includes(code);
+
+            if (!isValid) {
+                alertBanner.classList.add("show");
+                // Ocultar banner de alerta automáticamente tras 5 segundos
+                setTimeout(() => {
+                    alertBanner.classList.remove("show");
+                }, 5000);
+            } else {
+                alertBanner.classList.remove("show");
+            }
+
+            // Asignar en el mapa
+            loadedPaletas[position] = {
+                code: code,
+                sensor: sensor,
+                isValid: isValid
+            };
+
+            // Persistir localmente
+            const storageKey = "loaded_container_" + currentInspection.instruccion;
+            localStorage.setItem(storageKey, JSON.stringify(loadedPaletas));
+
+            // Resetear inputs del formulario
+            document.getElementById("scanPaletaCode").value = "";
+            document.getElementById("hasSensor").checked = false;
+            toggleSensorInput();
+
+            // Refrescar vistas
+            populatePositionsSelect();
+            renderPackingList();
+            renderContainerGrid();
+        }
+
+        // Renderizado del contenedor 2D de arriba (fondo) a abajo (puerta)
+        // Estructura: 12 filas.
+        // Fila 1 (arriba): Izquierda=2, Derecha=1
+        // Fila 2: Izquierda=4, Derecha=3
+        // ...
+        // Fila 12 (puerta): Izquierda=23, Derecha=Vacio (para un total de 23 paletas + vacio)
+        function renderContainerGrid() {
+            const grid = document.getElementById("containerGrid");
+            grid.innerHTML = "";
+
+            // Iteramos las 12 filas
+            for (let row = 1; row <= 12; row++) {
+                // Cálculo de posiciones
+                const posLeft = row * 2;       // Pares: 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24
+                const posRight = (row * 2) - 1; // Impares: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23
+                
+                // Pero según la indicación del usuario, la fila 12 es Izquierda=23 y Derecha=Vacio.
+                // Así que ajustamos el mapeo de la fila 12:
+                let actualLeft = posLeft;
+                let actualRight = posRight;
+
+                if (row === 12) {
+                    actualLeft = 23;
+                    actualRight = null; // Celda vacía en la derecha
+                }
+
+                // Generar Celda Izquierda
+                createCellHTML(grid, actualLeft, "left");
+
+                // Generar Celda Derecha
+                if (actualRight !== null) {
+                    createCellHTML(grid, actualRight, "right");
+                } else {
+                    // Generar celda vacía/oculta para mantener el grid alineado
+                    const emptyCell = document.createElement("div");
+                    emptyCell.style.background = "transparent";
+                    grid.appendChild(emptyCell);
+                }
+            }
+        }
+
+        function createCellHTML(gridContainer, posNum, side) {
+            const cellData = loadedPaletas[posNum];
+            const cell = document.createElement("div");
+            
+            if (!cellData) {
+                cell.className = "container-cell cell-empty";
+                cell.innerHTML = `
+                    <span class="cell-num">${posNum}</span>
+                    <div class="cell-content">VACÍO</div>
+                `;
+            } else {
+                const isCellValid = cellData.isValid;
+                cell.className = "container-cell " + (isCellValid ? "cell-ok" : "cell-err");
+                
+                let innerHTML = `<span class="cell-num">${posNum}</span>`;
+                innerHTML += `<div class="cell-content">${cellData.code}</div>`;
+                if (cellData.sensor) {
+                    innerHTML += `<span class="cell-sensor"><i class='bx bx-broadcast'></i> ${cellData.sensor}</span>`;
+                }
+                
+                cell.innerHTML = innerHTML;
+            }
+
+            // Click en celda vacía para seleccionarla en el formulario de asignación
+            cell.addEventListener("click", () => {
+                const select = document.getElementById("scanPosition");
+                for (let i = 0; i < select.options.length; i++) {
+                    if (parseInt(select.options[i].value) === posNum) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+                
+                // Si la celda ya está cargada, cargarla en el formulario para editar/ver
+                if (cellData) {
+                    document.getElementById("scanPaletaCode").value = cellData.code;
+                    if (cellData.sensor) {
+                        document.getElementById("hasSensor").checked = true;
+                        toggleSensorInput();
+                        document.getElementById("sensorCode").value = cellData.sensor;
+                    }
+                }
+            });
+
+            gridContainer.appendChild(cell);
+        }
+
+        function saveAllDetail() {
+            const resultado = document.getElementById("inspectResultado").value;
+            const motivo = document.getElementById("inspectMotivo").value.trim();
+            const inspections = JSON.parse(localStorage.getItem("safco_inspections")) || [];
+            
+            // Actualizar la inspección activa
+            const updatedInspections = inspections.map(ins => {
+                if (ins.id === currentInspection.id) {
+                    ins.resultado = resultado;
+                    ins.estado = "Aprobado"; // Pasa a aprobado al completar el guardado
+                    return ins;
+                }
+                return ins;
+            });
+
+            localStorage.setItem("safco_inspections", JSON.stringify(updatedInspections));
+            alert("Detalle guardado correctamente. Retornando a la consulta de inspecciones.");
+            
+            goBack();
+        }
+
+        // Pestañas (Tabset)
+        function switchTab(tabId) {
+            // Desactivar todos los botones
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            // Ocultar todo el contenido de las pestañas
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Activar botón seleccionado
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            // Mostrar contenido seleccionado
+            document.getElementById(tabId).classList.add('active');
+            
+            // Refrescar vistas según pestaña activa
+            if (tabId === 'tab-grid') {
+                renderContainerGrid();
+            } else if (tabId === 'tab-evidencias') {
+                renderEvidences();
+            }
+        }
+
+        // Evidencias Visuales
+        const evidenceCategories = [
+            { id: 5, title: "5. UBICACIÓN DE TERMOGRAFOS", max: 4, source: "frio" },
+            { id: 6, title: "6. COLOCACIÓN DE SENSORES DE TRATAMIENTO", max: 4, source: "frio" },
+            { id: 7, title: "7. TÉRMINO DE CARGUÍO", max: 2, source: "frio" },
+            { id: 8, title: "8. VERIFICACIÓN DE TEMPERATURA DE PANEL DE CONTROL", max: 1, source: "frio" },
+            { id: 9, title: "9. PRESENTACIÓN DE PRECINTOS", max: 4, source: "frio" },
+            { id: 10, title: "10. COLOCACIÓN DE PRECINTOS", max: 4, source: "frio" }
+        ];
+
+        let activeUploadCategoryId = null;
+
+        function renderEvidences() {
+            const container = document.getElementById("evidencesGridContainer");
+            if (!container) return;
+            
+            container.innerHTML = "";
+            
+            evidenceCategories.forEach(cat => {
+                const photos = loadedPaletas.evidences[cat.id] || [];
+                
+                const card = document.createElement("div");
+                card.className = "evidence-card";
+                
+                card.innerHTML = `
+                    <div class="evidence-card-header">
+                        <div>
+                            <h4 class="evidence-card-title">${cat.title}</h4>
+                            <span class="evidence-card-source">Origen de información: ${cat.source}</span>
+                        </div>
+                        <span class="evidence-card-counter" id="counter-cat-${cat.id}">Fotos: ${photos.length} / ${cat.max}</span>
+                    </div>
+                    <div class="evidence-slots-grid" id="slots-cat-${cat.id}"></div>
+                `;
+                
+                container.appendChild(card);
+                
+                const slotsContainer = document.getElementById(`slots-cat-${cat.id}`);
+                
+                // Renderizar fotos ya cargadas en este tipo de evidencia
+                photos.forEach((photo, idx) => {
+                    const slot = document.createElement("div");
+                    slot.className = "photo-slot filled";
+                    slot.innerHTML = `
+                        <img src="${photo}" alt="Evidencia" onclick="openLightbox('${photo}')">
+                        <button class="btn-delete-photo" onclick="deletePhoto(${cat.id}, ${idx})" title="Eliminar Foto">
+                            <i class='bx bx-trash'></i>
+                        </button>
+                    `;
+                    slotsContainer.appendChild(slot);
+                });
+                
+                // Renderizar slots vacíos restantes
+                if (photos.length < cat.max) {
+                    const remaining = cat.max - photos.length;
+                    for (let i = 0; i < remaining; i++) {
+                        const slot = document.createElement("div");
+                        slot.className = "photo-slot empty";
+                        slot.innerHTML = `
+                            <i class='bx bx-camera'></i>
+                            <span>+ Foto</span>
+                        `;
+                        slot.addEventListener("click", () => triggerUpload(cat.id));
+                        slotsContainer.appendChild(slot);
+                    }
+                }
+            });
+        }
+
+        function triggerUpload(catId) {
+            activeUploadCategoryId = catId;
+            document.getElementById("hiddenPhotoInput").click();
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file || activeUploadCategoryId === null) return;
+            
+            if (!file.type.startsWith("image/")) {
+                alert("Por favor, seleccione un archivo de imagen válido.");
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                
+                if (!loadedPaletas.evidences[activeUploadCategoryId]) {
+                    loadedPaletas.evidences[activeUploadCategoryId] = [];
+                }
+                
+                const cat = evidenceCategories.find(c => c.id === activeUploadCategoryId);
+                if (loadedPaletas.evidences[activeUploadCategoryId].length < cat.max) {
+                    loadedPaletas.evidences[activeUploadCategoryId].push(base64);
+                    
+                    // Guardar localmente
+                    const storageKey = "loaded_container_" + currentInspection.instruccion;
+                    localStorage.setItem(storageKey, JSON.stringify(loadedPaletas));
+                    
+                    // Renderizar
+                    renderEvidences();
+                } else {
+                    alert("Se ha alcanzado la cantidad máxima de fotos para esta categoría.");
+                }
+                
+                // Limpiar
+                event.target.value = "";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deletePhoto(catId, index) {
+            event.stopPropagation();
+            if (confirm("¿Está seguro de que desea eliminar esta foto de evidencia?")) {
+                if (loadedPaletas.evidences[catId]) {
+                    loadedPaletas.evidences[catId].splice(index, 1);
+                    
+                    // Guardar localmente
+                    const storageKey = "loaded_container_" + currentInspection.instruccion;
+                    localStorage.setItem(storageKey, JSON.stringify(loadedPaletas));
+                    
+                    // Renderizar
+                    renderEvidences();
+                }
+            }
+        }
+
+        // Visor Lightbox
+        function openLightbox(imgSrc) {
+            const modal = document.getElementById("lightboxModal");
+            const img = document.getElementById("lightboxImg");
+            img.src = imgSrc;
+            modal.classList.add("open");
+        }
+
+        function closeLightbox(e) {
+            if (e) e.stopPropagation();
+            const modal = document.getElementById("lightboxModal");
+            modal.classList.remove("open");
+        }
+
+        // Cargar fotos demo autogeneradas localmente por Canvas
+        function loadDemoEvidences() {
+            const labels = {
+                5: "Ubicación de Termógrafos",
+                6: "Colocación de Sensores",
+                7: "Término de Carguío",
+                8: "Temperatura Panel Control",
+                9: "Presentación Precintos",
+                10: "Colocación Precintos"
+            };
+            
+            evidenceCategories.forEach(cat => {
+                const count = cat.id === 8 ? 1 : (cat.id === 7 ? 2 : 2); // Cargar fotos demo
+                loadedPaletas.evidences[cat.id] = [];
+                
+                for (let i = 1; i <= count; i++) {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = 300;
+                    canvas.height = 300;
+                    const ctx = canvas.getContext("2d");
+                    
+                    // Fondo gradiente corporativo
+                    const gradient = ctx.createLinearGradient(0, 0, 300, 300);
+                    gradient.addColorStop(0, "#004b40"); // Verde Safco
+                    gradient.addColorStop(1, "#d30c0c"); // Rojo Safco
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, 300, 300);
+                    
+                    // Dibujar textos
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "bold 16px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText("SAFCO INTRANET DEMO", 150, 80);
+                    
+                    ctx.font = "bold 14px Arial";
+                    ctx.fillText(labels[cat.id], 150, 140);
+                    
+                    ctx.fillStyle = "rgba(255,255,255,0.8)";
+                    ctx.font = "12px Arial";
+                    ctx.fillText(`Campaña: ${currentInspection.campana}`, 150, 180);
+                    ctx.fillText(`Instrucción: ${currentInspection.instruccion}`, 150, 200);
+                    ctx.fillText(`Evidencia Foto ${i}`, 150, 220);
+                    
+                    // Borde decorativo
+                    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+                    ctx.lineWidth = 8;
+                    ctx.strokeRect(15, 15, 270, 270);
+                    
+                    const base64Img = canvas.toDataURL("image/png");
+                    loadedPaletas.evidences[cat.id].push(base64Img);
+                }
+            });
+            
+            // Persistir en localstorage
+            const storageKey = "loaded_container_" + currentInspection.instruccion;
+            localStorage.setItem(storageKey, JSON.stringify(loadedPaletas));
+            
+            // Re-renderizar
+            renderEvidences();
+            alert("Se han cargado las fotos de evidencia autogeneradas de demostración.");
+        }
+
+        function goBack() {
+            window.location.href = "inspeccion-embarque-frio.html";
+        }
+    </script>
+</body>
+</html>

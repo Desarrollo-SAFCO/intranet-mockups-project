@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspección Embarque Frío - SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Iconos Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        body {
+            background-color: transparent;
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 2.2rem;
+            color: var(--text-main);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-title);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .page-title i {
+            font-size: 2.2rem;
+            color: var(--safco-green-dark);
+        }
+
+        /* Filters Bar */
+        .filters-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 1.2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filters-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-select, .form-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s;
+            min-width: 140px;
+        }
+
+        .form-select:focus, .form-input:focus {
+            border-color: var(--safco-red);
+            background-color: white;
+        }
+
+        /* Buttons */
+        .btn-primary-safco {
+            background-color: var(--safco-red);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary-safco:hover {
+            background-color: var(--safco-red-dark);
+        }
+
+        /* Table */
+        .desktop-table-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            overflow: hidden;
+        }
+
+        /* Custom statuses */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .status-aprobado {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .status-pendiente {
+            background-color: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .status-curso {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .result-badge {
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .result-conforme { color: #059669; }
+        .result-rechazado { color: #ef4444; }
+        .result-observado { color: #d97706; }
+
+        .btn-actions {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            padding: 0.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .btn-actions:hover {
+            background-color: #f1f5f9;
+            color: var(--text-title);
+        }
+
+        /* Actions Dropdown */
+        .actions-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            min-width: 130px;
+        }
+
+        .actions-dropdown.show {
+            display: flex;
+        }
+
+        .dropdown-item {
+            padding: 0.6rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f1f5f9;
+            color: var(--safco-red);
+        }
+
+        /* Mobile Card Style (Listile) */
+        .mobile-card-list {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mobile-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .mobile-card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-title);
+        }
+
+        .mobile-card-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+
+        .mobile-card-label {
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .mobile-card-value {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .mobile-card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 0.6rem;
+            margin-top: 0.25rem;
+        }
+
+        .btn-mobile-action {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--text-main);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .btn-mobile-action:hover {
+            border-color: var(--safco-red);
+            color: var(--safco-red);
+            background-color: #fef2f2;
+        }
+
+        .btn-mobile-action.btn-danger-action:hover {
+            border-color: #ef4444;
+            color: white;
+            background-color: #ef4444;
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fafbfc;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--text-title);
+            font-weight: 700;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            padding: 0.2rem;
+        }
+        
+        .btn-close-modal:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            flex: 1;
+            min-height: 0; /* Permite que el flexbox encoja este div y active el scrollbar */
+        }
+
+        .modal-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .modal-form-group label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .modal-form-group input, .modal-form-group select {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .modal-form-group input:focus, .modal-form-group select:focus {
+            border-color: var(--safco-red);
+            background-color: white;
+        }
+
+        .modal-footer {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            background-color: #fafbfc;
+        }
+
+        .btn-cancel {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .page-title {
+                font-size: 1.4rem;
+            }
+            .desktop-table-container {
+                display: none;
+            }
+            .mobile-card-list {
+                display: flex;
+            }
+            .modal-grid-2col {
+                grid-template-columns: 1fr;
+            }
+            /* Optimizaciones de Modal para Móviles */
+            .modal-card {
+                max-height: 95vh;
+                margin: 0.5rem;
+            }
+            .modal-body {
+                padding: 1rem;
+                gap: 0.8rem;
+            }
+            .modal-header, .modal-footer {
+                padding: 0.8rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <h1 class="page-title"><i class='bx bx-cloud-snow'></i> Inspección Embarque Frío</h1>
+        <button class="btn-primary-safco" id="btnNuevaInspeccion"><i class='bx bx-plus'></i> Nueva Inspección</button>
+    </div>
+
+    <!-- Filtros de Consulta -->
+    <div class="filters-row">
+        <div class="filters-left">
+            <div class="filter-group">
+                <label for="filterCampana">Campaña</label>
+                <select id="filterCampana" class="form-select" onchange="filterData()">
+                    <option value="">TODOS</option>
+                    <option value="UV26">UV26</option>
+                    <option value="GR26">GR26</option>
+                    <option value="ARA26">ARA26</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterFecha">Fecha</label>
+                <input type="date" id="filterFecha" class="form-input" onchange="filterData()">
+            </div>
+            <div class="filter-group">
+                <label for="filterInstruccion">Instrucción de Embarque</label>
+                <select id="filterInstruccion" class="form-select" onchange="filterData()">
+                    <option value="">TODOS</option>
+                    <!-- Poblar dinámicamente -->
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Escritorio: Tabla -->
+    <div class="desktop-table-container">
+        <table class="table-safco" id="inspectionsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>N° Instrucción</th>
+                    <th>Packing List</th>
+                    <th>Contenedor</th>
+                    <th>Booking</th>
+                    <th>Responsable</th>
+                    <th>N° Paletas</th>
+                    <th>Resultado</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Inyectado dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Contenedor Móvil: Tarjetas (Listile Card) -->
+    <div class="mobile-card-list" id="mobileCardsContainer">
+        <!-- Inyectado dinámicamente -->
+    </div>
+
+    <!-- MODAL DE CREACIÓN -->
+    <div class="modal-overlay" id="modalOverlay">
+        <form class="modal-card" id="inspeccionForm">
+            <div class="modal-header">
+                <h3>Nueva Inspección Embarque Frío</h3>
+                <button type="button" class="btn-close-modal" id="btnCancelX"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid-2col">
+                    <div class="modal-form-group">
+                        <label for="modalCampana">Campaña *</label>
+                        <select id="modalCampana" required onchange="onCampanaChangeModal()">
+                            <option value="" disabled selected>Seleccione...</option>
+                            <option value="UV26">UV26</option>
+                            <option value="GR26">GR26</option>
+                            <option value="ARA26">ARA26</option>
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="modalFecha">Fecha *</label>
+                        <input type="date" id="modalFecha" required>
+                    </div>
+                </div>
+
+                <div class="modal-grid-2col">
+                    <div class="modal-form-group">
+                        <label for="modalInstruccion">Instrucción de Embarque *</label>
+                        <select id="modalInstruccion" required onchange="onInstruccionChangeModal()">
+                            <option value="" disabled selected>Seleccione Campaña primero...</option>
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="modalCliente">Cliente *</label>
+                        <select id="modalCliente" required>
+                            <option value="Vanguard Logistics">Vanguard Logistics</option>
+                            <option value="Dole Food Company">Dole Food Company</option>
+                            <option value="Chiquita Brands">Chiquita Brands</option>
+                            <option value="Global Fruit Imports">Global Fruit Imports</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-grid-2col">
+                    <div class="modal-form-group">
+                        <label for="modalPackinglist">Packing List</label>
+                        <input type="text" id="modalPackinglist" placeholder="Generado automáticamente" readonly>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="modalContenedor">Contenedor *</label>
+                        <input type="text" id="modalContenedor" placeholder="Ej: GMOU9050950" required>
+                    </div>
+                </div>
+
+                <div class="modal-grid-2col">
+                    <div class="modal-form-group">
+                        <label for="modalBooking">Booking *</label>
+                        <input type="text" id="modalBooking" placeholder="Ej: qwdaazsdas" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="modalResponsable">Responsable *</label>
+                        <input type="text" id="modalResponsable" value="ALEX ALBERTO JUNIOR QUINTANILLA GARCIA" required>
+                    </div>
+                </div>
+
+                <div class="modal-form-group" style="margin-bottom: 0.5rem;">
+                    <label for="modalPaletas">Cantidad de Paletas</label>
+                    <input type="number" id="modalPaletas" value="23" min="1" max="24" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="btnCancelBtn">Cancelar</button>
+                <button type="submit" class="btn-primary-safco">Guardar Inspección</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Data Mockup inicial
+        let inspections = [
+            {
+                id: "INS-001",
+                campana: "UV26",
+                fecha: "2026-06-14",
+                instruccion: "ASP001",
+                packinglist: "PL-UV-001-A",
+                contenedor: "GMOU9050950",
+                booking: "qwdaazsdas",
+                responsable: "JOSE RODOLFO ANTONIO HERNANDEZSOBRERA",
+                paletas: 23,
+                resultado: "Conforme",
+                estado: "Aprobado"
+            },
+            {
+                id: "INS-002",
+                campana: "UV26",
+                fecha: "2026-06-12",
+                instruccion: "ASP011",
+                packinglist: "PL-UV-011-C",
+                contenedor: "TTNU8746397",
+                booking: "21312",
+                responsable: "JOSE RODOLFO ANTONIO HERNANDEZSOBRERA",
+                paletas: 20,
+                resultado: "Rechazado",
+                estado: "Rechazado"
+            },
+            {
+                id: "INS-003",
+                campana: "GR26",
+                fecha: "2026-06-11",
+                instruccion: "ASP012",
+                packinglist: "PL-GR-012-A",
+                contenedor: "TLLU7002260",
+                booking: "BOOKINGONE",
+                responsable: "ALEX ALBERTO JUNIOR QUINTANILLA GARCIA",
+                paletas: 21,
+                resultado: "Conforme",
+                estado: "En Curso"
+            },
+            {
+                id: "INS-004",
+                campana: "ARA26",
+                fecha: "2026-06-10",
+                instruccion: "ASP013",
+                packinglist: "PL-ARA-013-D",
+                contenedor: "ONEU9397600",
+                booking: "12312312",
+                responsable: "JOSE RODOLFO ANTONIO HERNANDEZSOBRERA",
+                paletas: 23,
+                resultado: "Observado",
+                estado: "Aprobado"
+            }
+        ];
+
+        // Mapeo de Instrucciones por Campaña
+        const instruccionesPorCampana = {
+            "UV26": ["ASP001", "ASP011", "ASP015", "ASP016", "ASP014"],
+            "GR26": ["ASP012", "ASP009", "ASP005"],
+            "ARA26": ["ASP013", "ASP010"]
+        };
+
+        // Mapeo automático de datos según la instrucción
+        const datosAutocompletar = {
+            "ASP001": { contenedor: "GMOU9050950", booking: "qwdaazsdas", pl: "PL-UV-001-A", cliente: "Vanguard Logistics", paletas: 23 },
+            "ASP011": { contenedor: "TTNU8746397", booking: "21312", pl: "PL-UV-011-C", cliente: "Global Fruit Imports", paletas: 20 },
+            "ASP012": { contenedor: "TLLU7002260", booking: "BOOKINGONE", pl: "PL-GR-012-A", cliente: "Dole Food Company", paletas: 21 },
+            "ASP013": { contenedor: "ONEU9397600", booking: "12312312", pl: "PL-ARA-013-D", cliente: "Chiquita Brands", paletas: 23 },
+            "ASP015": { contenedor: "IKSU2513437", booking: "12312321", pl: "PL-UV-015-X", cliente: "Vanguard Logistics", paletas: 22 },
+            "ASP016": { contenedor: "HLBU6264617", booking: "BK6699", pl: "PL-UV-016-Z", cliente: "Vanguard Logistics", paletas: 23 },
+            "ASP014": { contenedor: "SZLU9162807", booking: "BOOK22", pl: "PL-UV-014-E", cliente: "Global Fruit Imports", paletas: 24 },
+            "ASP009": { contenedor: "MEDU9766520", booking: "123123", pl: "PL-GR-009-Q", cliente: "Dole Food Company", paletas: 21 },
+            "ASP005": { contenedor: "HLBU9032209", booking: "PEPEPEPPEPE", pl: "PL-GR-005-P", cliente: "Dole Food Company", paletas: 23 },
+            "ASP010": { contenedor: "MEDU9638447", booking: "prueba 0033", pl: "PL-ARA-010-W", cliente: "Chiquita Brands", paletas: 22 }
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Inicializar localStorage si no existe
+            if (!localStorage.getItem("safco_inspections")) {
+                localStorage.setItem("safco_inspections", JSON.stringify(inspections));
+            } else {
+                inspections = JSON.parse(localStorage.getItem("safco_inspections"));
+            }
+
+            populateFilterInstrucciones();
+            renderList();
+
+            // Configurar modal listeners
+            const modalOverlay = document.getElementById("modalOverlay");
+            const btnNuevaInspeccion = document.getElementById("btnNuevaInspeccion");
+            const btnCancelX = document.getElementById("btnCancelX");
+            const btnCancelBtn = document.getElementById("btnCancelBtn");
+            const form = document.getElementById("inspeccionForm");
+
+            btnNuevaInspeccion.addEventListener("click", () => {
+                form.reset();
+                document.getElementById("modalFecha").valueAsDate = new Date();
+                document.getElementById("modalInstruccion").innerHTML = `<option value="" disabled selected>Seleccione Campaña primero...</option>`;
+                modalOverlay.classList.add("open");
+            });
+
+            const closeModal = () => modalOverlay.classList.remove("open");
+            btnCancelX.addEventListener("click", closeModal);
+            btnCancelBtn.addEventListener("click", closeModal);
+
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+                saveInspeccion();
+            });
+
+            // Cerrar dropdowns haciendo click fuera
+            window.addEventListener("click", (e) => {
+                if (!e.target.closest(".btn-actions")) {
+                    document.querySelectorAll(".actions-dropdown").forEach(d => d.classList.remove("show"));
+                }
+            });
+        });
+
+        function populateFilterInstrucciones() {
+            const selectFilter = document.getElementById("filterInstruccion");
+            selectFilter.innerHTML = '<option value="">TODOS</option>';
+            
+            Object.values(instruccionesPorCampana).flat().forEach(ins => {
+                selectFilter.innerHTML += `<option value="${ins}">${ins}</option>`;
+            });
+        }
+
+        // Lógica de modal dinámico según campaña
+        function onCampanaChangeModal() {
+            const campana = document.getElementById("modalCampana").value;
+            const selectInst = document.getElementById("modalInstruccion");
+            selectInst.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
+
+            if (instruccionesPorCampana[campana]) {
+                instruccionesPorCampana[campana].forEach(inst => {
+                    selectInst.innerHTML += `<option value="${inst}">${inst}</option>`;
+                });
+            }
+        }
+
+        // Lógica de autocompletar modal al elegir instrucción
+        function onInstruccionChangeModal() {
+            const inst = document.getElementById("modalInstruccion").value;
+            const data = datosAutocompletar[inst];
+            if (data) {
+                document.getElementById("modalContenedor").value = data.contenedor;
+                document.getElementById("modalBooking").value = data.booking;
+                document.getElementById("modalPackinglist").value = data.pl;
+                document.getElementById("modalPaletas").value = data.paletas;
+                
+                // Seleccionar cliente
+                const clientSelect = document.getElementById("modalCliente");
+                for (let i = 0; i < clientSelect.options.length; i++) {
+                    if (clientSelect.options[i].value === data.cliente) {
+                        clientSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function renderList() {
+            const tableBody = document.getElementById("tableBody");
+            const mobileCardsContainer = document.getElementById("mobileCardsContainer");
+            
+            tableBody.innerHTML = "";
+            mobileCardsContainer.innerHTML = "";
+
+            // Obtener filtros
+            const filterCampana = document.getElementById("filterCampana").value;
+            const filterFecha = document.getElementById("filterFecha").value;
+            const filterInstruccion = document.getElementById("filterInstruccion").value;
+
+            // Filtrar datos
+            const filteredInspections = inspections.filter(ins => {
+                if (filterCampana && ins.campana !== filterCampana) return false;
+                if (filterFecha && ins.fecha !== filterFecha) return false;
+                if (filterInstruccion && ins.instruccion !== filterInstruccion) return false;
+                return true;
+            });
+
+            if (filteredInspections.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: var(--text-muted); padding: 2rem;">No se encontraron registros de inspección.</td></tr>`;
+                mobileCardsContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem; background: white; border-radius: 8px;">No se encontraron registros.</div>`;
+                return;
+            }
+
+            filteredInspections.forEach(ins => {
+                // Resultado styling
+                let resClass = "result-conforme";
+                if (ins.resultado === "Rechazado") resClass = "result-rechazado";
+                else if (ins.resultado === "Observado") resClass = "result-observado";
+
+                // Estado badge styling
+                let stateClass = "status-pendiente";
+                if (ins.estado === "Aprobado") stateClass = "status-aprobado";
+                else if (ins.estado === "En Curso") stateClass = "status-curso";
+
+                // RENDER DESKTOP ROW
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td style="font-weight: 700;">${ins.id}</td>
+                    <td>${ins.fecha}</td>
+                    <td style="font-weight: 700; color: var(--safco-green-dark);">${ins.instruccion}</td>
+                    <td>${ins.packinglist}</td>
+                    <td>${ins.contenedor}</td>
+                    <td>${ins.booking}</td>
+                    <td style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ins.responsable}</td>
+                    <td>${ins.paletas}</td>
+                    <td class="result-badge ${resClass}">${ins.resultado}</td>
+                    <td><span class="status-badge ${stateClass}">${ins.estado}</span></td>
+                    <td style="position: relative;">
+                        <button class="btn-actions" onclick="toggleDropdown(event, '${ins.id}')">
+                            <i class='bx bx-dots-vertical-rounded'></i>
+                        </button>
+                        <div class="actions-dropdown" id="dropdown-${ins.id}">
+                            <button class="dropdown-item" onclick="viewDetails('${ins.id}')"><i class='bx bx-search-alt'></i> Ver Detalles</button>
+                            <button class="dropdown-item" onclick="editInspeccion('${ins.id}')"><i class='bx bx-edit-alt'></i> Editar</button>
+                            <button class="dropdown-item" onclick="deleteInspeccion('${ins.id}')"><i class='bx bx-trash'></i> Anular</button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+
+                // RENDER MOBILE CARD
+                const card = document.createElement("div");
+                card.className = "mobile-card";
+                card.innerHTML = `
+                    <div class="mobile-card-header">
+                        <span class="mobile-card-title">${ins.instruccion} (${ins.contenedor})</span>
+                        <span class="status-badge ${stateClass}">${ins.estado}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">ID:</span>
+                        <span class="mobile-card-value" style="font-weight: 700;">${ins.id}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Fecha:</span>
+                        <span class="mobile-card-value">${ins.fecha}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Packing List:</span>
+                        <span class="mobile-card-value">${ins.packinglist}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Paletas:</span>
+                        <span class="mobile-card-value">${ins.paletas}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Resultado:</span>
+                        <span class="mobile-card-value result-badge ${resClass}">${ins.resultado}</span>
+                    </div>
+                    <div class="mobile-card-actions">
+                        <button class="btn-mobile-action" onclick="viewDetails('${ins.id}')"><i class='bx bx-search-alt'></i> Ver Detalles</button>
+                        <button class="btn-mobile-action" onclick="editInspeccion('${ins.id}')"><i class='bx bx-edit-alt'></i></button>
+                        <button class="btn-mobile-action btn-danger-action" onclick="deleteInspeccion('${ins.id}')"><i class='bx bx-trash'></i></button>
+                    </div>
+                `;
+                mobileCardsContainer.appendChild(card);
+            });
+        }
+
+        function toggleDropdown(e, id) {
+            e.stopPropagation();
+            const current = document.getElementById(`dropdown-${id}`);
+            const wasOpen = current.classList.contains("show");
+            
+            // Cerrar todos
+            document.querySelectorAll(".actions-dropdown").forEach(d => d.classList.remove("show"));
+            
+            if (!wasOpen) {
+                current.classList.add("show");
+            }
+        }
+
+        function filterData() {
+            renderList();
+        }
+
+        function saveInspeccion() {
+            const campana = document.getElementById("modalCampana").value;
+            const fecha = document.getElementById("modalFecha").value;
+            const instruccion = document.getElementById("modalInstruccion").value;
+            const clientSelect = document.getElementById("modalCliente");
+            const cliente = clientSelect.options[clientSelect.selectedIndex].value;
+            const packinglist = document.getElementById("modalPackinglist").value;
+            const contenedor = document.getElementById("modalContenedor").value;
+            const booking = document.getElementById("modalBooking").value;
+            const responsable = document.getElementById("modalResponsable").value;
+            const paletas = parseInt(document.getElementById("modalPaletas").value);
+
+            // Generar nuevo ID
+            const newId = "INS-00" + (inspections.length + 1);
+
+            const newRecord = {
+                id: newId,
+                campana: campana,
+                fecha: fecha,
+                instruccion: instruccion,
+                packinglist: packinglist || ("PL-" + campana + "-" + instruccion + "-M"),
+                contenedor: contenedor,
+                booking: booking,
+                responsable: responsable,
+                paletas: paletas,
+                resultado: "Pendiente", // Por defecto
+                estado: "En Curso"     // Por defecto al crear
+            };
+
+            inspections.unshift(newRecord); // Colocar al principio
+            localStorage.setItem("safco_inspections", JSON.stringify(inspections));
+            
+            renderList();
+            document.getElementById("modalOverlay").classList.remove("open");
+        }
+
+        function viewDetails(id) {
+            // Guardar ID activo para consulta en detalles y cargar detalle
+            localStorage.setItem("active_inspection_id", id);
+            window.location.href = "detalle-embarque-frio.html";
+        }
+
+        function editInspeccion(id) {
+            alert("Acción de editar en el Mockup para el registro ID: " + id);
+        }
+
+        function deleteInspeccion(id) {
+            if(confirm("¿Seguro que desea anular el registro de inspección " + id + "?")) {
+                inspections = inspections.filter(ins => ins.id !== id);
+                localStorage.setItem("safco_inspections", JSON.stringify(inspections));
+                renderList();
+            }
+        }
+    </script>
+</body>
+</html>

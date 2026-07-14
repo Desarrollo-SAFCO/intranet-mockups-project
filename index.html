@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intranet - Bienvenido a SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Iconos Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --safco-red: #d30c0c;
+            --safco-red-dark: #b80a0a;
+            --radius-lg: 16px;
+        }
+
+        body {
+            background-color: #f1f5f9; /* Soft grey background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .login-card {
+            display: flex;
+            width: 100%;
+            max-width: 850px;
+            height: 520px;
+            background: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden; /* Clips the red column left corners */
+        }
+
+        /* Left Side: Solid Red, Logo and App title */
+        .login-logo-col {
+            flex: 1.1;
+            background-color: var(--safco-red);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            color: white;
+            text-align: center;
+            gap: 1.5rem;
+        }
+
+        .safco-oval-white {
+            width: 190px;
+            height: 110px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(-12deg);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0.5rem;
+        }
+
+        .safco-oval-white span {
+            color: var(--safco-red);
+            font-size: 3.1rem;
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: -2px;
+            transform: rotate(12deg);
+            display: inline-block;
+        }
+
+        .login-subtitle-white {
+            color: white;
+            font-size: 2.1rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        /* Right Side: Form */
+        .login-form-col {
+            flex: 1;
+            padding: 3.5rem 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1.2rem;
+            background-color: white;
+        }
+
+        .login-title-main {
+            color: #0f172a;
+            font-size: 2.3rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 0;
+        }
+
+        .login-subtitle-gray {
+            color: #64748b;
+            font-size: 0.9rem;
+            text-align: center;
+            margin: 0 0 1rem 0;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            text-align: left;
+        }
+
+        .input-container-custom {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background-color: #eef2f6; /* Soft blue-gray background */
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .input-container-custom:focus-within {
+            border-color: #cbd5e1;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+        }
+
+        .input-container-custom i.input-icon {
+            color: #64748b;
+            font-size: 1.15rem;
+            margin-right: 0.75rem;
+        }
+
+        .input-container-custom input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            outline: none;
+            font-size: 0.9rem;
+            color: #0f172a;
+            padding: 0;
+        }
+
+        .input-container-custom input::placeholder {
+            color: #94a3b8;
+        }
+
+        .input-container-custom i.action-icon {
+            color: #94a3b8;
+            font-size: 1.15rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .input-container-custom i.action-icon:hover {
+            color: #64748b;
+        }
+
+        .check-icon-green {
+            color: #10b981;
+            font-size: 1.1rem;
+            margin-left: 0.5rem;
+            display: none;
+        }
+
+        .check-icon-green.active {
+            display: block;
+        }
+
+        .btn-ingresar-custom {
+            width: 100%;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            color: #94a3b8;
+            border: none;
+            padding: 0.8rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+            cursor: not-allowed;
+            text-align: center;
+        }
+
+        .btn-ingresar-custom.active-red {
+            background-color: var(--safco-red);
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-ingresar-custom.active-red:hover {
+            background-color: var(--safco-red-dark);
+            box-shadow: 0 4px 12px rgba(211, 12, 12, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-card {
+                flex-direction: column;
+                height: auto;
+                max-width: 90%;
+            }
+
+            .login-logo-col {
+                padding: 2.5rem;
+                gap: 1rem;
+            }
+
+            .safco-oval-white {
+                width: 160px;
+                height: 90px;
+            }
+
+            .safco-oval-white span {
+                font-size: 2.6rem;
+            }
+
+            .login-subtitle-white {
+                font-size: 1.6rem;
+            }
+
+            .login-form-col {
+                padding: 2.5rem 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <!-- Logo en CSS (óvalo blanco con letras rojas) y Título -->
+        <div class="login-logo-col">
+            <div class="safco-oval-white">
+                <span>safco</span>
+            </div>
+            <h1 class="login-subtitle-white">Intranet Corporativo</h1>
+        </div>
+
+        <!-- Formulario -->
+        <form id="loginForm" class="login-form-col">
+            <h2 class="login-title-main">Bienvenido</h2>
+            <p class="login-subtitle-gray">Por favor ingrese sus credenciales para continuar.</p>
+            
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <div class="input-container-custom">
+                    <i class='bx bx-user input-icon'></i>
+                    <input type="text" id="username" placeholder="alex.quintanilla" required autocomplete="username">
+                    <i class='bx bxs-check-circle check-icon-green' id="checkUser"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <div class="input-container-custom">
+                    <i class='bx bx-lock-alt input-icon'></i>
+                    <input type="password" id="password" placeholder="••••••••••••" required autocomplete="current-password">
+                    <i class='bx bx-show action-icon' id="toggleEye"></i>
+                    <i class='bx bxs-check-circle check-icon-green' id="checkPass"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-ingresar-custom" id="btnIngresar">Iniciar Sesión</button>
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/shared.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>

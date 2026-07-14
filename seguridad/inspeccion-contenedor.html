@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspección de Contenedores - SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/inspeccion.css">
+    <!-- Iconos y Alertas -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="dashboard-layout" style="background-color: white;">
+    <!-- Contenedor adaptado 100% para IFRAME -->
+    <main class="content-area" style="padding: 2rem;">
+            
+            <div class="page-title-row">
+                <h1 class="page-title">Inspección de Contenedores</h1>
+                <a href="#" class="help-link"><i class='bx bx-question-mark' style="border:1px solid #4a90e2; border-radius:50%;"></i> Ayuda</a>
+            </div>
+
+            <div class="action-bar">
+                <div class="filters-row">
+                    <select class="material-select" id="filtroCampana">
+                        <option value="" disabled selected>CAMPAÑA</option>
+                        <option value="UVA-2026">UVA 2026</option>
+                        <option value="ARANDANO-2026">ARÁNDANO 2026</option>
+                    </select>
+                    
+                    <input type="date" class="material-select" id="filtroFecha" style="color:var(--text-main);">
+                    
+                    <button class="btn btn-secondary" style="height: 35px; background: transparent; border-bottom: 2px solid var(--border-color); color:#777; border-radius:0; border-top:none; border-left:none; border-right:none;" onclick="renderTabla()"><i class='bx bx-search'></i> Filtrar</button>
+                </div>
+            </div>
+
+            <!-- Tabla Verde Clon -->
+            <div style="overflow-x:auto;">
+                <table class="table-safco">
+                    <thead>
+                        <tr>
+                            <th>N° ORDEN</th>
+                            <th>FECHA</th>
+                            <th>CAMPAÑA</th>
+                            <th>N° BOOKING</th>
+                            <th>CONTENEDOR</th>
+                            <th>RESPONSABLE</th>
+                            <th>ESTADO</th>
+                            <th><i class='bx bx-cog'></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaContenedoresTbody">
+                        <!-- js render here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginacion Clon -->
+            <div style="margin-top: 2rem; display:flex; justify-content:flex-end; gap:0.5rem; color:#666; font-size:0.9rem;">
+                <span>&lt;</span>
+                <span style="border:1px solid #ccc; padding:0 0.4rem; color:#3b82f6; font-weight:600;">1</span>
+                <span>2</span><span>3</span><span>4</span><span>5</span>
+                <span>...</span><span>419</span>
+                <span>&gt;</span>
+            </div>
+
+        </main>
+
+    <!-- Modal Formulario Inspección (Clásico/Flat) -->
+    <div class="modal-overlay" id="modalInspeccion">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Formulario de Inspección de Seguridad</h2>
+                <button class="btn-close-modal" onclick="closeModal()"><i class='bx bx-x'></i></button>
+            </div>
+            
+            <div class="modal-body">
+                <input type="hidden" id="modalInspeccionId">
+
+                <!-- Datos -->
+                <div>
+                    <div class="form-section-title">Información General</div>
+                    <div class="grid-readonly">
+                        <div class="readonly-item"><span class="readonly-label">Nro. Orden</span><div class="readonly-value" id="ro-nroOrden"></div></div>
+                        <div class="readonly-item"><span class="readonly-label">Contenedor Asignado</span><div class="readonly-value" id="ro-contenedor"></div></div>
+                        <div class="readonly-item"><span class="readonly-label">Nro. Booking</span><div class="readonly-value" id="ro-booking"></div></div>
+                        <div class="readonly-item"><span class="readonly-label">Responsable Embarque</span><div class="readonly-value" id="ro-responsable"></div></div>
+                    </div>
+                </div>
+
+                <!-- Documentos -->
+                <div style="margin-top: 1rem;">
+                    <div class="form-section-title">Documentos del Transportista</div>
+                    <div class="file-upload-wrapper">
+                        <span class="readonly-label" style="display:block; margin-bottom:5px;">SOAT del Vehículo</span>
+                        <label class="file-btn">Seleccionar Archivo <input type="file" hidden onchange="updateFileName(this, 'soatName')"></label>
+                        <span class="file-name-display" id="soatName"></span>
+                    </div>
+                    <div class="file-upload-wrapper">
+                        <span class="readonly-label" style="display:block; margin-bottom:5px;">Guía de Remisión</span>
+                        <label class="file-btn">Seleccionar Archivo <input type="file" hidden onchange="updateFileName(this, 'guiaName')"></label>
+                        <span class="file-name-display" id="guiaName"></span>
+                    </div>
+                    <div class="file-upload-wrapper">
+                        <span class="readonly-label" style="display:block; margin-bottom:5px;">Tarjeta Propiedad</span>
+                        <label class="file-btn">Seleccionar Archivo <input type="file" hidden onchange="updateFileName(this, 'tarjetaName')"></label>
+                        <span class="file-name-display" id="tarjetaName"></span>
+                    </div>
+                </div>
+
+                <!-- Evidencias -->
+                <div style="margin-top: 1rem;">
+                    <div class="form-section-title">Evidencias Visuales (Fotos)</div>
+                    <div class="evidences-grid" id="evidencesGrid">
+                        <label class="evidence-box">
+                            <i class='bx bx-plus' style="font-size:1.5rem;"></i> Añadir Foto
+                            <input type="file" accept="image/*" hidden onchange="addFakePreview(this)">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div style="margin-top: 1rem;">
+                    <div class="form-section-title">Observaciones</div>
+                    <div id="obsList">
+                        <div class="obs-item"><textarea class="form-control" placeholder="Describa irregularidades..."></textarea></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="addObsField()">+ Añadir observación</button>
+                </div>
+
+                <!-- Dictamen Final -->
+                <div style="margin-top: 1rem;">
+                    <div class="form-section-title">Resultado</div>
+                    <select class="form-control" id="resDictamen" style="width: 100%; font-weight:600; font-size:1rem; padding: 0.8rem;">
+                        <option value="conforme">Conforme</option>
+                        <option value="rechazado">Rechazado</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarInspeccion()">Guardar Inspección</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="../js/shared.js"></script>
+    <script src="js/inspeccion-contenedor.js"></script>
+</body>
+</html>

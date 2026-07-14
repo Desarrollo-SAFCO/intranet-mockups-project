@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio Dashboard</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Iconos Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        body {
+            background-color: transparent;
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 2.2rem;
+        }
+
+        .dash-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #0f172a; /* Slate 900 */
+            font-size: 1.8rem;
+            font-weight: 700;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            margin: 0 0 2rem 0;
+        }
+        
+        .dash-title i {
+            font-size: 2.2rem;
+            color: #0f172a;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .safco-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .safco-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
+        }
+
+        .safco-card-img {
+            background-color: #f8fafc;
+            height: 270px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem;
+            position: relative;
+        }
+
+        .safco-card-body {
+            padding: 1.5rem;
+            flex: 1;
+        }
+
+        .safco-card-title {
+            font-size: 1.15rem;
+            color: #0f172a;
+            margin-bottom: 0.4rem;
+            font-weight: 700;
+        }
+
+        .safco-card-text {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .safco-card-footer {
+            display: flex;
+            border-top: 1px solid var(--border-color);
+            background-color: #fafbfc;
+        }
+
+        .safco-card-footer a {
+            flex: 1;
+            text-align: center;
+            padding: 0.95rem;
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all var(--transition-fast);
+        }
+
+        .safco-card-footer a:first-child { border-right: 1px solid var(--border-color); }
+        .safco-card-footer a:hover {
+            color: var(--safco-red);
+            background-color: #f1f5f9;
+        }
+
+        /* SIMULATION STYLES: Calendar */
+        .mini-calendar {
+            width: 100%;
+            max-width: 360px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.6rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+        .cal-header-title {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #0f172a;
+        }
+        .cal-btn-group {
+            display: flex;
+            gap: 2px;
+        }
+        .cal-btn {
+            background-color: var(--safco-red);
+            color: white;
+            border: none;
+            font-size: 0.55rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 2px;
+        }
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        .cal-day-header {
+            text-align: center;
+            font-size: 0.55rem;
+            font-weight: bold;
+            color: #94a3b8;
+            padding: 2px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .cal-cell {
+            min-height: 32px;
+            border: 1px solid #f1f5f9;
+            padding: 1px;
+            background-color: #fafbfc;
+        }
+        .cal-cell-num {
+            font-size: 0.55rem;
+            color: #94a3b8;
+            display: block;
+            text-align: right;
+            margin-bottom: 2px;
+            font-weight: bold;
+        }
+        .cal-event-pill {
+            background-color: #0d9488; /* Teal */
+            color: white;
+            font-size: 0.45rem;
+            padding: 1px 2px;
+            border-radius: 2px;
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.1;
+        }
+        .cal-event-pill.event-warn {
+            background-color: #f59e0b; /* Orange/Yellow */
+        }
+        .cal-event-pill.event-danger {
+            background-color: #ef4444; /* Red */
+        }
+
+        /* SIMULATION STYLES: GLPI Login */
+        .mini-glpi {
+            width: 100%;
+            max-width: 250px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.8rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .glpi-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .glpi-oval-logo {
+            width: 38px;
+            height: 22px;
+            background-color: var(--safco-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(-10deg);
+        }
+        .glpi-oval-logo span {
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            font-style: italic;
+            transform: rotate(10deg);
+            display: inline-block;
+        }
+        .glpi-logo-title {
+            font-size: 0.5rem;
+            font-weight: bold;
+            color: #64748b;
+        }
+        .glpi-title {
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: #0f172a;
+            margin: 0;
+        }
+        .glpi-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .glpi-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .glpi-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .glpi-label {
+            font-size: 0.55rem;
+            font-weight: bold;
+            color: #475569;
+        }
+        .glpi-forgot {
+            font-size: 0.5rem;
+            color: #ef4444;
+            text-decoration: none;
+        }
+        .glpi-input {
+            width: 100%;
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            background-color: #f8fafc;
+            outline: none;
+        }
+        .glpi-checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .glpi-checkbox-row label {
+            font-size: 0.55rem;
+            color: #64748b;
+        }
+        .glpi-btn {
+            background-color: var(--safco-red);
+            color: white;
+            border: none;
+            font-size: 0.65rem;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        /* Responsive grid */
+        @media (max-width: 992px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="dash-title"><i class='bx bx-home-alt'></i> Bienvenidos</h1>
+    <div class="cards-grid">
+        <!-- Área Común Card -->
+        <div class="safco-card">
+            <div class="safco-card-img">
+                <!-- Mini Calendario Simulado -->
+                <div class="mini-calendar">
+                    <div class="cal-header">
+                        <div class="cal-btn-group">
+                            <span class="cal-btn">&lt;</span>
+                            <span class="cal-btn">&gt;</span>
+                            <span class="cal-btn">hoy</span>
+                        </div>
+                        <div class="cal-header-title">noviembre de 2022</div>
+                        <div class="cal-btn-group">
+                            <span class="cal-btn">Mes</span>
+                            <span class="cal-btn">Semana</span>
+                            <span class="cal-btn">Agenda</span>
+                        </div>
+                    </div>
+                    <div class="cal-grid">
+                        <div class="cal-day-header">lun</div>
+                        <div class="cal-day-header">mar</div>
+                        <div class="cal-day-header">mié</div>
+                        <div class="cal-day-header">jue</div>
+                        <div class="cal-day-header">vie</div>
+                        <div class="cal-day-header">sáb</div>
+                        <div class="cal-day-header">dom</div>
+                        
+                        <div class="cal-cell">
+                            <span class="cal-cell-num">31</span>
+                            <div class="cal-event-pill">1 Reclutam...</div>
+                        </div>
+                        <div class="cal-cell">
+                            <span class="cal-cell-num">1</span>
+                            <div class="cal-event-pill">Reunion 1...</div>
+                        </div>
+                        <div class="cal-cell">
+                            <span class="cal-cell-num">2</span>
+                            <div class="cal-event-pill event-warn">Sistemas</div>
+                        </div>
+                        <div class="cal-cell">
+                            <span class="cal-cell-num">3</span>
+                            <div class="cal-event-pill">Inspeccio...</div>
+                        </div>
+                        <div class="cal-cell">
+                            <span class="cal-cell-num">4</span>
+                            <div class="cal-event-pill event-danger">COMPLETO</div>
+                        </div>
+                        <div class="cal-cell"><span class="cal-cell-num">5</span></div>
+                        <div class="cal-cell"><span class="cal-cell-num">6</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="safco-card-body">
+                <h3 class="safco-card-title">Reservacion de Areas Comunes</h3>
+                <p class="safco-card-text">Pagina para reservar salas de reuniones y ver calendario</p>
+            </div>
+            <div class="safco-card-footer">
+                <a href="#">Ir a la página <i class='bx bx-search'></i></a>
+                <a href="#">Ver <i class='bx bx-play-circle'></i></a>
+            </div>
+        </div>
+        
+        <!-- GLPI Card -->
+        <div class="safco-card">
+            <div class="safco-card-img">
+                <!-- Mini GLPI Login Simulado -->
+                <div class="mini-glpi">
+                    <div class="glpi-logo-container">
+                        <div class="glpi-oval-logo">
+                            <span>safco</span>
+                        </div>
+                        <div class="glpi-logo-title">Helpdesk GLPI</div>
+                    </div>
+                    <div class="glpi-title">Ingrese a su cuenta</div>
+                    <div class="glpi-form">
+                        <div class="glpi-form-group">
+                            <div class="glpi-label">Inicio de sesión</div>
+                            <input type="text" class="glpi-input" value="safco-local" readonly>
+                        </div>
+                        <div class="glpi-form-group">
+                            <div class="glpi-label-row">
+                                <div class="glpi-label">Contraseña</div>
+                                <a href="#" class="glpi-forgot" onclick="return false;">¿Olvidó su clave?</a>
+                            </div>
+                            <input type="password" class="glpi-input" value="••••••••" readonly>
+                        </div>
+                        <div class="glpi-checkbox-row">
+                            <input type="checkbox" id="glpi_remember" checked disabled>
+                            <label for="glpi_remember">Recordarme</label>
+                        </div>
+                        <div class="glpi-btn">Iniciar sesión</div>
+                    </div>
+                </div>
+            </div>
+            <div class="safco-card-body">
+                <h3 class="safco-card-title">Mesa de Ayuda</h3>
+                <p class="safco-card-text">Pagina para generacion de tickets y atención al usuario</p>
+            </div>
+            <div class="safco-card-footer">
+                <a href="#">Ir a la página <i class='bx bx-search'></i></a>
+                <a href="#">Ver <i class='bx bx-play-circle'></i></a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFCO · Rendición de Pasajes</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/rendicion-pasajes.css">
+    
+    <!-- Libraries (PDF generation & Alert) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="content-area">
+        <!-- Banner Módulo Ejecutivo -->
+        <div class="executive-banner" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div class="banner-content" style="flex:1;">
+                <h2>Rendición de Pasajes</h2>
+                <p>Módulo corporativo para la liquidación de movilidad terrestre y traslados diarios de operarios de campo de SAFCO.</p>
+            </div>
+            <button id="btn-nueva-rendicion" class="btn-sync" style="background-color:#dc2626; color:white; border-color:#dc2626; font-weight:700; padding:0.6rem 1.2rem; border-radius:6px; display:none;"><i class="bx bx-plus-circle"></i> Nueva Rendición</button>
+        </div>
+
+        <!-- Panel Control Simulado -->
+        <div class="role-sync-bar" id="role-sync-bar">
+            <div class="role-selector-group">
+                <label for="sel-rol">Simular como:</label>
+                <select id="sel-rol" class="role-select">
+                    <!-- Cargados dinámicamente -->
+                </select>
+            </div>
+            
+            <div class="sync-status-group">
+                <span class="sync-status-text">Usuario Activo: <strong id="displayPersonaName">Alex Quintanilla</strong> (<span id="displayPersonaRolArea">Supervisor · SISTEMAS</span>)</span>
+                <button id="btn-sync" class="btn-sync" title="Sincronizar con el rol activo de la barra superior del Dashboard"><i class="bx bx-sync"></i> Sincronizar Topbar</button>
+            </div>
+        </div>
+
+        <!-- Navegación por pestañas -->
+        <div id="tabs-navigation" class="tabs-container">
+            <!-- Se generan dinámicamente dependiendo del rol del usuario -->
+        </div>
+
+        <!-- Secciones de Contenido -->
+        <main class="content-wrapper-sections">
+
+            <!-- VISTA: REGISTRAR (Dashboard de Planillas Semanales) -->
+            <section id="v-registrar" class="view-section activa">
+                <div class="safco-form-card">
+                    
+                    <!-- Filtros -->
+                    <div class="chips-filter-row" style="margin-bottom:1rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center">
+                        <div class="form-group-custom" style="margin:0; width:180px">
+                            <select id="filtro-semana" class="material-select-custom" style="padding:0.4rem 0.6rem">
+                                <option value="todos">Todas las semanas</option>
+                                <!-- Se carga dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group-custom" style="margin:0; width:150px">
+                            <select id="filtro-estado" class="material-select-custom" style="padding:0.4rem 0.6rem">
+                                <option value="todos">Todos los estados</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Validada">Validada</option>
+                                <option value="Pagada">Pagada</option>
+                                <option value="Anulado">Anulado</option>
+                            </select>
+                        </div>
+                        <button id="btn-ordenar-costo" class="btn-sync" style="padding:0.4rem 0.75rem; background:white; color:var(--text-title);"><i class="bx bx-sort-alt-2"></i> Ordenar por Costo</button>
+                    </div>
+
+                    <!-- Tabla de Consolidados -->
+                    <div style="overflow-x:auto">
+                        <table class="safco-table table-responsive-cards" id="tabla-consolidados">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Semana Nisira</th>
+                                    <th>Descripción / Motivo</th>
+                                    <th>Operarios</th>
+                                    <th>Costo Total</th>
+                                    <th>Estado</th>
+                                    <th style="text-align:right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-consolidados">
+                                <!-- Filas de consolidados dinámicos -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA: MIS ENVIOS (Histórico Supervisor) -->
+            <section id="v-envios" class="view-section">
+                <div class="safco-form-card">
+                    <h3 class="form-title"><i class="bx bx-history"></i> Mis Rendiciones Registradas</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem">Consulta y descarga los formatos oficiales firmados de tus planillas de pasajes.</p>
+                    <div id="lista-envios" class="items-list-container">
+                        <!-- Items de rendición cargados dinámicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA: VALIDAR (Bandeja Jefe de Área) -->
+            <section id="v-validar" class="view-section">
+                <div class="safco-form-card">
+                    <h3 class="form-title"><i class="bx bx-badge-check"></i> Planillas Pendientes de Aprobación</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem">Revise el consolidado semanal del supervisor y firme digitalmente para autorizar el pago.</p>
+                    <div id="lista-validar" class="items-list-container">
+                        <!-- Consolidados pendientes de aprobación -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA: RRHH & PAGOS -->
+            <section id="v-rrhh" class="view-section">
+                <!-- Fila de KPIs -->
+                <div id="kpis-container" class="kpi-grid">
+                    <!-- KPIs cargados dinámicamente -->
+                </div>
+                
+                <div class="safco-form-card" style="margin-top:1.5rem">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom:1rem; flex-wrap:wrap; gap:1rem;">
+                        <h3 class="form-title" style="margin:0; border:none; padding:0"><i class="bx bx-credit-card-front"></i> Control Contable y Desembolsos</h3>
+                        <div id="chips-rrhh" class="chips-filter-row" style="margin:0">
+                            <!-- Chips de filtro -->
+                        </div>
+                    </div>
+                    
+                    <div id="lista-rrhh" class="items-list-container">
+                        <!-- Lista filtrada de consolidados para pagar -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA: CONFIGURACIÓN -->
+            <section id="v-config" class="view-section">
+                <div class="config-card-grid">
+                    <!-- Ajustes Generales -->
+                    <div class="safco-form-card">
+                        <h3 class="form-title"><i class="bx bx-cog"></i> Ajustes Generales del Módulo</h3>
+                        
+                        <div class="form-group-custom">
+                            <label>Punto de Origen Fijo:</label>
+                            <input type="text" id="cfg-origen" class="material-select-custom">
+                        </div>
+                        
+                        <div class="form-group-custom">
+                            <label>Motivo por Defecto:</label>
+                            <input type="text" id="cfg-motivo" class="material-select-custom">
+                        </div>
+                        
+                        <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:1rem;">
+                            <button id="btn-seed" class="btn-form-action" style="margin:0; background-color:var(--safco-teal-light); box-shadow:none;"><i class="bx bx-cylinder"></i> Cargar Datos Demo</button>
+                            <button id="btn-reset" class="btn-form-action" style="margin:0;"><i class="bx bx-trash"></i> Resetear Base de Datos</button>
+                        </div>
+                    </div>
+
+                    <!-- Configuración de Rutas y Tarifas -->
+                    <div class="safco-form-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom:0.5rem">
+                            <h3 class="form-title" style="margin:0; border:none; padding:0"><i class="bx bx-map-alt"></i> Rutas y Tarifas</h3>
+                            <button id="cfg-add-ruta" class="btn-sync" style="font-size:0.75rem;"><i class="bx bx-plus"></i> Añadir</button>
+                        </div>
+                        <div id="lista-rutas" class="config-list-scroll" style="max-height: 200px; overflow-y:auto">
+                            <!-- Rutas generadas -->
+                        </div>
+                    </div>
+
+                    <!-- Configuración de Áreas -->
+                    <div class="safco-form-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom:0.5rem">
+                            <h3 class="form-title" style="margin:0; border:none; padding:0"><i class="bx bx-layer"></i> Áreas del Fundo</h3>
+                            <button id="cfg-add-area" class="btn-sync" style="font-size:0.75rem;"><i class="bx bx-plus"></i> Añadir</button>
+                        </div>
+                        <div id="lista-areas" class="config-list-scroll" style="max-height: 200px; overflow-y:auto">
+                            <!-- Áreas generadas -->
+                        </div>
+                    </div>
+
+                    <!-- Configuración de Personal Directivo -->
+                    <div class="safco-form-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom:0.5rem">
+                            <h3 class="form-title" style="margin:0; border:none; padding:0"><i class="bx bx-shield-quarter"></i> Jefes y Coordinadores</h3>
+                            <button id="cfg-add-personal" class="btn-sync" style="font-size:0.75rem;"><i class="bx bx-plus"></i> Añadir</button>
+                        </div>
+                        <div id="lista-personal" class="config-list-scroll" style="max-height: 200px; overflow-y:auto">
+                            <!-- Personal administrativo -->
+                        </div>
+                    </div>
+
+                    <!-- Configuración de Base de Datos de Operarios -->
+                    <div class="safco-form-card" style="grid-column: span 2">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom:0.5rem">
+                            <h3 class="form-title" style="margin:0; border:none; padding:0"><i class="bx bx-group"></i> Registro Maestro de Operarios</h3>
+                            <button id="cfg-add-op" class="btn-sync" style="font-size:0.75rem;"><i class="bx bx-plus"></i> Registrar Operario</button>
+                        </div>
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem">Base de datos de operarios elegibles para rendición de transporte.</p>
+                        <div id="lista-ops-cfg" class="config-list-scroll" style="max-height: 280px; overflow-y:auto">
+                            <!-- Operarios -->
+                        </div>
+                    </div>
+
+                    <!-- Exportación y Respaldos -->
+                    <div class="safco-form-card" style="grid-column: span 2">
+                        <h3 class="form-title"><i class="bx bx-download"></i> Respaldos y Exportación de Datos</h3>
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem">Descargue reportes detallados en formato CSV (Excel) para procesos de auditoría y pago, o genere copias de seguridad completas en formato JSON.</p>
+                        
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:0.75rem">
+                            <button id="btn-xls-sem" class="btn-sync" style="justify-content:center"><i class="bx bx-file-blank"></i> Exportar Excel (Semana)</button>
+                            <button id="btn-xls-all" class="btn-sync" style="justify-content:center"><i class="bx bx-spreadsheet"></i> Exportar Excel (Histórico)</button>
+                            <button id="btn-export" class="btn-sync" style="justify-content:center"><i class="bx bx-export"></i> Descargar Copia JSON</button>
+                            <button id="btn-import" class="btn-sync" style="justify-content:center"><i class="bx bx-import"></i> Cargar Copia JSON</button>
+                            <input type="file" id="file-import" accept=".json" style="display:none">
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ===================== MODAL ASISTENTE DE REGISTRO POR PASOS ===================== -->
+    <div id="modal-wizard" class="modal-overlay">
+        <div class="modal-card-custom wizard-large-size" style="max-width: 900px; height: 90vh;">
+            <div class="modal-header-custom">
+                <h2 id="wizard-title">Registro de Planilla de Pasajes Semanal</h2>
+                <div class="btn-close-modal-custom" onclick="cerrarWizard()">✕</div>
+            </div>
+            
+            <!-- Indicador de pasos -->
+            <div class="wizard-steps-indicator">
+                <div class="step-indicator-item active" id="step-ind-1">
+                    <span class="step-num">1</span>
+                    <span class="step-lbl">Cabecera</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-indicator-item" id="step-ind-2">
+                    <span class="step-num">2</span>
+                    <span class="step-lbl">Operarios y Viajes</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-indicator-item" id="step-ind-3">
+                    <span class="step-num">3</span>
+                    <span class="step-lbl">Firmas y Comprobantes</span>
+                </div>
+            </div>
+
+            <!-- Cuerpo del Asistente -->
+            <div class="modal-body-custom wizard-body-content" style="flex:1; overflow-y:auto; padding:1.5rem;">
+                
+                <!-- PASO 1: CABECERA -->
+                <div id="wizard-step-1" class="wizard-step-section active">
+                    <div style="max-width: 500px; margin: 0 auto;">
+                        <h4 class="form-title" style="border:none; padding:0; margin-bottom:1rem;"><i class="bx bx-list-ol"></i> Cabecera del Documento</h4>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:0.5rem; margin-bottom:1rem">
+                            <div class="form-group-custom">
+                                <label>Año Nisira:</label>
+                                <select id="wiz-anio" class="material-select-custom">
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                </select>
+                            </div>
+                            <div class="form-group-custom">
+                                <label>Semana Nisira:</label>
+                                <select id="wiz-week" class="material-select-custom">
+                                    <!-- Dinámico -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group-custom">
+                            <label>Descripción / Nota de la Planilla:</label>
+                            <input type="text" id="wiz-desc" class="material-select-custom" placeholder="Ej. Rendición de pasajes operarios de campo de Sistemas">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 2: OPERARIOS Y CONFIGURACIÓN DE VIAJES -->
+                <div id="wizard-step-2" class="wizard-step-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h4 class="form-title" style="border:none; padding:0; margin:0;"><i class="bx bx-group"></i> Operarios Incluidos en la Planilla</h4>
+                        <button id="wiz-btn-add-op" class="btn-sync" style="background-color:var(--safco-teal-light); color:white; border-color:var(--safco-teal-light)"><i class="bx bx-user-plus"></i> Agregar Operario</button>
+                    </div>
+                    
+                    <div style="overflow-x:auto; margin-bottom:1rem;">
+                        <table class="safco-table table-responsive-cards" id="tabla-wiz-operarios" style="font-size:0.85rem">
+                            <thead>
+                                <tr>
+                                    <th>Operario</th>
+                                    <th>DNI</th>
+                                    <th>Cargo</th>
+                                    <th>Resumen de Viajes</th>
+                                    <th style="text-align:center">Subtotal</th>
+                                    <th style="text-align:right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-wiz-operarios">
+                                <!-- Operarios cargados para edición -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PASO 3: FIRMAS Y SUSTENTO DIGITAL -->
+                <div id="wizard-step-3" class="wizard-step-section">
+                    <h4 class="form-title" style="border:none; padding:0; margin-bottom:0.5rem;"><i class="bx bx-edit-alt"></i> Firmas y Comprobantes Yape</h4>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Ingrese la firma digital del supervisor y de cada operario, y adjunte capturas Yape para validar la planilla.</p>
+                    
+                    <!-- Firma del supervisor -->
+                    <div class="op-config-card" style="border-left-color: var(--safco-teal); margin-bottom: 1rem; background-color: white;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong style="color:var(--text-title)">Supervisor / Responsable de la Planilla:</strong>
+                                <span style="font-size:0.85rem; display:block" id="wiz-sup-name">Alex Quintanilla</span>
+                            </div>
+                            <button id="wiz-btn-firma-sup" class="btn-sync"><i class="bx bx-pen"></i> Firmar Planilla</button>
+                        </div>
+                        <div id="wiz-sup-firma-status" style="margin-top:0.25rem;">
+                            <!-- Estado de firma -->
+                        </div>
+                    </div>
+
+                    <!-- Lista de operarios con firmas y Yape -->
+                    <div id="wiz-ops-sustento-list" style="display:flex; flex-direction:column; gap:0.75rem;">
+                        <!-- Operarios cargados dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer del Asistente -->
+            <div class="modal-footer-custom no-print">
+                <button id="wiz-btn-cancel" class="btn-sync">Cerrar</button>
+                <button id="wiz-btn-save-draft" class="btn-sync" style="background-color:white; color:var(--safco-teal); border-color:var(--safco-teal)"><i class="bx bx-save"></i> Guardar Borrador</button>
+                <button id="wiz-btn-prev" class="btn-sync" style="display:none"><i class="bx bx-chevron-left"></i> Anterior</button>
+                <button id="wiz-btn-next" class="btn-sync" style="background-color:var(--safco-teal); color:white; border-color:var(--safco-teal)">Siguiente <i class="bx bx-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== SUBMODAL: SELECCIONAR OPERARIOS (PASO 2) ===================== -->
+    <div id="modal-selector-ops" class="modal-overlay">
+        <div class="modal-card-custom" style="max-width: 500px;">
+            <div class="modal-header-custom">
+                <h2>Añadir Operarios a Planilla</h2>
+                <div class="btn-close-modal-custom" onclick="cerrarSelectorOperarios()">✕</div>
+            </div>
+            <div class="modal-body-custom" style="max-height: 450px; display:flex; flex-direction:column; gap:0.75rem;">
+                <div class="form-group-custom">
+                    <input type="text" id="wiz-search-op" class="material-select-custom" placeholder="Buscar por Nombre, Apellidos o DNI...">
+                </div>
+                <div id="wiz-ops-select-list" class="config-list-scroll" style="flex:1; overflow-y:auto; border: 1px solid var(--border-color); padding:0.5rem; border-radius: var(--radius-sm);">
+                    <!-- Operarios con checkboxes -->
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button class="btn-sync" onclick="cerrarSelectorOperarios()">Cancelar</button>
+                <button class="btn-sync" id="wiz-btn-confirm-ops" style="background-color:var(--safco-teal); color:white; border-color:var(--safco-teal)">Añadir Seleccionados</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== SUBMODAL: CONFIGURACIÓN DE VIAJES INDIVIDUALES POR DÍA ===================== -->
+    <div id="modal-viajes-op" class="modal-overlay">
+        <div class="modal-card-custom" style="max-width: 800px; height: 85vh; display:flex; flex-direction:column;">
+            <div class="modal-header-custom">
+                <h2 id="viajes-op-title">Detalle Diario de Pasajes</h2>
+                <div class="btn-close-modal-custom" onclick="cerrarSubmodalViajes()">✕</div>
+            </div>
+            
+            <div class="modal-body-custom" style="flex:1; overflow-y:auto; padding:1.25rem;">
+                <!-- Panel de Pre-completado por defecto -->
+                <div style="background-color:#f8fafc; border: 1px dashed var(--border-color); padding:0.75rem; border-radius: var(--radius-md); margin-bottom:1.25rem;">
+                    <strong style="font-size:0.85rem; color:var(--text-title); display:block; margin-bottom:0.5rem;"><i class="bx bx-magic-wand"></i> Autocompletar Días Marcados</strong>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) 120px; gap:0.5rem; align-items:end;">
+                        <div class="form-group-custom" style="margin:0">
+                            <label style="font-size:0.7rem">Ruta:</label>
+                            <input type="text" id="wiz-def-ruta" class="material-select-custom" style="padding:0.35rem 0.5rem" value="Salas">
+                        </div>
+                        <div class="form-group-custom" style="margin:0">
+                            <label style="font-size:0.7rem">Costo S/.:</label>
+                            <input type="number" step="0.5" id="wiz-def-cost" class="material-select-custom" style="padding:0.35rem 0.5rem" value="5.0">
+                        </div>
+                        <div class="form-group-custom" style="margin:0">
+                            <label style="font-size:0.7rem">Tipo:</label>
+                            <select id="wiz-def-tipo" class="material-select-custom" style="padding:0.35rem 0.5rem">
+                                <option value="Solo ida">Solo ida</option>
+                                <option value="Ida y vuelta">Ida y vuelta</option>
+                            </select>
+                        </div>
+                        <div class="form-group-custom" style="margin:0">
+                            <label style="font-size:0.7rem">Motivo:</label>
+                            <input type="text" id="wiz-def-motivo" class="material-select-custom" style="padding:0.35rem 0.5rem" value="Traslado del personal">
+                        </div>
+                        <button class="btn-sync" onclick="aplicarValoresDefectoViajes()" style="padding:0.4rem 0.5rem; font-size:0.75rem; margin:0; background-color:var(--safco-teal-lighter)">Aplicar a Marcados</button>
+                    </div>
+                </div>
+
+                <!-- Tabla de los 7 días -->
+                <div style="overflow-x:auto">
+                    <table class="safco-table table-responsive-cards" id="tabla-viajes-dias" style="font-size:0.8rem">
+                        <thead>
+                            <tr>
+                                <th style="width:50px; text-align:center">¿Viajó?</th>
+                                <th style="width:110px">Día</th>
+                                <th>Ruta Destino</th>
+                                <th style="width:100px">Costo Viaje</th>
+                                <th style="width:150px">Tipo</th>
+                                <th>Motivo / Tarea</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-viajes-dias">
+                            <!-- Los 7 días Nisira generados dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="modal-footer-custom">
+                <button class="btn-sync" onclick="cerrarSubmodalViajes()">Cancelar</button>
+                <button class="btn-sync" onclick="guardarSubmodalViajes()" style="background-color:var(--safco-teal); color:white; border-color:var(--safco-teal)">Aceptar Detalles</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MODALES ORIGINALES RE-ESTILIZADOS ===================== -->
+
+    <!-- 1. Modal de Firma Digital -->
+    <div id="modal-firma" class="modal-overlay">
+        <div class="modal-card-custom" style="max-width: 480px;">
+            <div class="modal-header-custom">
+                <h2 id="firma-titulo">Firma Digital de Aprobación</h2>
+                <div class="btn-close-modal-custom" onclick="cerrarFirma(null)">✕</div>
+            </div>
+            <div class="modal-body-custom">
+                <div id="firma-dias-wrapper" style="margin-bottom:1rem; display:none;">
+                    <strong style="font-size:0.85rem; color:var(--text-title); display:block; margin-bottom:0.5rem;">Días que está firmando:</strong>
+                    <div id="firma-dias-checklist" style="display:flex; flex-direction:column; gap:0.35rem; max-height:150px; overflow-y:auto; padding:0.35rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); background-color:#f8fafc;">
+                        <!-- Checkbox por cada día registrado -->
+                    </div>
+                </div>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem">Dibuja tu firma con el mouse o pantalla táctil en el recuadro inferior:</p>
+                <div>
+                    <canvas id="firma-pad" class="canvas-firma-pad"></canvas>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button id="firma-cancelar" class="btn-sync">Cancelar</button>
+                <button id="firma-limpiar" class="btn-sync">Limpiar</button>
+                <button id="firma-omitir" class="btn-sync">Firma en Físico</button>
+                <button id="firma-guardar" class="btn-sync" style="background-color:var(--safco-teal); color:white; border-color:var(--safco-teal)">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal de Comprobantes Yape -->
+    <div id="modal-comp" class="modal-overlay">
+        <div class="modal-card-custom" style="max-width: 580px; height:80vh; display:flex; flex-direction:column;">
+            <div class="modal-header-custom">
+                <h2 id="comp-titulo">Comprobantes Yape de Pasajes</h2>
+                <div class="btn-close-modal-custom" onclick="compCancel()">✕</div>
+            </div>
+            <div class="modal-body-custom" style="flex:1; overflow-y:auto; padding:1.25rem;">
+                <p id="comp-hint" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem"></p>
+                
+                <div id="comp-slots-container" style="display:flex; flex-direction:column; gap:0.75rem;">
+                    <!-- Aquí se renderizará dinámicamente un casillero por día/tramo -->
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button id="comp-listo" class="btn-sync" style="background-color:var(--safco-teal); color:white; border-color:var(--safco-teal)">Listo, Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Modal Visor de Documento Oficial A4 (Imprimible) -->
+    <div id="modal-doc" class="modal-overlay">
+        <div class="modal-card-custom large-size" style="height:92vh">
+            <div class="modal-header-custom no-print">
+                <h2><i class="bx bx-file"></i> Documento Oficial de Pasajes SAFCO</h2>
+                <div style="display:flex; gap:0.5rem">
+                    <button id="doc-print" class="btn-sync" style="background-color:var(--safco-teal-light); color:white; border-color:var(--safco-teal-light)"><i class="bx bx-printer"></i> Imprimir</button>
+                    <button id="doc-share" class="btn-sync" style="background-color:white; color:var(--text-title);"><i class="bx bx-share-alt"></i> Descargar PDF</button>
+                    <button id="doc-cerrar" class="btn-sync" style="background-color:white; color:var(--text-title)">Cerrar</button>
+                </div>
+            </div>
+            <div class="modal-body-custom document-body-preview">
+                <div id="doc-body">
+                    <!-- Renderizado oficial del A4 (RG + CP) -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function compCancel() {
+            document.getElementById('modal-comp').classList.remove('activa');
+        }
+    </script>
+    <script src="js/rendicion-pasajes.js"></script>
+</body>
+</html>

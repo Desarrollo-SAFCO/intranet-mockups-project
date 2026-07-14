@@ -1,0 +1,157 @@
+/* Estilos específicos para la vista tabla estilo Clon */
+
+.page-title-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    color: var(--text-title);
+    font-weight: 700;
+}
+
+.help-link {
+    color: #4a90e2;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.action-bar {
+    margin-bottom: 2rem;
+}
+
+.filters-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.material-select {
+    border: none;
+    border-bottom: 1px solid #ccc;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #777;
+    background: transparent;
+    width: 250px;
+    outline: none;
+}
+
+.material-select:focus {
+    border-bottom-color: var(--safco-red);
+}
+
+/* Modificamos los bg de filas segun el estado original pedido */
+.row-pending {
+    background-color: #f0f8ff !important; /* Celeste muy suave */
+}
+
+.row-done {
+    background-color: #f0fff0 !important; /* Verde muy suave */
+}
+
+.row-rejected {
+    background-color: #fff0f0 !important; /* Rojo suave */
+    color: #999;
+}
+
+/* Modal Rediseño Flat */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    visibility: hidden;
+    opacity: 0;
+}
+.modal-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.modal-content {
+    background: white;
+    width: 900px;
+    max-width: 95%;
+    max-height: 90vh;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    background: var(--safco-red);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 { font-size: 1.25rem; font-weight: 600; }
+.btn-close-modal { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+
+.modal-body {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Secciones Modal */
+.form-section-title {
+    font-weight: 700;
+    color: var(--safco-green-dark);
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.grid-readonly {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.readonly-item { display:flex; flex-direction:column; }
+.readonly-label { font-size: 0.8rem; font-weight: 600; color: #666; text-transform:uppercase;}
+.readonly-value { font-size: 0.95rem; color: #111; border-bottom:1px dashed #ccc; padding:0.25rem 0;}
+
+/* File inputs Flat */
+.file-upload-wrapper { margin-bottom: 1rem; }
+.file-btn { 
+    background: #f8f9fa; border: 1px solid #ccc; padding: 0.4rem 1rem; 
+    font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items:center; gap:0.5rem;
+}
+.file-name-display { font-size: 0.85rem; color: #888; margin-left: 1rem; }
+
+/* Evidencias */
+.evidences-grid { display: flex; gap: 1rem; flex-wrap: wrap; }
+.evidence-box { 
+    width: 120px; height: 120px; border: 2px dashed #ccc; display: flex; 
+    align-items:center; justify-content:center; flex-direction:column;
+    color: #999; font-size: 0.8rem; cursor: pointer; background: #fafafa;
+}
+
+.obs-item textarea { width: 100%; min-height: 80px; margin-bottom: 0.5rem; }
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}

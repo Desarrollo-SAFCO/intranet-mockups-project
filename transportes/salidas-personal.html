@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salidas de Personal - SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/salidas-personal.css">
+    <!-- Iconos y Alertas -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="dashboard-layout" style="background-color: white;">
+    <!-- Contenedor adaptado para IFRAME -->
+    <main class="content-area" style="padding: 2rem;">
+        
+        <div class="page-title-row" style="justify-content: space-between; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <h1 class="page-title">Salidas de Personal <span style="font-size: 1.1rem; color: var(--text-muted); font-weight: normal;">(Trans. Menores)</span></h1>
+                <a href="#" class="help-link"><i class='bx bx-question-mark' style="border:1px solid #4a90e2; border-radius:50%;"></i> Ayuda</a>
+            </div>
+            
+            <div class="periodo-badge">
+                <span>Período: ENE/JUN</span>
+            </div>
+        </div>
+
+        <div class="action-bar" style="margin-top: 1rem;">
+            <div class="filters-row-container">
+                <div class="filters-row" style="margin-top: 0; align-items: center; flex-wrap: wrap;">
+                    <div class="filter-group">
+                        <label for="filtroFecha" class="filter-label">Fecha:</label>
+                        <input type="date" class="material-select" id="filtroFecha" style="width: 160px; color: var(--text-main);">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filtroVehiculo" class="filter-label">Vehículo:</label>
+                        <select class="material-select" id="filtroVehiculo" style="width: 180px;">
+                            <option value="">TODOS</option>
+                            <option value="ABC-123">ABC-123 (Toyota Hilux)</option>
+                            <option value="XYZ-987">XYZ-987 (Hyundai H1)</option>
+                            <option value="MNP-456">MNP-456 (Chevrolet Spin)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filtroTransporte" class="filter-label">Transporte:</label>
+                        <select class="material-select" id="filtroTransporte" style="width: 180px;">
+                            <option value="">TODOS</option>
+                            <option value="Interno SAFCO">Interno SAFCO</option>
+                            <option value="Transportes Rápidos S.A.">Transportes Rápidos S.A.</option>
+                            <option value="Trans-Pacífico S.A.">Trans-Pacífico S.A.</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-secondary btn-filter" onclick="aplicarFiltros()"><i class='bx bx-search'></i> Filtrar</button>
+                    <button class="btn btn-secondary btn-clear" onclick="limpiarFiltros()"><i class='bx bx-refresh'></i> Limpiar</button>
+                </div>
+                
+                <button class="btn btn-primary" onclick="abrirModalNuevaSalida()"><i class='bx bx-plus-circle'></i> Registrar Salida</button>
+            </div>
+        </div>
+
+        <!-- Tabla Verde SAFCO -->
+        <div style="overflow-x:auto; margin-top: 1.5rem;">
+            <table class="table-safco">
+                <thead>
+                    <tr>
+                        <th>ID SALIDA</th>
+                        <th>FECHA</th>
+                        <th>HORA SALIDA</th>
+                        <th>PASAJEROS</th>
+                        <th>VEHÍCULO</th>
+                        <th>TRANSPORTE</th>
+                        <th>RUTAS CUBIERTAS</th>
+                        <th>SOLICITUDES</th>
+                        <th>ESTADO</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="salidasTbody">
+                    <!-- JS render here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginacion Clon -->
+        <div style="margin-top: 2rem; display:flex; justify-content:flex-end; gap:0.5rem; color:#666; font-size:0.9rem;">
+            <span>&lt;</span>
+            <span style="border:1px solid #ccc; padding:0 0.4rem; color:#b80a0a; font-weight:600;">1</span>
+            <span>2</span><span>3</span>
+            <span>&gt;</span>
+        </div>
+
+    </main>
+
+    <!-- Modal Formulario Registro de Salida (Premium) -->
+    <div class="modal-overlay" id="modalSalida">
+        <div class="modal-content" style="width: 900px; max-width: 95%;">
+            <div class="modal-header">
+                <h2 id="modalTitle">Registrar Salida de Personal</h2>
+                <button class="btn-close-modal" onclick="closeModal()"><i class='bx bx-x'></i></button>
+            </div>
+            
+            <div class="modal-body">
+                <input type="hidden" id="salidaIdHidden">
+
+                <!-- 1. FECHA Y BUSQUEDA DE SOLICITUDES -->
+                <div>
+                    <div class="form-section-title">Paso 1: Programar Fecha de Salida</div>
+                    <div class="form-grid-three" style="grid-template-columns: 1.5fr 1fr 1fr; align-items: flex-end; gap: 1.5rem;">
+                        <div class="form-field">
+                            <label class="field-label">Seleccionar Fecha de Salida *</label>
+                            <input type="date" id="formFechaSalida" class="form-control" onchange="cargarSolicitudesPendientesPorFecha(this.value)" required>
+                        </div>
+                        <div class="form-field">
+                            <div class="date-status-info" id="solicitudesCountInfo">
+                                Ingrese una fecha para buscar solicitudes pendientes.
+                            </div>
+                        </div>
+                        <div class="form-field"></div>
+                    </div>
+                </div>
+
+                <!-- Contenedor dinámico de solicitudes a agrupar -->
+                <div id="solicitudesAgrupadorSection" style="display: none; margin-top: 0.5rem;">
+                    <div class="form-section-title-sub">Seleccionar Solicitudes a Agrupar en esta Salida</div>
+                    <div class="pending-solicitudes-container">
+                        <div style="overflow-x:auto;">
+                            <table class="table-sol-select">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;"></th>
+                                        <th>ID</th>
+                                        <th>HORA</th>
+                                        <th>ÁREA</th>
+                                        <th>RESPONSABLE</th>
+                                        <th>PASAJEROS</th>
+                                        <th>RUTAS PROPUESTAS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="solicitudesPendientesTbody">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="coincidence-helper" id="coincidenceMsg" style="display: none;">
+                            <i class='bx bxs-bell-ring'></i> Hemos detectado solicitudes con la misma hora de salida. ¡Puedes agruparlas seleccionando sus casillas!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. DETALLE DE INTEGRANTES Y RUTAS (SE ACTIVA AL SELECCIONAR SOLICITUDES) -->
+                <div id="integrantesRutasSeccion" style="display: none; margin-top: 0.5rem;">
+                    <div class="form-section-title">Paso 2: Pasajeros e Itinerario</div>
+                    
+                    <div class="split-row">
+                        <!-- Pasajeros a bordo -->
+                        <div class="split-col">
+                            <label class="field-label-small" style="font-weight: 700;">Pasajeros de las Solicitudes Seleccionadas</label>
+                            <div class="passengers-list-box" id="passengersFromSolicitudes">
+                                <!-- list of employees -->
+                            </div>
+
+                            <label class="field-label-small" style="font-weight: 700; margin-top: 1rem; display: block;">Integrantes de Terceros (Adicionales)</label>
+                            <div class="integrantes-input-row" style="margin-top: 0.25rem; flex-direction: column; align-items: stretch; gap: 0.5rem; display: flex;">
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="dniTerceroInput" class="form-control" placeholder="Buscar Tercero por DNI" maxlength="8">
+                                    <button type="button" class="btn btn-secondary" onclick="buscarYAgregarTercero()"><i class='bx bx-search'></i> Buscar</button>
+                                    <button type="button" class="btn btn-secondary" onclick="registrarNuevoTercero()" title="Registrar nuevo externo"><i class='bx bx-plus'></i> Nuevo</button>
+                                </div>
+                                <span style="font-size: 0.72rem; color: #64748b; margin-top: 2px; line-height: 1.3;">
+                                    <strong>DNI de prueba (Terceros):</strong> 
+                                    <span style="color: #b80a0a; cursor: pointer; text-decoration: underline;" onclick="document.getElementById('dniTerceroInput').value='10101010'">10101010 (Mecánico)</span> | 
+                                    <span style="color: #b80a0a; cursor: pointer; text-decoration: underline;" onclick="document.getElementById('dniTerceroInput').value='20202020'">20202020 (Logística)</span>
+                                </span>
+                            </div>
+                            <div class="members-chip-container" id="tercerosChips" style="min-height: 40px; margin-top: 0.5rem;">
+                                <!-- Chips for third party members -->
+                            </div>
+                        </div>
+
+                        <!-- Rutas e itinerarios -->
+                        <div class="split-col">
+                            <div class="form-section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span>Itinerario de la Salida</span>
+                                <div style="display: flex; gap: 0.25rem;">
+                                    <button type="button" class="btn btn-secondary" onclick="addSalidaOrderedRouteItem()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i class='bx bx-plus-circle'></i> Parada</button>
+                                    <button type="button" class="btn btn-secondary" onclick="crearNuevaRuta()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: var(--safco-green-dark);"><i class='bx bx-map-pin'></i> + Crear</button>
+                                </div>
+                            </div>
+                            
+                            <div id="salidaOrderedRoutesList" class="ordered-routes-list" style="display: flex; flex-direction: column; gap: 0.5rem; background: #fafbfc; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; max-height: 240px; overflow-y: auto;">
+                                <!-- JS renders ordered route items here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen pasajeros -->
+                    <div class="total-passengers-banner">
+                        <i class='bx bx-group'></i>
+                        <span>Cantidad Total de Pasajeros para la Salida: <strong id="totalPassengersLabel" style="font-size: 1.2rem; color: var(--safco-red);">0</strong> pasajeros</span>
+                    </div>
+                </div>
+
+                <!-- 3. VEHICULO, CHOFER Y TRANSPORTE -->
+                <div id="vehiculoTransporteSeccion" style="display: none; margin-top: 0.5rem;">
+                    <div class="form-section-title">Paso 3: Asignar Vehículo y Empresa de Transporte</div>
+                    <div class="form-grid-three" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-field">
+                            <label class="field-label">Empresa de Transporte *</label>
+                            <select id="formTransporteEmpresa" class="form-control" onchange="toggleTransporteOtro(this.value)" required>
+                                <option value="Interno SAFCO">Interno SAFCO</option>
+                                <option value="Transportes Rápidos S.A.">Transportes Rápidos S.A.</option>
+                                <option value="Trans-Pacífico S.A.">Trans-Pacífico S.A.</option>
+                                <option value="OTRO">OTRO (Especificar...)</option>
+                            </select>
+                            <input type="text" id="formTransporteEmpresaOtro" class="form-control" placeholder="Especificar empresa..." style="display: none; margin-top: 0.5rem;">
+                        </div>
+
+                        <div class="form-field">
+                            <label class="field-label">Vehículo Asignado *</label>
+                            <select id="formVehiculoSelect" class="form-control" onchange="toggleVehiculoOtro(this.value)" required>
+                                <option value="ABC-123|Toyota Hilux Blanca">ABC-123 (Toyota Hilux Blanca)</option>
+                                <option value="XYZ-987|Hyundai H1 Gris">XYZ-987 (Hyundai H1 Gris)</option>
+                                <option value="MNP-456|Chevrolet Spin Gris">MNP-456 (Chevrolet Spin Gris)</option>
+                                <option value="OTRO">OTRO VEHICULO...</option>
+                            </select>
+                            <div id="formVehiculoOtroGroup" style="display: none; margin-top: 0.5rem; gap: 0.25rem; display: none; flex-direction: column;">
+                                <input type="text" id="formVehiculoPlacaOtro" class="form-control" placeholder="Placa (Ej: ABC-789)">
+                                <input type="text" id="formVehiculoModeloOtro" class="form-control" placeholder="Modelo/Color (Ej: Toyota Hiace Gris)">
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="field-label">Conductor Asignado *</label>
+                            <input type="text" id="formConductor" class="form-control" placeholder="Nombre del conductor" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-three" style="grid-template-columns: 1fr 2fr; gap: 1rem; margin-top: 1rem;">
+                        <div class="form-field">
+                            <label class="field-label">Hora (Ingreso/Salida) *</label>
+                            <input type="time" id="formHoraSalidaFinal" class="form-control" required>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Hora oficial en la que saldrá el vehículo.</span>
+                        </div>
+                        <div class="form-field"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarSalida" onclick="guardarSalida()" style="display: none;">Registrar Salida de Personal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/shared.js"></script>
+    <script src="js/salidas-personal.js"></script>
+</body>
+</html>

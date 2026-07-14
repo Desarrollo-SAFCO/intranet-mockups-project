@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFCO · Firmas de Rendición de Pasajes</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/rendicion-pasajes.css">
+    
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body {
+            background-color: #f1f5f9 !important;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        .kiosk-card {
+            width: 100%;
+            max-width: 650px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .kiosk-header {
+            background: var(--safco-teal);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .kiosk-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        .kiosk-header p {
+            margin: 0.5rem 0 0 0;
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+        .kiosk-body {
+            padding: 2rem;
+        }
+        .dni-search-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+        .fingerprint-icon {
+            font-size: 4rem;
+            color: var(--safco-teal-light);
+            background: var(--safco-teal-bg);
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
+        }
+        .dni-input-container {
+            width: 100%;
+            max-width: 320px;
+            position: relative;
+        }
+        .dni-input {
+            width: 100%;
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 4px;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            color: var(--text-title);
+        }
+        .dni-input:focus {
+            border-color: var(--safco-teal-light);
+            box-shadow: 0 0 0 3px var(--safco-teal-bg);
+        }
+        .op-profile-bar {
+            background: linear-gradient(135deg, var(--safco-teal), var(--safco-teal-light));
+            color: white;
+            padding: 1.25rem 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .op-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        .week-card-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .week-card-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .week-card-item.signed {
+            border-left: 4px solid var(--safco-teal);
+        }
+        .week-card-item.pending {
+            border-left: 4px solid #f59e0b;
+        }
+        /* Canvas de Firma Digital */
+        .firma-container-box {
+            border: 1px dashed var(--safco-teal-border);
+            background: #fafbfc;
+            border-radius: var(--radius-md);
+            padding: 0.5rem;
+            position: relative;
+            margin-bottom: 1rem;
+            touch-action: none;
+        }
+        .canvas-pad-box {
+            width: 100%;
+            height: 180px;
+            background: white;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            cursor: crosshair;
+            display: block;
+            touch-action: none;
+        }
+        .btn-kiosk {
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-kiosk-primary {
+            background-color: var(--safco-teal-light);
+            color: white;
+        }
+        .btn-kiosk-primary:hover {
+            background-color: var(--safco-teal);
+        }
+        .btn-kiosk-secondary {
+            background-color: #f1f5f9;
+            color: var(--text-title);
+            border: 1px solid var(--border-color);
+        }
+        .btn-kiosk-secondary:hover {
+            background-color: #e2e8f0;
+        }
+        .btn-kiosk-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-kiosk-danger:hover {
+            background-color: #dc2626;
+        }
+        .btn-kiosk-warning {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .btn-kiosk-warning:hover {
+            background-color: #d97706;
+        }
+        
+        /* Responsivo para Tablet y Móvil */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .kiosk-card {
+                max-width: 100%;
+            }
+        }
+        @media (max-width: 576px) {
+            body {
+                padding: 0;
+                align-items: flex-start;
+            }
+            .kiosk-card {
+                border-radius: 0;
+                border: none;
+                min-height: 100vh;
+                box-shadow: none;
+            }
+            .kiosk-header {
+                padding: 1.5rem 1rem;
+            }
+            .kiosk-body {
+                padding: 1rem;
+            }
+            .safco-table th, .safco-table td {
+                padding: 0.5rem 0.4rem;
+                font-size: 0.75rem;
+            }
+            .dni-input {
+                font-size: 1.4rem;
+                padding: 0.6rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="kiosk-card">
+        <div class="kiosk-header">
+            <h1 id="kiosk-title-main">Comprobantes de Rendición</h1>
+            <p>Firma digital de movilidad terrestre para operarios de campo SAFCO</p>
+        </div>
+        
+        <div class="kiosk-body">
+            <!-- VISTA 1: BÚSQUEDA POR DNI -->
+            <div id="view-dni-search" class="view-panel active">
+                <div class="dni-search-box">
+                    <div class="fingerprint-icon">
+                        <i class="bx bx-fingerprint"></i>
+                    </div>
+                    <div style="max-width: 400px; margin-bottom: 0.5rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-title); margin-bottom:0.25rem">Portal de Autogestión de Firmas</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-muted)">Ingresa tu DNI para verificar tus semanas registradas y firmar tus pasajes acumulados.</p>
+                    </div>
+                    <div class="dni-input-container">
+                        <input type="text" id="input-dni" class="dni-input" placeholder="DNI" maxlength="8" pattern="\d*">
+                        <span style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.6rem; text-align: center; background-color: #f8fafc; padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border-color); line-height: 1.3;">
+                            💡 DNI de prueba con pasajes:<br>
+                            <strong style="color:var(--safco-teal-light)">44648673</strong> (Juan Pérez) o <strong style="color:var(--safco-teal-light)">45112233</strong> (José Ramírez)
+                        </span>
+                    </div>
+                    <button id="btn-search-dni" class="btn-kiosk btn-kiosk-primary" style="max-width: 250px; margin-top: 0.5rem;"><i class="bx bx-search"></i> Buscar Mis Rendiciones</button>
+                </div>
+            </div>
+            
+            <!-- VISTA 2: LISTADO DE SEMANAS DEL OPERARIO -->
+            <div id="view-op-dashboard" class="view-panel" style="display:none">
+                <div class="op-profile-bar">
+                    <div class="op-avatar">
+                        <i class="bx bx-user"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: white;" id="op-profile-name">Juan Pérez Ramos</h2>
+                        <span style="font-size: 0.8rem; opacity: 0.9;" id="op-profile-meta">Auxiliar de Soporte · DNI 44648673</span>
+                    </div>
+                </div>
+                
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-title); margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.35rem;">
+                    Mis Planillas de Movilidad
+                </h3>
+                
+                <div id="lista-semanas-operario" style="max-height: 350px; overflow-y:auto; margin-bottom: 1.5rem; padding-right: 0.25rem;">
+                    <!-- Cargadas dinámicamente -->
+                </div>
+                
+                <button id="btn-back-search" class="btn-kiosk btn-kiosk-secondary"><i class="bx bx-arrow-back"></i> Volver a Buscar</button>
+            </div>
+            
+            <!-- VISTA 3: DETALLE DE VIAJES Y FIRMA -->
+            <div id="view-op-details" class="view-panel" style="display:none">
+                <button id="btn-back-dashboard" class="btn-link" style="margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.25rem; font-weight:600; text-decoration:none; color:var(--safco-teal-light); border:none; background:none; cursor:pointer;">
+                    <i class="bx bx-arrow-back"></i> Volver al listado
+                </button>
+                
+                <div class="op-profile-bar" style="background: #f8fafc; color: var(--text-title); border: 1px solid var(--border-color); margin-bottom: 1rem; padding: 0.8rem 1rem;">
+                    <div>
+                        <h4 style="margin: 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; tracking: 0.5px;">Semana de Rendición Nisira</h4>
+                        <strong style="font-size: 1.1rem; color: var(--text-title);" id="lbl-detalle-semana">Semana 28 (08/07 al 14/07)</strong>
+                    </div>
+                </div>
+                
+                <!-- Desglose de pasajes -->
+                <div style="overflow-x:auto; margin-bottom: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <table class="safco-table" style="font-size: 0.8rem; margin:0; width:100%">
+                        <thead style="background-color: #f8fafc;">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Día</th>
+                                <th>Ruta / Destino</th>
+                                <th>Tipo</th>
+                                <th>Motivo / Tarea</th>
+                                <th style="text-align:right">Costo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-detalle-viajes">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color:#f8fafc; font-weight:700; border-top:2px solid var(--border-color);">
+                                <td colspan="5" style="text-align:right; padding:0.5rem 1rem;">Importe Total a Rendir:</td>
+                                <td style="text-align:right; color:var(--safco-teal); padding:0.5rem 1rem;" id="lbl-detalle-total">S/ 0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+
+                <!-- Checklist de Días -->
+                <div id="kiosk-firma-dias-wrapper" style="margin-top: 1.5rem; margin-bottom: 1rem;">
+                    <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-title); margin-bottom: 0.25rem;">Días que está firmando:</h3>
+                    <div id="kiosk-firma-dias-checklist" style="display:flex; flex-direction:column; gap:0.35rem; max-height:150px; overflow-y:auto; padding:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); background-color:#f8fafc;">
+                        <!-- Checkbox por cada viaje -->
+                    </div>
+                </div>
+                
+                <!-- Lienzo de Firma -->
+                <div style="margin-top: 1.5rem;">
+                    <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-title); margin-bottom: 0.5rem;">Firma Digital del Trabajador</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">Utilice el mouse o dibuje directamente con su dedo en la pantalla táctil:</p>
+                    
+                    <div class="firma-container-box">
+                        <canvas id="firma-operario-pad" class="canvas-pad-box"></canvas>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem">
+                        <button id="btn-clear-canvas" class="btn-kiosk btn-kiosk-secondary"><i class="bx bx-eraser"></i> Limpiar Trazo</button>
+                        <button id="btn-save-firma-digital" class="btn-kiosk btn-kiosk-primary"><i class="bx bx-check-double"></i> Confirmar Firma</button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Script Lógica -->
+    <script src="js/comprobante-rendicion.js"></script>
+</body>
+</html>

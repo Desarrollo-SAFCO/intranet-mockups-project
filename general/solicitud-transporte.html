@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Transporte - SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/solicitud-transporte.css">
+    <!-- Iconos y Alertas -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="dashboard-layout" style="background-color: white;">
+    <!-- Contenedor adaptado para IFRAME -->
+    <main class="content-area" style="padding: 2rem;">
+        
+        <div class="page-title-row">
+            <h1 class="page-title">Solicitud de Transporte</h1>
+            <a href="#" class="help-link"><i class='bx bx-question-mark' style="border:1px solid #4a90e2; border-radius:50%;"></i> Ayuda</a>
+        </div>
+
+        <!-- Info del Área Activa -->
+        <div class="area-indicator-banner">
+            <i class='bx bx-info-circle'></i>
+            <span>Mostrando solicitudes correspondientes al Área de: <strong id="activeAreaLabel">SISTEMAS</strong></span>
+        </div>
+
+        <div class="action-bar" style="margin-top: 1rem;">
+            <div class="filters-row-container">
+                <div class="filters-row" style="margin-top: 0; align-items: center; flex-wrap: wrap;">
+                    <div class="filter-group">
+                        <label for="filtroFecha" class="filter-label">Fecha:</label>
+                        <input type="date" class="material-select" id="filtroFecha" style="width: 160px; color: var(--text-main);">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filtroRuta" class="filter-label">Ruta:</label>
+                        <input type="text" class="material-select" id="filtroRuta" placeholder="Ej: Fundo..." style="width: 180px;">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filtroEstado" class="filter-label">Estado:</label>
+                        <select class="material-select" id="filtroEstado" style="width: 180px;">
+                            <option value="">TODOS LOS ESTADOS</option>
+                            <option value="Por Aprobar Salida">Por Aprobar Salida</option>
+                            <option value="Asignada">Asignada</option>
+                            <option value="Anulada">Anulada</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-secondary btn-filter" onclick="aplicarFiltros()"><i class='bx bx-search'></i> Filtrar</button>
+                    <button class="btn btn-secondary btn-clear" onclick="limpiarFiltros()"><i class='bx bx-refresh'></i> Limpiar</button>
+                </div>
+                
+                <button class="btn btn-primary" onclick="abrirModalNuevaSolicitud()"><i class='bx bx-plus-circle'></i> Nueva Solicitud</button>
+            </div>
+        </div>
+
+        <!-- Tabla Verde SAFCO -->
+        <div style="overflow-x:auto; margin-top: 1.5rem;">
+            <table class="table-safco">
+                <thead>
+                    <tr>
+                        <th>ID SOLICITUD</th>
+                        <th>FECHA</th>
+                        <th>HORA</th>
+                        <th>RESPONSABLE</th>
+                        <th>INTEGRANTES</th>
+                        <th>RUTAS DEFINIDAS</th>
+                        <th>ESTADO</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="solicitudesTbody">
+                    <!-- JS render here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginacion Clon -->
+        <div style="margin-top: 2rem; display:flex; justify-content:flex-end; gap:0.5rem; color:#666; font-size:0.9rem;">
+            <span>&lt;</span>
+            <span style="border:1px solid #ccc; padding:0 0.4rem; color:#b80a0a; font-weight:600;">1</span>
+            <span>2</span><span>3</span>
+            <span>&gt;</span>
+        </div>
+
+    </main>
+
+    <!-- Modal Formulario Solicitud (Clásico/Flat) -->
+    <div class="modal-overlay" id="modalSolicitud">
+        <div class="modal-content" style="width: 750px;">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nueva Solicitud de Transporte</h2>
+                <button class="btn-close-modal" onclick="closeModal()"><i class='bx bx-x'></i></button>
+            </div>
+            
+            <div class="modal-body">
+                <input type="hidden" id="solicitudIdHidden">
+
+                <!-- Datos Generales -->
+                <div>
+                    <div class="form-section-title">Información General</div>
+                    <div class="form-grid-three">
+                        <div class="form-field">
+                            <label class="field-label">Fecha de Salida *</label>
+                            <input type="date" id="formFecha" class="form-control" required>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label">Hora Estimada *</label>
+                            <input type="time" id="formHora" class="form-control" required>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label">Responsable *</label>
+                            <select id="formResponsable" class="form-control" required>
+                                <!-- JavaScript will populate this based on active Area -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalle de Integrantes -->
+                <div style="margin-top: 1.2rem;">
+                    <div class="form-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Integrantes de la Salida</span>
+                        <span class="badge-count" id="integrantesCountBadge">0 integrantes</span>
+                    </div>
+                    
+                    <div class="integrantes-input-row" style="flex-direction: column; align-items: stretch; gap: 0.5rem; display: flex;">
+                        <div style="display: flex; gap: 0.75rem;">
+                            <input type="text" id="dniIntegranteInput" class="form-control" placeholder="Ingrese DNI del trabajador (8 dígitos)" maxlength="8">
+                            <button type="button" class="btn btn-secondary" onclick="buscarYAgregarIntegrante()"><i class='bx bx-search'></i> Buscar</button>
+                        </div>
+                        <span style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                            <strong>DNI de prueba:</strong> 
+                            <span style="color: #b80a0a; cursor: pointer; text-decoration: underline;" onclick="fillDni('11111111')">11111111 (Sistemas)</span> | 
+                            <span style="color: #b80a0a; cursor: pointer; text-decoration: underline;" onclick="fillDni('22222222')">22222222 (Sistemas)</span> | 
+                            <span style="color: #b80a0a; cursor: pointer; text-decoration: underline;" onclick="fillDni('44444444')">44444444 (Seguridad)</span> | 
+                            <span style="color: #b80a0a; cursor: pointer; text-decoration: underline;" onclick="fillDni('66666666')">66666666 (Frío)</span> | 
+                            <span style="color: #b80a0a; cursor: pointer; text-decoration: underline;" onclick="fillDni('88888888')">88888888 (RRHH)</span>
+                        </span>
+                    </div>
+                    
+                    <div class="members-chip-container" id="membersChips" style="margin-top: 0.75rem;">
+                        <!-- Chips of members will go here -->
+                        <div class="empty-state-chip">No hay integrantes agregados.</div>
+                    </div>
+                </div>
+
+                <!-- Rutas Ordenadas -->
+                <div style="margin-top: 1.2rem;">
+                    <div class="form-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Itinerario de Rutas</span>
+                        <button type="button" class="btn btn-secondary" onclick="addOrderedRouteItem()" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;"><i class='bx bx-plus-circle'></i> Agregar Parada</button>
+                    </div>
+                    
+                    <div id="orderedRoutesList" class="ordered-routes-list" style="display: flex; flex-direction: column; gap: 0.5rem; background: #fafbfc; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem;">
+                        <!-- JS renders route items in order here -->
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarSolicitud()">Registrar Solicitud</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/shared.js"></script>
+    <script src="js/solicitud-transporte.js"></script>
+</body>
+</html>

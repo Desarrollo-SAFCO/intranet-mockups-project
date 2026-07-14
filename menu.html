@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú - SAFCO Intranet</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Iconos Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body class="dashboard-layout">
+
+    <!-- Sidebar Blanco con Franja Roja -->
+    <aside class="sidebar" id="mainSidebar">
+        <div class="sidebar-header">
+            <!-- Logo real Safco -->
+            <img class="safco-logo-img" src="logo_sin_fondo.png" alt="safco logo">
+        </div>
+        
+        <!-- Buscador lateral -->
+        <div class="sidebar-search">
+            <div class="sidebar-search-container">
+                <i class='bx bx-search'></i>
+                <input type="text" placeholder="Buscar paginas..." id="menuSearchInput">
+            </div>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link"><i class='bx bx-spreadsheet'></i> PRODUCCION</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                    <i class='bx bx-list-ul'></i> GENERAL
+                </a>
+                <ul class="submenu">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-folder'></i> Registros
+                        </a>
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <a href="general/solicitud-transporte.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-file'></i> Solicitud de Transporte
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                    <i class='bx bx-briefcase'></i> ADMINISTRACION
+                </a>
+                <ul class="submenu">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-folder'></i> Registros
+                        </a>
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <a href="administracion/rendicion-pasajes.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-money'></i> Rendición de Pasajes
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a href="administracion/comprobante-rendicion.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-badge-check'></i> Comprobantes de Rendición
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                    <i class='bx bx-bus'></i> TRANSPORTES
+                </a>
+                <ul class="submenu">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-folder'></i> Registros
+                        </a>
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <a href="transportes/salidas-personal.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-calendar-event'></i> Salidas de Personal
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link"><i class='bx bx-line-chart'></i> COMERCIAL</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link"><i class='bx bx-desktop'></i> SISTEMAS</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link"><i class='bx bx-package'></i> EXPORTADORA</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link"><i class='bx bx-smile'></i> RECURSOS-<br>HUMANOS</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link"><i class='bx bx-checkbox-checked'></i> CALIDAD</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                    <i class='bx bx-shield-quarter'></i> SEGURIDAD
+                </a>
+                <ul class="submenu">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-folder'></i> Registros
+                        </a>
+                        <!-- Tercer nivel de despliegue -->
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <!-- Enlace cargando en el Iframe -->
+                                <a href="seguridad/inspeccion-contenedor.html" target="contentFrame" class="sidebar-link">
+                                 <i class='bx bx-list-ul'></i> Inspección de Contenedores
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                    <i class='bx bx-cloud-snow'></i> FRIO Y DESPACHO
+                </a>
+                <ul class="submenu">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-folder'></i> Registros
+                        </a>
+                        <!-- Tercer nivel de despliegue -->
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <a href="frio/inspeccion-embarque-frio.html" target="contentFrame" class="sidebar-link">
+                                 <i class='bx bx-list-ul'></i> Inspección Embarque Frio
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link"><i class='bx bx-calculator'></i> CONTABILIDAD</a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <!-- Botón de toggle ocultamiento -->
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class='bx bx-align-left'></i></button>
+                <span>Panel de Control Central</span>
+            </div>
+            <div class="topbar-right">
+                <!-- Dropdown to select simulated user directly in topbar -->
+                <div class="user-simulator-container" style="display: flex; align-items: center; gap: 0.5rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.35rem 0.75rem; margin-right: 0.5rem;">
+                    <i class='bx bx-user-circle' style="font-size: 1.25rem; color: var(--safco-red);"></i>
+                    <div style="display: flex; flex-direction: column; text-align: left;">
+                        <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">Simular Usuario</span>
+                        <select id="topbarSimUserSelect" onchange="changeSimulatedUser(this.value)" style="border: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: var(--text-title); outline: none; cursor: pointer; text-transform: uppercase; padding: 0;">
+                            <option value="alex.quintanilla">Alex Quintanilla (SISTEMAS)</option>
+                            <option value="carlos.mendoza">Carlos Mendoza (SEGURIDAD)</option>
+                            <option value="ana.rodriguez">Ana Rodríguez (FRIO)</option>
+                            <option value="luis.zarat">Luis Zarat (RRHH)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="user-menu-container" onclick="toggleUserMenu()">
+                    <span id="displayUser" style="text-transform: uppercase;">ALEX.QUINTANILLA</span>
+                    <div class="user-avatar"><i class='bx bx-user'></i></div>
+                    <i class='bx bx-chevron-down user-menu-chevron'></i>
+                    
+                    <!-- Popup desplegable -->
+                    <div class="user-popup" id="userPopup">
+                        <a href="index.html" class="user-popup-item" onclick="logout(event)">
+                            <i class='bx bx-log-out'></i> Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area: Iframe SPA Router Outlet -->
+        <main class="content-area">
+            <iframe name="contentFrame" class="content-iframe" src="dashboard.html" title="Contenido Principal"></iframe>
+        </main>
+
+        <!-- Safco Footer -->
+        <footer class="safco-footer">
+            <span>Desarrollado por el Area de Sistemas || Agricola Safco S.A.C 2022</span>
+        </footer>
+
+    </div>
+
+    <script src="js/shared.js"></script>
+    <script src="js/menu.js"></script>
+</body>
+</html>
