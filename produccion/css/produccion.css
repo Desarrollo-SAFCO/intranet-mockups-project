@@ -1,0 +1,1076 @@
+/*
+ * produccion.css
+ * Estilos específicos para el Módulo de Producción de SAFCO
+ * Compatible con Tablet, Móvil y Web (Responsive & Touch-Friendly)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --safco-teal: #004a4c;
+  --safco-teal-dark: #003638;
+  --safco-teal-medium: #005f62;
+  --safco-teal-light: #cce5e5;
+  --safco-teal-bg: #e6f4f4;
+
+  --safco-red: #d80000;
+  --safco-red-hover: #b50000;
+  --safco-red-bg: #ffeaea;
+  --safco-red-border: #ffcccc;
+
+  --safco-amber: #f5a800;
+  --safco-amber-bg: #fffbea;
+  --safco-amber-border: #fde68a;
+
+  --safco-green: #4c8c2b;
+  --safco-green-bg: #f0fdf4;
+  --safco-green-light: #dcfce7;
+
+  --safco-gray: #64748b;
+  --safco-gray-bg: #f1f5f9;
+
+  --safco-bg: #f4f7f7;
+  --safco-card-bg: #ffffff;
+  --safco-border: #e2e8f0;
+  --safco-text-dark: #0f172a;
+  --safco-text-muted: #64748b;
+}
+
+/* Banner de Cabecera Ejecutiva para Producción con soporte Sticky y Kiosco */
+.produccion-banner {
+  background: linear-gradient(135deg, var(--safco-teal) 0%, var(--safco-teal-medium) 100%);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 74, 76, 0.18);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Botón Kiosco Tablet Pantalla Completa */
+.btn-kiosk-toggle {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  padding: 0.5rem 0.95rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+
+.btn-kiosk-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-kiosk-toggle.active-kiosk {
+  background: var(--safco-red);
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(216, 0, 0, 0.6);
+  animation: pulseKioskTablet 2s infinite;
+}
+
+@keyframes pulseKioskTablet {
+  0% { box-shadow: 0 0 0 0 rgba(216, 0, 0, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(216, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(216, 0, 0, 0); }
+}
+
+/* Modo Tablet Kiosco: Eliminación total de bordes/márgenes exteriores (Edge-to-Edge) */
+body.standalone-kiosk-mode,
+body.kiosk-tablet-mode {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+body.standalone-kiosk-mode main.content-area,
+body.kiosk-tablet-mode main.content-area {
+  padding: 0.5rem !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body.standalone-kiosk-mode .produccion-banner,
+body.kiosk-tablet-mode .produccion-banner {
+  position: sticky !important;
+  top: 0 !important;
+  width: calc(100% + 1rem) !important;
+  margin: -0.5rem -0.5rem 0.75rem -0.5rem !important;
+  z-index: 1000 !important;
+  border-radius: 0 !important;
+  padding: 0.75rem 1rem !important;
+  box-shadow: 0 4px 15px rgba(0, 74, 76, 0.3) !important;
+  box-sizing: border-box !important;
+}
+
+/* Adaptabilidad al estrechar la pantalla en ancho */
+main.content-area {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+
+@media (max-width: 1024px) {
+  main.content-area {
+    padding: 0.75rem !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .produccion-banner {
+    padding: 0.75rem 1rem !important;
+    gap: 0.5rem !important;
+  }
+  .produccion-banner-title {
+    min-width: 180px;
+  }
+  .produccion-banner-title h1 {
+    font-size: 1rem !important;
+  }
+  .produccion-banner-title p {
+    font-size: 0.75rem !important;
+  }
+  .produccion-banner-icon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1.1rem !important;
+  }
+  .btn-kiosk-toggle {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.78rem !important;
+  }
+}
+
+
+
+
+
+
+.produccion-banner::after {
+  content: '';
+  position: absolute;
+  right: -25px;
+  top: -25px;
+  width: 120px;
+  height: 120px;
+  background: var(--safco-red);
+  border-radius: 50%;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.produccion-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.produccion-banner-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.produccion-banner h1 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin: 0;
+  color: #ffffff;
+}
+
+.produccion-banner p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0.2rem 0 0 0;
+}
+
+/* Panel Colapsable de Filtros y KPIs (Estándar SAFCO Design System) */
+.collapsible-filter-card {
+  background: var(--safco-card-bg);
+  border: 1px solid var(--safco-border);
+  border-radius: 14px;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsible-filter-header {
+  padding: 0.85rem 1.2rem;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.collapsible-filter-header:hover {
+  background: #f8fafc;
+}
+
+.collapsible-filter-card.expanded .collapsible-filter-header {
+  border-bottom-color: var(--safco-border);
+}
+
+.filter-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--safco-teal);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.btn-toggle-panel {
+  background: var(--safco-teal-bg);
+  color: var(--safco-teal);
+  border: 1px solid var(--safco-teal-light);
+  border-radius: 8px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-panel:hover {
+  background: var(--safco-teal);
+  color: #ffffff;
+}
+
+.collapsible-filter-body {
+  padding: 1.1rem;
+  display: none;
+}
+
+.collapsible-filter-card.expanded .collapsible-filter-body {
+  display: block;
+}
+
+/* Tarjetas KPI de Resumen (Cliqueables para filtrar) */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.kpi-card {
+  background: var(--safco-card-bg);
+  border: 2px solid var(--safco-border);
+  border-radius: 12px;
+  padding: 0.9rem 0.6rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.kpi-card.clickable {
+  cursor: pointer;
+}
+
+.kpi-card.clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  border-color: var(--safco-teal-medium);
+}
+
+.kpi-card.active-kpi {
+  border-color: var(--safco-teal);
+  background: var(--safco-teal-bg);
+  box-shadow: 0 0 0 3px rgba(0, 74, 76, 0.15);
+}
+
+.kpi-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--safco-teal);
+}
+
+.kpi-val.ok { color: var(--safco-green); }
+.kpi-val.warn { color: var(--safco-amber); }
+.kpi-val.bad { color: var(--safco-red); }
+
+.kpi-lbl {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--safco-text-muted);
+  margin-top: 0.35rem;
+}
+
+/* Barra de Filtros Touch */
+.filter-bar-produccion {
+  background: transparent;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 140px;
+  flex: 1;
+}
+
+.filter-item label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--safco-text-muted);
+  letter-spacing: 0.4px;
+}
+
+.select-touch, .input-touch {
+  height: 44px;
+  padding: 0 0.85rem;
+  border: 1.5px solid var(--safco-border);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: var(--safco-text-dark);
+  background-color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.select-touch:focus, .input-touch:focus {
+  border-color: var(--safco-teal);
+  box-shadow: 0 0 0 3px rgba(0, 74, 76, 0.1);
+}
+
+/* Entrada Pistola Láser */
+.laser-input-box {
+  background: linear-gradient(135deg, #f0fdf4 0%, #e6f4f4 100%);
+  border: 2px solid var(--safco-teal);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 74, 76, 0.08);
+}
+
+.laser-input-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.laser-input-title h4 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--safco-teal);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.laser-badge-active {
+  background: var(--safco-green-light);
+  color: var(--safco-green);
+  border: 1px solid var(--safco-green);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  animation: pulseLaser 1.8s infinite;
+}
+
+@keyframes pulseLaser {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+.scanned-row-highlight {
+  animation: scanSuccess 1.5s ease-out;
+}
+
+@keyframes scanSuccess {
+  0% { background-color: var(--safco-green-light); transform: scale(1.01); }
+  100% { background-color: transparent; transform: scale(1); }
+}
+
+/* Grilla de Mesas (Rejilla Responsiva) */
+.mesas-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .mesas-grid-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mesa-card-item {
+  background: var(--safco-card-bg);
+  border: 2px solid var(--safco-border);
+  border-radius: 12px;
+  padding: 1rem;
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mesa-card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.mesa-card-item.completa {
+  border-color: var(--safco-teal-medium);
+  background: linear-gradient(180deg, #ffffff 0%, var(--safco-teal-bg) 100%);
+}
+
+.mesa-card-item.incompleta {
+  border-color: var(--safco-amber);
+  background: linear-gradient(180deg, #ffffff 0%, var(--safco-amber-bg) 100%);
+}
+
+.mesa-card-item.sin-sel {
+  border-color: var(--safco-red);
+  background: linear-gradient(180deg, #ffffff 0%, var(--safco-red-bg) 100%);
+}
+
+.mesa-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.mesa-code-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--safco-teal);
+}
+
+.mesa-status-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.pill-completa { background: var(--safco-teal-light); color: var(--safco-teal-dark); }
+.pill-incompleta { background: #fef3c7; color: #b45309; }
+.pill-sin-sel { background: var(--safco-red-border); color: var(--safco-red-hover); }
+
+/* Badges para Herramientas */
+.pill-asignado { background: var(--safco-green-light); color: var(--safco-green); border: 1px solid var(--safco-green); }
+.pill-disponible { background: var(--safco-amber-bg); color: #b45309; border: 1px solid var(--safco-amber-border); }
+.pill-perdida { background: var(--safco-red-bg); color: var(--safco-red-hover); border: 1px solid var(--safco-red-border); }
+.pill-deteriorada { background: var(--safco-gray-bg); color: var(--safco-gray); border: 1px solid var(--safco-border); }
+
+/* Slots de Personas en la Mesa */
+.mesa-slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.mesa-slot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--safco-border);
+  font-size: 0.8rem;
+}
+
+.slot-persona-info {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.slot-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.av-sel { background: var(--safco-teal); }
+.av-emb { background: var(--safco-red); }
+.av-empty { background: #cbd5e1; color: var(--safco-text-muted); }
+
+.slot-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--safco-text-dark);
+}
+
+.badge-rol {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.b-sel { background: var(--safco-teal-light); color: var(--safco-teal); }
+.b-emb { background: var(--safco-red-bg); color: var(--safco-red); }
+
+/* Tarjetas de Operario y Herramientas */
+.operario-herr-card {
+  background: var(--safco-card-bg);
+  border: 1px solid var(--safco-border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-left: 5px solid var(--safco-teal);
+}
+
+.operario-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.op-main-det {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.op-big-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--safco-teal-bg);
+  color: var(--safco-teal);
+  border: 2px solid var(--safco-teal-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.op-title-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--safco-text-dark);
+}
+
+.op-mesa-tag {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--safco-teal);
+  background: var(--safco-teal-bg);
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.15rem;
+}
+
+.herr-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.herr-chip {
+  background: #f8fafc;
+  border: 1px solid var(--safco-border);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.herr-chip-icon { font-size: 1.1rem; }
+.herr-chip-name { font-weight: 700; color: var(--safco-text-dark); }
+.herr-chip-calib { font-size: 0.7rem; color: var(--safco-text-muted); }
+
+/* Tabla Estándar SAFCO */
+.table-safco-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--safco-border);
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.table-safco {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.table-safco th {
+  background-color: var(--safco-teal);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.85rem 1rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--safco-teal-dark);
+}
+
+.table-safco td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--safco-border);
+  color: var(--safco-text-dark);
+}
+
+.table-safco tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Desplegable de Menú Kebab (3 puntos) */
+.action-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-kebab-menu {
+  background: transparent;
+  border: 1px solid var(--safco-border);
+  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: var(--safco-text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-kebab-menu:hover {
+  background-color: var(--safco-teal-bg);
+  border-color: var(--safco-teal);
+  color: var(--safco-teal);
+}
+
+.dropdown-action-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: #ffffff;
+  border: 1px solid var(--safco-border);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.dropdown-action-menu.show {
+  display: block;
+}
+
+.action-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--safco-text-dark);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.action-menu-item:hover {
+  background-color: #f1f5f9;
+  color: var(--safco-teal);
+}
+
+.action-menu-item.danger:hover {
+  background-color: var(--safco-red-bg);
+  color: var(--safco-red);
+}
+
+/* Modales Touch & Responsive con Z-Index por encima de todo */
+.modal-backdrop-safco {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 99999 !important;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-backdrop-safco.active {
+  display: flex;
+}
+
+.modal-card-safco {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100000 !important;
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Compactación de Tarjetas, Fuentes y Datos en Móvil y Tablet */
+@media (max-width: 900px) {
+  .produccion-banner {
+    padding: 0.65rem 0.85rem !important;
+    gap: 0.4rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  .produccion-banner-title h1 {
+    font-size: 0.9rem !important;
+  }
+  .produccion-banner-title p {
+    font-size: 0.7rem !important;
+  }
+  
+  /* Filtros y KPIs compactos */
+  .collapsible-filter-card {
+    padding: 0.65rem 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  .filter-bar-produccion {
+    gap: 0.5rem !important;
+  }
+  .filter-item label {
+    font-size: 0.72rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+  .select-touch, .input-touch {
+    height: 34px !important;
+    font-size: 0.78rem !important;
+    padding: 0 0.5rem !important;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
+    gap: 0.5rem !important;
+  }
+  .kpi-card {
+    padding: 0.45rem 0.55rem !important;
+  }
+  .kpi-val {
+    font-size: 1.1rem !important;
+  }
+  .kpi-lbl {
+    font-size: 0.65rem !important;
+  }
+
+  /* Grid de Mesas Compacto para ver más datos */
+  .mesas-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important;
+    gap: 0.55rem !important;
+  }
+  .mesa-card-item {
+    padding: 0.5rem !important;
+    min-height: auto !important;
+  }
+  .mesa-code-badge {
+    font-size: 0.82rem !important;
+  }
+  .mesa-status-pill {
+    font-size: 0.65rem !important;
+    padding: 0.12rem 0.35rem !important;
+  }
+  .slot-persona-info {
+    gap: 0.3rem !important;
+  }
+  .slot-avatar {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 0.65rem !important;
+  }
+  .slot-name {
+    font-size: 0.75rem !important;
+  }
+  .badge-rol {
+    font-size: 0.6rem !important;
+    padding: 0.1rem 0.3rem !important;
+  }
+
+  /* Tarjetas de Operario y Herramientas Compactas */
+  .operario-herr-card {
+    padding: 0.6rem 0.75rem !important;
+    margin-bottom: 0.6rem !important;
+    gap: 0.5rem !important;
+  }
+  .op-big-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.8rem !important;
+  }
+  .op-title-name {
+    font-size: 0.85rem !important;
+  }
+  .herr-chip {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.72rem !important;
+  }
+}
+
+/* Transformación Responsiva: Tablas a Tarjetas en Pantallas Pequeñas/Móviles */
+@media (max-width: 768px) {
+  .table-safco-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .table-safco {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .table-safco thead {
+    display: none !important;
+  }
+
+  .table-safco tbody {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .table-safco tbody tr {
+    display: block !important;
+    background: #ffffff !important;
+    border: 1px solid var(--safco-border) !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 0.85rem !important;
+    margin-bottom: 0.65rem !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+    border-left: 4px solid var(--safco-teal) !important;
+  }
+
+  .table-safco td {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.35rem 0 !important;
+    border-bottom: 1px dashed #e2e8f0 !important;
+    font-size: 0.82rem !important;
+    text-align: right !important;
+  }
+
+  .table-safco td:last-child {
+    border-bottom: none !important;
+    padding-top: 0.5rem !important;
+    justify-content: flex-end !important;
+  }
+
+  .table-safco td[data-label]::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: var(--safco-text-muted);
+    text-transform: uppercase;
+    text-align: left;
+    margin-right: 0.5rem;
+  }
+}
+
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+
+
+.modal-card-header {
+  background: var(--safco-teal);
+  color: #ffffff;
+  padding: 1.1rem 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-card-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-close-safco {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-close-safco:hover {
+  background: var(--safco-red);
+}
+
+.modal-card-body {
+  padding: 1.4rem;
+}
+
+.form-group-safco {
+  margin-bottom: 1rem;
+}
+
+.form-group-safco label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--safco-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.modal-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.4rem;
+}
+
+.btn-safco {
+  height: 44px;
+  padding: 0 1.2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-safco-primary {
+  background-color: var(--safco-red);
+  color: #ffffff;
+}
+
+.btn-safco-primary:hover {
+  background-color: var(--safco-red-hover);
+}
+
+.btn-safco-teal {
+  background-color: var(--safco-teal);
+  color: #ffffff;
+}
+
+.btn-safco-teal:hover {
+  background-color: var(--safco-teal-dark);
+}
+
+.btn-safco-secondary {
+  background-color: #f1f5f9;
+  color: var(--safco-text-dark);
+  border: 1px solid var(--safco-border);
+}
+
+.btn-safco-secondary:hover {
+  background-color: #e2e8f0;
+}

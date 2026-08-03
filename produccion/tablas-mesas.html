@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFCO · Mesas de Producción (Tabla Mantenimiento)</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Base Styles & Produccion Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/produccion.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body style="background-color: var(--safco-bg); min-height: 100vh;">
+    <main class="content-area" style="padding: 1.5rem; max-width: 1300px; margin: 0 auto;">
+        
+        <!-- Banner de Cabecera Ejecutiva -->
+        <div class="produccion-banner">
+            <div class="produccion-banner-title">
+                <div class="produccion-banner-icon">
+                    <i class='bx bx-table'></i>
+                </div>
+                <div>
+                    <h1>Catálogo de Mesas de Producción</h1>
+                    <p>Mantenimiento de infraestructura por Línea y Riel · Configuración de Capacidad</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header y ocupar todo el espacio web">
+                    <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
+                </button>
+                <button class="btn-safco btn-safco-primary" onclick="abrirModalNuevaMesa()">
+                    <i class='bx bx-plus-circle'></i> Crear Nuevas Mesas
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Colapsable de Filtros -->
+        <div class="collapsible-filter-card expanded" id="panel-filtros-tbl-mesas">
+            <div class="collapsible-filter-header" onclick="togglePanelFiltros('panel-filtros-tbl-mesas')">
+                <div class="filter-header-title">
+                    <i class='bx bx-filter-alt'></i> Filtros de Búsqueda de Mesas
+                </div>
+                <button class="btn-toggle-panel" type="button">
+                    <span class="txt-toggle">Ocultar Filtros</span>
+                    <i class='bx bx-chevron-up ico-toggle'></i>
+                </button>
+            </div>
+            <div class="collapsible-filter-body">
+                <div class="filter-bar-produccion">
+                    <div class="filter-item" style="max-width: 180px;">
+                        <label for="filter-tbl-linea">Línea:</label>
+                        <select id="filter-tbl-linea" class="select-touch" onchange="renderTablaMesas()">
+                            <option value="TODAS">Todas las Líneas</option>
+                            <option value="Línea 1">Línea 1</option>
+                            <option value="Línea 2">Línea 2</option>
+                            <option value="Línea 3">Línea 3</option>
+                            <option value="Línea 4">Línea 4</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="max-width: 160px;">
+                        <label for="filter-tbl-riel">Riel:</label>
+                        <select id="filter-tbl-riel" class="select-touch" onchange="renderTablaMesas()">
+                            <option value="TODOS">Todos los Rieles</option>
+                            <option value="Riel 1">Riel 1</option>
+                            <option value="Riel 2">Riel 2</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="flex: 2; min-width: 200px;">
+                        <label for="input-search-tbl">Buscar Código o ID de Mesa:</label>
+                        <input type="text" id="input-search-tbl" class="input-touch" placeholder="Ej: L1-R1-M05..." oninput="renderTablaMesas()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Estándar SAFCO -->
+        <div class="table-safco-container">
+            <table class="table-safco">
+                <thead>
+                    <tr>
+                        <th>ID MESA</th>
+                        <th>CÓDIGO LÍNEA-RIEL</th>
+                        <th>LÍNEA</th>
+                        <th>RIEL</th>
+                        <th>CAPACIDAD MAX</th>
+                        <th>ESTADO</th>
+                        <th style="text-align: right;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-mesas-catalog">
+                    <!-- JS rendering -->
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <!-- Modal Touch: Creación Masiva de Mesas con Conteo Dinámico -->
+    <div class="modal-backdrop-safco" id="modal-nueva-mesa">
+        <div class="modal-card-safco">
+            <div class="modal-card-header">
+                <h3><i class='bx bx-plus-circle'></i> Crear Nuevas Mesas (Masivo)</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-nueva-mesa')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                
+                <div class="form-group-safco">
+                    <label for="modal-add-linea">Línea de Producción:</label>
+                    <select id="modal-add-linea" class="select-touch" style="width: 100%;" onchange="actualizarInfoMesasExistentes()">
+                        <option value="Línea 1">Línea 1</option>
+                        <option value="Línea 2">Línea 2</option>
+                        <option value="Línea 3">Línea 3</option>
+                        <option value="Línea 4">Línea 4</option>
+                    </select>
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="modal-add-riel">Riel:</label>
+                    <select id="modal-add-riel" class="select-touch" style="width: 100%;" onchange="actualizarInfoMesasExistentes()">
+                        <option value="Riel 1">Riel 1</option>
+                        <option value="Riel 2">Riel 2</option>
+                    </select>
+                </div>
+
+                <!-- Banner Informativo de Mesas Existentes -->
+                <div id="banner-mesas-existentes" style="background: var(--safco-teal-bg); border: 1px solid var(--safco-teal-light); padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; color: var(--safco-teal); margin-bottom: 1rem; font-weight: 600;">
+                    <i class='bx bx-info-circle'></i> Cargando conteo de mesas...
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="modal-add-cantidad">Cantidad de Mesas a Crear:</label>
+                    <input type="number" id="modal-add-cantidad" class="input-touch" style="width: 100%;" value="5" min="1" max="50">
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="modal-add-capacidad">Capacidad de Operarios por Mesa:</label>
+                    <input type="number" id="modal-add-capacidad" class="input-touch" style="width: 100%;" value="3" min="1" max="6">
+                </div>
+
+                <div class="modal-card-actions">
+                    <button class="btn-safco btn-safco-secondary" style="flex: 1;" onclick="cerrarModal('modal-nueva-mesa')">Cancelar</button>
+                    <button class="btn-safco btn-safco-teal" style="flex: 1;" onclick="confirmarCrearMesas()">
+                        <i class='bx bx-check-double'></i> Generar Mesas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ver Estado Actual de Mesa -->
+    <div class="modal-backdrop-safco" id="modal-ver-estado-mesa">
+        <div class="modal-card-safco">
+            <div class="modal-card-header">
+                <h3 id="titulo-ver-estado-mesa"><i class='bx bx-group'></i> Integrantes en Mesa</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-ver-estado-mesa')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <div id="body-ver-estado-mesa">
+                    <!-- Detalle de personas -->
+                </div>
+                <div class="modal-card-actions" style="margin-top: 1.2rem;">
+                    <button class="btn-safco btn-safco-secondary" style="width: 100%;" onclick="cerrarModal('modal-ver-estado-mesa')">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Mesa Individual -->
+    <div class="modal-backdrop-safco" id="modal-editar-mesa">
+        <div class="modal-card-safco">
+            <div class="modal-card-header" style="background: var(--safco-teal-dark);">
+                <h3><i class='bx bx-edit'></i> Editar Mesa de Producción</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-editar-mesa')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <input type="hidden" id="edit-mesa-id">
+                
+                <div class="form-group-safco">
+                    <label>Código de Mesa:</label>
+                    <input type="text" id="edit-mesa-codigo" class="input-touch" style="width: 100%; font-family: 'DM Mono', monospace; font-weight: 700;" readonly>
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="edit-mesa-capacidad">Capacidad de Operarios:</label>
+                    <input type="number" id="edit-mesa-capacidad" class="input-touch" style="width: 100%;" min="1" max="6">
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="edit-mesa-estado">Estado Operativo:</label>
+                    <select id="edit-mesa-estado" class="select-touch" style="width: 100%;">
+                        <option value="Activa">Activa</option>
+                        <option value="Inactiva">Inactiva / Anulada</option>
+                    </select>
+                </div>
+
+                <div class="modal-card-actions">
+                    <button class="btn-safco btn-safco-secondary" style="flex: 1;" onclick="cerrarModal('modal-editar-mesa')">Cancelar</button>
+                    <button class="btn-safco btn-safco-teal" style="flex: 1;" onclick="guardarEdicionMesa()">
+                        <i class='bx bx-save'></i> Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Lógica y Datos -->
+    <script src="js/produccion-data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTablaMesas();
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.action-menu-container')) {
+                    document.querySelectorAll('.dropdown-action-menu').forEach(m => m.classList.remove('show'));
+                }
+            });
+        });
+
+        // Toggle Modo Tablet Kiosco CSS puro (Apto para Capacitor y Web)
+        function toggleTabletKioskMode() {
+            let isKiosk = document.body.classList.toggle('standalone-kiosk-mode');
+
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'TOGGLE_TABLET_KIOSK' }, '*');
+                }
+            } catch (e) {
+                console.warn('Cross-origin frame notice:', e);
+            }
+
+            actualizarBotonKioskUI(isKiosk);
+        }
+
+        function actualizarBotonKioskUI(isKiosk) {
+            const btn = document.getElementById('btn-kiosk-mode');
+            if (btn) {
+                if (isKiosk) {
+                    btn.classList.add('active-kiosk');
+                    btn.innerHTML = `<i class='bx bx-exit-fullscreen'></i> <span class="txt-kiosk">Restaurar Navegación</span>`;
+                } else {
+                    btn.classList.remove('active-kiosk');
+                    btn.innerHTML = `<i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>`;
+                }
+            }
+        }
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'TABLET_KIOSK_STATUS') {
+                const isKiosk = event.data.isKiosk;
+                actualizarBotonKioskUI(isKiosk);
+                if (isKiosk) document.body.classList.add('standalone-kiosk-mode');
+                else document.body.classList.remove('standalone-kiosk-mode');
+            }
+        });
+
+        function togglePanelFiltros(panelId) {
+            const panel = document.getElementById(panelId);
+            const isExpanded = panel.classList.contains('expanded');
+            const txtToggle = panel.querySelector('.txt-toggle');
+            const icoToggle = panel.querySelector('.ico-toggle');
+
+            if (isExpanded) {
+                panel.classList.remove('expanded');
+                if (txtToggle) txtToggle.textContent = 'Mostrar Filtros';
+                if (icoToggle) {
+                    icoToggle.classList.remove('bx-chevron-up');
+                    icoToggle.classList.add('bx-chevron-down');
+                }
+            } else {
+                panel.classList.add('expanded');
+                if (txtToggle) txtToggle.textContent = 'Ocultar Filtros';
+                if (icoToggle) {
+                    icoToggle.classList.remove('bx-chevron-down');
+                    icoToggle.classList.add('bx-chevron-up');
+                }
+            }
+        }
+
+        function renderTablaMesas() {
+            const fLinea = document.getElementById('filter-tbl-linea').value;
+            const fRiel = document.getElementById('filter-tbl-riel').value;
+            const search = document.getElementById('input-search-tbl').value.toLowerCase().trim();
+
+            const mesas = ProduccionDB.getMesas();
+            const tbody = document.getElementById('tbody-mesas-catalog');
+            tbody.innerHTML = '';
+
+            let filtradas = mesas;
+            if (fLinea !== 'TODAS') filtradas = filtradas.filter(m => m.linea === fLinea);
+            if (fRiel !== 'TODOS') filtradas = filtradas.filter(m => m.riel === fRiel);
+            if (search) {
+                filtradas = filtradas.filter(m => m.codigo.toLowerCase().includes(search) || m.id.toLowerCase().includes(search));
+            }
+
+            if (filtradas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--safco-text-muted); padding: 1.5rem;">No hay mesas registradas con los filtros seleccionados.</td></tr>`;
+                return;
+            }
+
+            filtradas.forEach((mesa, idx) => {
+                const menuId = `menu-mesa-${idx}`;
+                const isActiva = mesa.estado === 'Activa';
+
+                const accionActivarAnularHtml = isActiva ? `
+                    <button class="action-menu-item danger" onclick="anularMesa('${mesa.id}')">
+                        <i class='bx bx-x-circle'></i> Anular Mesa
+                    </button>
+                ` : `
+                    <button class="action-menu-item" style="color: var(--safco-green);" onclick="activarMesa('${mesa.id}')">
+                        <i class='bx bx-check-circle'></i> Activar Mesa
+                    </button>
+                `;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td data-label="ID Mesa" style="font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 700; color: var(--safco-text-muted);">${mesa.id}</td>
+                        <td data-label="Código" style="font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 800; color: var(--safco-teal);">${mesa.codigo}</td>
+                        <td data-label="Línea">${mesa.linea}</td>
+                        <td data-label="Riel">${mesa.riel}</td>
+                        <td data-label="Capacidad"><span class="badge-rol b-sel">${mesa.capacidad} Operarios</span></td>
+                        <td data-label="Estado">
+                            <span class="mesa-status-pill ${isActiva ? 'pill-completa' : 'pill-sin-sel'}">${mesa.estado}</span>
+                        </td>
+                        <td data-label="Acciones" style="text-align: right;">
+                            <div class="action-menu-container">
+                                <button class="btn-kebab-menu" onclick="toggleKebabMenu('${menuId}', event)">
+                                    <i class='bx bx-dots-vertical-rounded'></i>
+                                </button>
+                                <div class="dropdown-action-menu" id="${menuId}">
+                                    <button class="action-menu-item" onclick="verEstadoActualMesa('${mesa.codigo}')">
+                                        <i class='bx bx-group'></i> Ver Estado Actual
+                                    </button>
+                                    <button class="action-menu-item" onclick="abrirModalEditarMesa('${mesa.id}')">
+                                        <i class='bx bx-edit'></i> Editar Mesa
+                                    </button>
+                                    ${accionActivarAnularHtml}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+            });
+        }
+
+        function toggleKebabMenu(id, event) {
+            event.stopPropagation();
+            document.querySelectorAll('.dropdown-action-menu').forEach(m => {
+                if (m.id !== id) m.classList.remove('show');
+            });
+            const menu = document.getElementById(id);
+            if (menu) menu.classList.toggle('show');
+        }
+
+        function abrirModalNuevaMesa() {
+            actualizarInfoMesasExistentes();
+            document.getElementById('modal-nueva-mesa').classList.add('active');
+        }
+
+        function actualizarInfoMesasExistentes() {
+            const linea = document.getElementById('modal-add-linea').value;
+            const riel = document.getElementById('modal-add-riel').value;
+
+            const mesas = ProduccionDB.getMesas();
+            const existentes = mesas.filter(m => m.linea === linea && m.riel === riel);
+            const count = existentes.length;
+
+            const banner = document.getElementById('banner-mesas-existentes');
+            banner.innerHTML = `
+                <i class='bx bx-info-circle'></i> Actulamente existen <strong>${count} mesas</strong> creadas en <strong>${linea} - ${riel}</strong>.<br>
+                <span style="font-size: 0.78rem; opacity: 0.9;">Las nuevas mesas comenzarán a numerarse desde <strong>M${String(count + 1).padStart(2, '0')}</strong>.</span>
+            `;
+        }
+
+        function confirmarCrearMesas() {
+            const linea = document.getElementById('modal-add-linea').value;
+            const riel = document.getElementById('modal-add-riel').value;
+            const cantidad = parseInt(document.getElementById('modal-add-cantidad').value) || 1;
+            const capacidad = parseInt(document.getElementById('modal-add-capacidad').value) || 3;
+
+            const nuevas = ProduccionDB.addMesasBulk(linea, riel, cantidad, capacidad);
+            cerrarModal('modal-nueva-mesa');
+            renderTablaMesas();
+
+            Swal.fire({
+                title: '¡Mesas Creadas!',
+                text: `Se han generado ${nuevas.length} mesas nuevas para ${linea} - ${riel}.`,
+                icon: 'success',
+                confirmButtonColor: '#004a4c'
+            });
+        }
+
+        function verEstadoActualMesa(codigoMesa) {
+            document.querySelectorAll('.dropdown-action-menu').forEach(m => m.classList.remove('show'));
+            document.getElementById('titulo-ver-estado-mesa').innerHTML = `<i class='bx bx-group'></i> Integrantes Actuales - Mesa ${codigoMesa}`;
+
+            const asignaciones = ProduccionDB.getAsignacionesMesas();
+            const operarios = ProduccionDB.getOperarios();
+            const integrantes = asignaciones[codigoMesa] || [];
+
+            const body = document.getElementById('body-ver-estado-mesa');
+
+            if (integrantes.length === 0) {
+                body.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--safco-red);"><i class='bx bx-info-circle' style="font-size: 2rem;"></i><br>Mesa vacía sin operarios asignados en este turno.</div>`;
+            } else {
+                let html = `<div style="display: flex; flex-direction: column; gap: 0.6rem;">`;
+                integrantes.forEach(item => {
+                    const op = operarios.find(o => o.id === item.opId);
+                    if (op) {
+                        const isSeleccionador = item.labor === 'Seleccionador';
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f8fafc; border: 1px solid var(--safco-border); border-radius: 8px;">
+                                <div>
+                                    <div style="font-weight: 700; color: var(--safco-text-dark);">${op.nombre}</div>
+                                    <div style="font-size: 0.75rem; color: var(--safco-text-muted);">DNI: ${op.dni}</div>
+                                </div>
+                                <span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${item.labor}</span>
+                            </div>
+                        `;
+                    }
+                });
+                html += `</div>`;
+                body.innerHTML = html;
+            }
+
+            document.getElementById('modal-ver-estado-mesa').classList.add('active');
+        }
+
+        function abrirModalEditarMesa(mesaId) {
+            document.querySelectorAll('.dropdown-action-menu').forEach(m => m.classList.remove('show'));
+            const mesas = ProduccionDB.getMesas();
+            const m = mesas.find(x => x.id === mesaId);
+            if (!m) return;
+
+            document.getElementById('edit-mesa-id').value = m.id;
+            document.getElementById('edit-mesa-codigo').value = m.codigo;
+            document.getElementById('edit-mesa-capacidad').value = m.capacidad;
+            document.getElementById('edit-mesa-estado').value = m.estado;
+
+            document.getElementById('modal-editar-mesa').classList.add('active');
+        }
+
+        function guardarEdicionMesa() {
+            const mesaId = document.getElementById('edit-mesa-id').value;
+            const cap = parseInt(document.getElementById('edit-mesa-capacidad').value) || 3;
+            const est = document.getElementById('edit-mesa-estado').value;
+
+            const mesas = ProduccionDB.getMesas();
+            const m = mesas.find(x => x.id === mesaId);
+            if (m) {
+                m.capacidad = cap;
+                m.estado = est;
+                ProduccionDB.saveMesas(mesas);
+                cerrarModal('modal-editar-mesa');
+                renderTablaMesas();
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Mesa actualizada correctamente',
+                    showConfirmButton: false,
+                    timer: 1800
+                });
+            }
+        }
+
+        function anularMesa(mesaId) {
+            document.querySelectorAll('.dropdown-action-menu').forEach(m => m.classList.remove('show'));
+            Swal.fire({
+                title: '¿Anular Mesa?',
+                text: 'La mesa cambiará su estado a Inactiva.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d80000',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, anular'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    ProduccionDB.anularMesa(mesaId);
+                    renderTablaMesas();
+                    Swal.fire('Anulada', 'La mesa ha sido deshabilitada.', 'success');
+                }
+            });
+        }
+
+        function activarMesa(mesaId) {
+            document.querySelectorAll('.dropdown-action-menu').forEach(m => m.classList.remove('show'));
+            ProduccionDB.activarMesa(mesaId);
+            renderTablaMesas();
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Mesa activada correctamente',
+                showConfirmButton: false,
+                timer: 1800
+            });
+        }
+
+        function cerrarModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+    </script>
+</body>
+</html>

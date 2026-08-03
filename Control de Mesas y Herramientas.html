@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAFCO · Sistema de Producción</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  /* COLORES OFICIALES SAFCO */
+  --rojo:       #d80000;
+  --rojo-m:     #b50000;
+  --rojo-sf:    #ffeaea;
+  --rojo-cl:    #ffcccc;
+  --verde:      #004a4c;
+  --verde-m:    #003638;
+  --verde-v:    #005f62;
+  --verde-cl:   #cce5e5;
+  --verde-sf:   #e6f4f4;
+  --rosa:       #ffc7c7;
+  --rosa-m:     #ffadad;
+  --dorado:     #f5a800;
+  --txt:        #1A1A1A;
+  --txt-m:      #4A4A4A;
+  --txt-s:      #757575;
+  --borde:      #E0E0E0;
+  --blanco:     #FFFFFF;
+  --fondo:      #f4f7f7;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--fondo);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{background:var(--verde);padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.3);}
+.tb-brand{display:flex;align-items:center;gap:10px;}
+.tb-logo{width:36px;height:36px;background:var(--rojo);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;letter-spacing:-1px;border:2px solid rgba(255,255,255,.3);}
+.tb-title{color:#fff;font-weight:800;font-size:15px;letter-spacing:.3px;}
+.tb-sub{color:rgba(255,255,255,.65);font-size:10px;margin-top:1px;}
+.tb-hora{color:rgba(255,255,255,.9);font-size:12px;font-family:'DM Mono',monospace;}
+.tb-user{width:32px;height:32px;background:var(--rojo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;border:2px solid rgba(255,255,255,.3);}
+
+/* TABS */
+.nav-tabs{background:var(--verde-m);display:flex;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{padding:11px 14px;color:rgba(255,255,255,.6);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s;user-select:none;}
+.nav-tab.active{color:#fff;border-bottom-color:var(--rojo);}
+.nav-tab:hover:not(.active){color:rgba(255,255,255,.9);}
+
+/* MAIN */
+.main{flex:1;padding:14px;max-width:860px;margin:0 auto;width:100%;}
+.seccion{display:none;}.seccion.activa{display:block;}
+
+/* CARD */
+.card{background:var(--blanco);border-radius:12px;border:1px solid var(--borde);padding:14px;margin-bottom:12px;box-shadow:0 1px 5px rgba(0,0,0,.06);}
+.card-title{font-size:13px;font-weight:700;color:var(--verde);display:flex;align-items:center;gap:6px;margin-bottom:12px;}
+
+/* KPI */
+.kpi-row{display:grid;gap:8px;margin-bottom:12px;}
+.kpi-r3{grid-template-columns:repeat(3,1fr);}
+.kpi-r4{grid-template-columns:repeat(4,1fr);}
+.kpi{background:var(--blanco);border:1px solid var(--borde);border-radius:10px;padding:11px 6px;text-align:center;}
+.kpi-v{font-size:28px;font-weight:800;line-height:1;font-family:'DM Mono',monospace;color:var(--verde);}
+.kpi-v.ok  {color:var(--verde-v);}
+.kpi-v.bad {color:var(--rojo);}
+.kpi-v.warn{color:var(--dorado);}
+.kpi-l{font-size:9px;color:var(--txt-s);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+
+/* MESAS */
+.mesas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+@media(min-width:580px){.mesas-grid{grid-template-columns:repeat(8,1fr);}}
+.mesa-card{border:2px solid var(--borde);border-radius:9px;padding:9px 4px;text-align:center;cursor:pointer;transition:all .18s;background:var(--blanco);}
+.mesa-card.ok  {border-color:var(--verde-v);background:var(--verde-sf);}
+.mesa-card.warn{border-color:var(--dorado);background:#fffbea;}
+.mesa-card.bad {border-color:var(--rojo);background:var(--rojo-sf);}
+.mesa-card:hover{transform:scale(1.04);box-shadow:0 3px 10px rgba(0,0,0,.1);}
+.mesa-num{font-size:17px;font-weight:800;font-family:'DM Mono',monospace;color:var(--verde);}
+.mesa-card.bad  .mesa-num{color:var(--rojo);}
+.mesa-card.warn .mesa-num{color:var(--dorado);}
+.mesa-dots{display:flex;justify-content:center;gap:3px;margin-top:5px;}
+.dot{width:6px;height:6px;border-radius:50%;}
+.dot.g {background:var(--verde-v);}
+.dot.r {background:var(--rojo);}
+.dot.y {background:var(--dorado);}
+.dot.gr{background:#bbb;}
+
+/* PERSONAS */
+.persona-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;border:1px solid var(--borde);background:var(--blanco);cursor:pointer;transition:all .18s;margin-bottom:6px;}
+.persona-row:hover{border-color:var(--verde-v);background:var(--verde-sf);}
+.persona-row.scanned{border-color:var(--verde-v);background:var(--verde-sf);animation:pulse .4s ease;}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;}
+.av-sel{background:var(--verde-cl);color:var(--verde);}
+.av-emb{background:var(--rosa);color:var(--rojo-m);}
+.p-info{flex:1;min-width:0;}
+.p-nombre{font-size:12px;font-weight:600;}
+.p-herr{font-size:10px;color:var(--verde);margin-top:1px;}
+.eb{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;flex-shrink:0;}
+.eb-p{background:var(--verde-cl);color:var(--verde);}
+.eb-t{background:#fff3cd;color:#856404;}
+.eb-a{background:var(--rojo-cl);color:var(--rojo-m);}
+.hora-txt{font-size:10px;color:var(--txt-s);font-family:'DM Mono',monospace;width:40px;text-align:right;flex-shrink:0;}
+
+/* HERRAMIENTAS */
+.herr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:10px;}
+.herr-item{border:1.5px solid var(--borde);border-radius:9px;padding:11px;background:var(--blanco);transition:all .18s;}
+.herr-item:hover{border-color:var(--verde-v);background:var(--verde-sf);}
+.herr-item.vencida{border-color:var(--rojo);background:var(--rojo-sf);}
+.herr-item.en-uso {border-color:var(--dorado);background:#fffbea;}
+.herr-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.herr-ico{font-size:20px;}
+.herr-nombre{font-size:12px;font-weight:700;color:var(--verde);}
+.herr-id{font-size:10px;color:var(--txt-s);}
+.herr-asig{font-size:10px;color:var(--txt-m);margin-bottom:5px;}
+.herr-bottom{display:flex;align-items:center;justify-content:space-between;}
+.hb{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
+.hb-ok  {background:var(--verde-cl);color:var(--verde);}
+.hb-uso {background:#fff3cd;color:#856404;}
+.hb-venc{background:var(--rojo-cl);color:var(--rojo-m);}
+.herr-calib{font-size:9px;color:var(--txt-s);}
+.herr-calib.urg{color:var(--rojo);font-weight:700;}
+
+/* BOTONES */
+.btn-p{width:100%;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .18s;margin-bottom:8px;}
+.btn-p:hover{background:var(--verde-m);}
+.btn-p.rojo{background:var(--rojo);color:#fff;}
+.btn-p.rojo:hover{background:var(--rojo-m);}
+.btn-p.sec{background:var(--blanco);color:var(--verde);border:2px solid var(--verde);}
+.btn-p.sec:hover{background:var(--verde-sf);}
+
+.acc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.acc-btn{padding:14px 8px;border-radius:9px;border:1.5px solid var(--borde);background:var(--blanco);text-align:center;cursor:pointer;transition:all .18s;font-size:11px;font-weight:600;color:var(--verde);}
+.acc-btn .aic{font-size:22px;display:block;margin-bottom:5px;}
+.acc-btn:hover{border-color:var(--verde);background:var(--verde-sf);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.07);}
+.acc-btn.rojo{color:var(--rojo);border-color:var(--rojo-cl);}
+.acc-btn.rojo:hover{background:var(--rojo-sf);}
+
+.turno-row{display:flex;gap:7px;margin-bottom:12px;}
+.btn-t{flex:1;padding:9px 0;border-radius:8px;border:2px solid var(--borde);font-size:12px;font-weight:600;cursor:pointer;background:var(--blanco);color:var(--txt-m);transition:all .18s;}
+.btn-t.act{border-color:var(--verde);background:var(--verde);color:#fff;}
+
+/* HISTORIAL */
+.hist-lista{display:flex;flex-direction:column;gap:6px;}
+.hist-item{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;border-radius:8px;border:1px solid var(--borde);background:var(--blanco);}
+.hdot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.hdot.g{background:var(--verde-v);}
+.hdot.y{background:var(--dorado);}
+.hdot.r{background:var(--rojo);}
+.htxt{font-size:11px;flex:1;color:var(--txt-m);line-height:1.4;}
+.htxt strong{color:var(--txt);}
+.hhora{font-size:10px;color:var(--txt-s);font-family:'DM Mono',monospace;}
+
+/* MODAL */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--blanco);border-radius:18px 18px 0 0;padding:18px 18px 32px;width:100%;max-width:480px;animation:slideUp .25s ease;}
+@keyframes slideUp{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-handle{width:40px;height:4px;background:var(--borde);border-radius:2px;margin:0 auto 14px;}
+.m-title{font-size:15px;font-weight:700;color:var(--verde);margin-bottom:3px;}
+.m-sub{font-size:11px;color:var(--txt-s);margin-bottom:14px;}
+.m-campo{margin-bottom:10px;}
+.m-campo label{font-size:11px;font-weight:600;color:var(--txt-m);display:block;margin-bottom:3px;}
+.m-campo select,.m-campo input{width:100%;padding:9px 11px;border:1.5px solid var(--borde);border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;outline:none;transition:border-color .18s;}
+.m-campo select:focus,.m-campo input:focus{border-color:var(--verde);}
+.m-accs{display:flex;gap:8px;margin-top:14px;}
+.m-btn{flex:1;padding:11px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:background .18s;}
+.m-btn.ok{background:var(--verde);color:#fff;}
+.m-btn.ok:hover{background:var(--verde-m);}
+.m-btn.cancel{background:var(--fondo);color:var(--txt-m);border:1.5px solid var(--borde);}
+
+/* QR SCANNER */
+.scanner-box{position:relative;width:100%;max-width:320px;margin:0 auto;border-radius:12px;overflow:hidden;background:#000;border:3px solid var(--verde);}
+.scanner-box video{width:100%;display:block;}
+.scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.scan-frame{width:200px;height:200px;border:3px solid var(--rojo);border-radius:12px;box-shadow:0 0 0 2000px rgba(0,0,0,.4);}
+.scan-line{position:absolute;width:180px;height:2px;background:var(--rojo);animation:scanAnim 2s linear infinite;opacity:.8;}
+@keyframes scanAnim{0%{top:calc(50% - 95px)}100%{top:calc(50% + 95px)}}
+.scan-result{text-align:center;padding:12px;background:var(--verde-sf);border:1px solid var(--verde-cl);border-radius:8px;margin-top:10px;font-size:13px;font-weight:600;color:var(--verde);display:none;}
+.scan-result.visible{display:block;}
+
+/* TAGS */
+.tag-sel{background:var(--verde-cl);color:var(--verde);padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;}
+.tag-emb{background:var(--rosa);color:var(--rojo-m);padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:var(--rojo);color:#fff;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--verde);color:#fff;padding:11px 20px;border-radius:9px;font-size:12px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:300;transition:transform .3s ease;white-space:nowrap;}
+.toast.on{transform:translateX(-50%) translateY(0);}
+
+.section-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt-s);margin:12px 0 7px;}
+.divider{height:1px;background:var(--borde);margin:10px 0;}
+
+/* HEADER DECORATIVO */
+.dash-header{background:linear-gradient(135deg,var(--verde) 0%,var(--verde-v) 100%);border-radius:12px;padding:16px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden;}
+.dash-header::after{content:'';position:absolute;right:-20px;top:-20px;width:100px;height:100px;background:var(--rojo);border-radius:50%;opacity:.15;}
+.dash-header::before{content:'';position:absolute;right:30px;bottom:-30px;width:80px;height:80px;background:var(--rosa);border-radius:50%;opacity:.1;}
+.dash-header h2{font-size:16px;font-weight:800;margin-bottom:3px;}
+.dash-header p{font-size:11px;opacity:.8;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="tb-logo">SF</div>
+    <div>
+      <div class="tb-title">SAFCO Producción</div>
+      <div class="tb-sub">Packing · 48 operarios · 16 mesas</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="tb-hora" id="reloj">--:--</div>
+    <div class="tb-user">JP</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="nav-tabs">
+  <div class="nav-tab active"  onclick="ir('dashboard',this)">📊 Dashboard</div>
+  <div class="nav-tab" onclick="ir('asistencia',this)">👥 Asistencia</div>
+  <div class="nav-tab" onclick="ir('mesas',this)">🍇 Mesas</div>
+  <div class="nav-tab" onclick="ir('herramientas',this)">🔧 Herramientas</div>
+  <div class="nav-tab" onclick="ir('scanner',this)">📷 Escanear QR</div>
+  <div class="nav-tab" onclick="ir('historial',this)">📋 Registro</div>
+</div>
+
+<div class="main">
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="seccion activa" id="sec-dashboard">
+    <div class="dash-header" style="margin-top:6px">
+      <h2>🍇 Turno en Curso</h2>
+      <p id="dash-fecha">Cargando...</p>
+    </div>
+
+    <div class="kpi-row kpi-r4">
+      <div class="kpi"><div class="kpi-v ok"  id="d-p">0</div><div class="kpi-l">Presentes</div></div>
+      <div class="kpi"><div class="kpi-v bad" id="d-a">0</div><div class="kpi-l">Ausentes</div></div>
+      <div class="kpi"><div class="kpi-v warn"id="d-t">0</div><div class="kpi-l">Tarde</div></div>
+      <div class="kpi"><div class="kpi-v"     id="d-hu">0</div><div class="kpi-l">Herr. uso</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🍇 Estado Mesas <span class="badge" style="margin-left:4px">3 personas c/u</span></div>
+      <div class="mesas-grid" id="mesas-dash"></div>
+      <div style="display:flex;gap:14px;margin-top:10px;font-size:10px;color:var(--txt-s)">
+        <span><span style="color:var(--verde-v)">●</span> Completa</span>
+        <span><span style="color:var(--dorado)">●</span> Incompleta</span>
+        <span><span style="color:var(--rojo)">●</span> Sin seleccionador</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚡ Acciones Rápidas</div>
+      <div class="acc-grid">
+        <div class="acc-btn" onclick="ir('scanner',document.querySelectorAll('.nav-tab')[4])"><span class="aic">📷</span>Escanear QR</div>
+        <div class="acc-btn rojo" onclick="abrirModal('modal-entrega')"><span class="aic">✂️</span>Entregar Herramienta</div>
+        <div class="acc-btn" onclick="abrirModal('modal-devolucion')"><span class="aic">🔄</span>Devolver Herramienta</div>
+        <div class="acc-btn" onclick="ir('mesas',document.querySelectorAll('.nav-tab')[2])"><span class="aic">📋</span>Ver Mesas</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--rojo)">⚠️ Alertas del Turno</div>
+      <div class="hist-lista" id="alertas-cont"></div>
+    </div>
+  </div>
+
+  <!-- ══ ASISTENCIA ══ -->
+  <div class="seccion" id="sec-asistencia">
+    <div class="card" style="margin-top:6px">
+      <div class="card-title">🕐 Turno</div>
+      <div class="turno-row">
+        <button class="btn-t act" onclick="selTurno(this)">🌅 Mañana</button>
+        <button class="btn-t" onclick="selTurno(this)">🌞 Tarde</button>
+        <button class="btn-t" onclick="selTurno(this)">🌙 Noche</button>
+      </div>
+      <div style="display:flex;gap:14px;font-size:11px;color:var(--txt-s);justify-content:center">
+        <span>✅ <strong id="a-p" style="color:var(--verde)">0</strong> presentes</span>
+        <span>❌ <strong id="a-a" style="color:var(--rojo)">0</strong> ausentes</span>
+        <span>⏰ <strong id="a-t" style="color:var(--dorado)">0</strong> tarde</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">👷 48 Operarios — 16 Mesas</div>
+      <div style="font-size:10px;color:var(--txt-s);margin-bottom:10px">
+        Toca un nombre para cambiar estado &nbsp;
+        <span class="tag-sel">SEL</span> Seleccionador &nbsp;
+        <span class="tag-emb">EMB</span> Embalador
+      </div>
+      <div id="lista-asist"></div>
+    </div>
+    <button class="btn-p" onclick="guardarAsistencia()">💾 Guardar Asistencia</button>
+    <button class="btn-p sec" onclick="exportar()">📤 Exportar Reporte Excel</button>
+  </div>
+
+  <!-- ══ MESAS ══ -->
+  <div class="seccion" id="sec-mesas">
+    <div class="card" style="margin-top:6px">
+      <div class="card-title">🍇 16 Mesas de Trabajo</div>
+      <div class="mesas-grid" id="mesas-det"></div>
+    </div>
+    <div class="card" id="mesa-det-card" style="display:none">
+      <div class="card-title" id="mesa-det-title">📋 Mesa</div>
+      <div id="mesa-det-body"></div>
+    </div>
+  </div>
+
+  <!-- ══ HERRAMIENTAS ══ -->
+  <div class="seccion" id="sec-herramientas">
+    <div class="kpi-row kpi-r3" style="margin-top:6px">
+      <div class="kpi"><div class="kpi-v ok"  id="h-d">0</div><div class="kpi-l">Disponibles</div></div>
+      <div class="kpi"><div class="kpi-v warn" id="h-u">0</div><div class="kpi-l">En uso</div></div>
+      <div class="kpi"><div class="kpi-v bad"  id="h-v">0</div><div class="kpi-l">Vencidas</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn-p rojo" style="margin:0;flex:1" onclick="abrirModal('modal-entrega')">✂️ Entregar</button>
+      <button class="btn-p sec"  style="margin:0;flex:1" onclick="abrirModal('modal-devolucion')">🔄 Devolver</button>
+    </div>
+    <div class="card">
+      <div class="card-title">✂️ Tijeras</div>
+      <div style="font-size:10px;color:var(--txt-s);margin-bottom:8px">2 por seleccionador · Tijera 1 al 32</div>
+      <div class="herr-grid" id="herr-tijeras"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📐 Calibradores</div>
+      <div style="font-size:10px;color:var(--txt-s);margin-bottom:8px">1 por seleccionador · Calibrador 1 al 16</div>
+      <div class="herr-grid" id="herr-calibradores"></div>
+    </div>
+  </div>
+
+  <!-- ══ QR SCANNER ══ -->
+  <div class="seccion" id="sec-scanner">
+    <div class="card" style="margin-top:6px">
+      <div class="card-title" style="color:var(--rojo)">📷 Escanear QR de Operario</div>
+      <p style="font-size:12px;color:var(--txt-s);margin-bottom:14px">Apunta la cámara al código QR del carnet para registrar asistencia automáticamente</p>
+      <div class="scanner-box" id="scanner-box">
+        <video id="qr-video" playsinline></video>
+        <div class="scanner-overlay">
+          <div style="position:relative">
+            <div class="scan-frame"></div>
+            <div class="scan-line" id="scan-line"></div>
+          </div>
+        </div>
+      </div>
+      <div class="scan-result" id="scan-result"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn-p rojo" id="btn-on"  onclick="iniciarScanner()" style="margin:0;flex:1">▶️ Iniciar Cámara</button>
+        <button class="btn-p sec"  id="btn-off" onclick="detenerScanner()" style="margin:0;flex:1;display:none">⏹ Detener</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⌨️ Ingresar ID manualmente</div>
+      <p style="font-size:11px;color:var(--txt-s);margin-bottom:10px">Escribe el ID del operario si no puedes escanear (ej: SEL-01, EMB-03-2)</p>
+      <div class="m-campo">
+        <label>ID del operario</label>
+        <input type="text" id="manual-id" placeholder="SEL-01" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <button class="btn-p" onclick="registrarManual()">✅ Registrar Asistencia</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Registros vía QR — este turno</div>
+      <div class="hist-lista" id="scan-hist"></div>
+    </div>
+  </div>
+
+  <!-- ══ HISTORIAL ══ -->
+  <div class="seccion" id="sec-historial">
+    <div class="card" style="margin-top:6px">
+      <div class="card-title">📋 Registro Completo del Turno</div>
+      <div class="hist-lista" id="hist-lista"></div>
+    </div>
+    <button class="btn-p sec" onclick="exportar()">📤 Exportar Registro</button>
+  </div>
+
+</div><!-- /main -->
+
+<!-- MODAL ENTREGA -->
+<div class="modal-ov" id="modal-entrega" onclick="cerrarOv('modal-entrega',event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title">✂️ Entregar Herramienta</div>
+    <div class="m-sub">Solo seleccionadores · 2 tijeras + 1 calibrador por mesa</div>
+    <div class="m-campo"><label>Seleccionador</label><select id="e-sel"></select></div>
+    <div class="m-campo"><label>Tipo</label>
+      <select id="e-tipo" onchange="actualizarHerrsDisp()">
+        <option value="tijera">✂️ Tijera</option>
+        <option value="calibrador">📐 Calibrador</option>
+      </select>
+    </div>
+    <div class="m-campo"><label>Herramienta disponible</label><select id="e-herr"></select></div>
+    <div class="m-accs">
+      <button class="m-btn cancel" onclick="cerrarModal('modal-entrega')">Cancelar</button>
+      <button class="m-btn ok" onclick="confirmarEntrega()">✅ Confirmar Entrega</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DEVOLUCION -->
+<div class="modal-ov" id="modal-devolucion" onclick="cerrarOv('modal-devolucion',event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title">🔄 Devolver Herramienta</div>
+    <div class="m-sub">Registra la devolución y estado de la herramienta</div>
+    <div class="m-campo"><label>Herramienta en uso</label><select id="d-herr"></select></div>
+    <div class="m-campo"><label>Estado al devolver</label>
+      <select id="d-estado">
+        <option>✅ Bueno</option>
+        <option>⚠️ Necesita revisión</option>
+        <option>❌ Dañado</option>
+      </select>
+    </div>
+    <div class="m-accs">
+      <button class="m-btn cancel" onclick="cerrarModal('modal-devolucion')">Cancelar</button>
+      <button class="m-btn ok" onclick="confirmarDev()">✅ Confirmar Devolución</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATOS
+// ══════════════════════════════════════════════
+const NOMBRES_SEL=[
+  "Ana García","Carlos López","Rosa Mamani","Juan Pérez",
+  "Lucía Quispe","Pedro Silva","María Torres","Diego Castro",
+  "Elena Ruiz","Raúl Flores","Carmen Díaz","José Vargas",
+  "Norma Chávez","Oscar Mendoza","Sandra Rojas","Héctor Lima"
+];
+const NOMBRES_EMB=[
+  ["Betty Cruz","Mario Huanca"],["Silvia Ramos","Tomás Vera"],
+  ["Pilar Lagos","René Soto"],["Claudia Paz","Andrés Gil"],
+  ["Fátima Reyes","Iván Mora"],["Gloria Tito","Sergio Rueda"],
+  ["Patricia Salas","Ernesto Cano"],["Nancy Vega","Luis Ríos"],
+  ["Cecilia Pinto","Rafael Lara"],["Yolanda Mena","Gustavo Pino"],
+  ["Miriam Bello","Felipe Arce"],["Teresa Montes","Jorge Reyes"],
+  ["Alicia Fuentes","Roberto Céspedes"],["Rebeca Arias","Dante Salinas"],
+  ["Verónica Choque","Aurelio Mamani"],["Isabel Ticona","Eduardo Calle"]
+];
+
+function randHora(est){
+  if(est===2)return'—';
+  if(est===1)return'07:'+String(Math.floor(Math.random()*20+10)).padStart(2,'0');
+  return'07:0'+Math.floor(Math.random()*9);
+}
+
+let operarios=[];
+for(let m=1;m<=16;m++){
+  const estSel=[0,0,0,0,0,0,1,0,0,0,2,0,0,0,2,0][m-1];
+  operarios.push({id:`SEL-${String(m).padStart(2,'0')}`,nombre:NOMBRES_SEL[m-1],rol:'sel',mesa:m,estado:estSel,hora:randHora(estSel)});
+  NOMBRES_EMB[m-1].forEach((n,e)=>{
+    const est=Math.random()<.93?0:2;
+    operarios.push({id:`EMB-${String(m).padStart(2,'0')}-${e+1}`,nombre:n,rol:'emb',mesa:m,estado:est,hora:randHora(est)});
+  });
+}
+
+let herramientas=[];
+for(let m=1;m<=16;m++){
+  for(let t=1;t<=2;t++){
+    const num=(m-1)*2+t;
+    const venc=num===8; const uso=num<=7;
+    const sel=operarios.find(o=>o.mesa===m&&o.rol==='sel');
+    herramientas.push({id:`Tijera ${num}`,tipo:'tijera',mesa:uso?m:null,operario:uso?sel?.nombre:null,estado:venc?'vencida':uso?'en-uso':'ok',calibDias:venc?0:Math.floor(Math.random()*25)+5,vencida:venc});
+  }
+  const vencC=m===7; const usoC=m<=5;
+  const selC=operarios.find(o=>o.mesa===m&&o.rol==='sel');
+  herramientas.push({id:`Calibrador ${m}`,tipo:'calibrador',mesa:usoC?m:null,operario:usoC?selC?.nombre:null,estado:vencC?'vencida':usoC?'en-uso':'ok',calibDias:vencC?0:Math.floor(Math.random()*25)+5,vencida:vencC});
+}
+
+let historial=[
+  {tipo:'r',txt:'<strong>Calibrador 7</strong> — Calibración vencida, no apta para uso',hora:'08:00'},
+  {tipo:'r',txt:'<strong>Tijera 8</strong> — Calibración vencida',hora:'08:00'},
+  {tipo:'y',txt:'<strong>María Torres</strong> (Seleccionadora · Mesa 7) — Llegada tarde',hora:'07:15'},
+  {tipo:'g',txt:'<strong>Turno Mañana iniciado</strong> — 16 mesas activas',hora:'07:00'},
+];
+
+function nowStr(){const n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');}
+function initials(n){const p=n.split(' ');return p[0][0]+(p[1]?p[1][0]:'');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800);}
+function countOp(){return{p:operarios.filter(o=>o.estado===0).length,a:operarios.filter(o=>o.estado===2).length,t:operarios.filter(o=>o.estado===1).length};}
+function mesaStatus(m){const sel=operarios.find(o=>o.mesa===m&&o.rol==='sel');if(!sel||sel.estado===2)return'bad';if(operarios.filter(o=>o.mesa===m).some(o=>o.estado!==0))return'warn';return'ok';}
+
+// Reloj y fecha
+function tick(){
+  const n=new Date();
+  document.getElementById('reloj').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const el=document.getElementById('dash-fecha');
+  if(el) el.textContent=`${dias[n.getDay()]} ${n.getDate()} de ${meses[n.getMonth()]} ${n.getFullYear()}`;
+}
+tick(); setInterval(tick,15000);
+
+// ══ NAV ══
+function ir(id,tab){
+  document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('activa'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('activa');
+  tab.classList.add('active');
+  if(id!=='scanner')detenerScanner();
+  renderAll();
+}
+function renderAll(){renderDash();renderAsist();renderMesas();renderHerr();renderHist();renderScanHist();}
+
+// ══ DASHBOARD ══
+function renderDash(){
+  const{p,a,t}=countOp();
+  document.getElementById('d-p').textContent=p;
+  document.getElementById('d-a').textContent=a;
+  document.getElementById('d-t').textContent=t;
+  document.getElementById('d-hu').textContent=herramientas.filter(h=>h.estado==='en-uso').length;
+  const c=document.getElementById('mesas-dash');c.innerHTML='';
+  for(let m=1;m<=16;m++){
+    const st=mesaStatus(m);
+    const dots=operarios.filter(o=>o.mesa===m).map(o=>`<div class="dot ${o.estado===0?'g':o.estado===1?'y':'r'}"></div>`).join('');
+    c.innerHTML+=`<div class="mesa-card ${st}" onclick="ir('mesas',document.querySelectorAll('.nav-tab')[2]);setTimeout(()=>abrirDetalleMesa(${m}),80)">
+      <div class="mesa-num">${String(m).padStart(2,'0')}</div><div class="mesa-dots">${dots}</div></div>`;
+  }
+  const venc=herramientas.filter(h=>h.vencida);
+  const aus=operarios.filter(o=>o.estado===2);
+  const tard=operarios.filter(o=>o.estado===1);
+  let items='';
+  venc.forEach(h=>{items+=`<div class="hist-item"><div class="hdot r"></div><div class="htxt"><strong>${h.id}</strong> — Calibración vencida${h.mesa?' · Mesa '+h.mesa:''}</div><div class="hhora">⚠️</div></div>`;});
+  tard.forEach(o=>{items+=`<div class="hist-item"><div class="hdot y"></div><div class="htxt"><strong>${o.nombre}</strong> (${o.rol==='sel'?'Seleccionador':'Embalador'} · Mesa ${o.mesa}) — Tarde</div><div class="hhora">${o.hora}</div></div>`;});
+  aus.slice(0,4).forEach(o=>{items+=`<div class="hist-item"><div class="hdot r"></div><div class="htxt"><strong>${o.nombre}</strong> (${o.rol==='sel'?'Seleccionador':'Embalador'} · Mesa ${o.mesa}) — Ausente</div><div class="hhora">—</div></div>`;});
+  document.getElementById('alertas-cont').innerHTML=items||`<div style="font-size:12px;color:var(--verde);text-align:center;padding:8px">✅ Sin alertas en este turno</div>`;
+}
+
+// ══ ASISTENCIA ══
+function renderAsist(){
+  const{p,a,t}=countOp();
+  document.getElementById('a-p').textContent=p;
+  document.getElementById('a-a').textContent=a;
+  document.getElementById('a-t').textContent=t;
+  const lista=document.getElementById('lista-asist');lista.innerHTML='';
+  for(let m=1;m<=16;m++){
+    lista.innerHTML+=`<div class="section-lbl" style="margin-top:${m>1?'14px':'0'}">Mesa ${String(m).padStart(2,'0')}</div>`;
+    operarios.filter(o=>o.mesa===m).forEach(op=>{
+      const esCls=['eb-p','eb-t','eb-a'][op.estado];
+      const esTxt=['Presente','Tarde','Ausente'][op.estado];
+      const avCls=op.rol==='sel'?'av-sel':'av-emb';
+      const tag=op.rol==='sel'?`<span class="tag-sel">SEL</span>`:`<span class="tag-emb">EMB</span>`;
+      const herr=op.rol==='sel'?`<div class="p-herr">🔧 2 Tijeras + 1 Calibrador</div>`:'';
+      lista.innerHTML+=`<div class="persona-row" id="row-${op.id}" onclick="toggleEstado('${op.id}')">
+        <div class="av ${avCls}">${initials(op.nombre)}</div>
+        <div class="p-info"><div class="p-nombre">${op.nombre} ${tag}</div>${herr}</div>
+        <span class="eb ${esCls}">${esTxt}</span>
+        <span class="hora-txt">${op.hora}</span>
+      </div>`;
+    });
+  }
+}
+function toggleEstado(id){
+  const op=operarios.find(o=>o.id===id);
+  op.estado=(op.estado+1)%3;
+  op.hora=randHora(op.estado);
+  renderAll();
+}
+function selTurno(btn){document.querySelectorAll('.btn-t').forEach(b=>b.classList.remove('act'));btn.classList.add('act');}
+
+// ══ MESAS ══
+function renderMesas(){
+  const c=document.getElementById('mesas-det');c.innerHTML='';
+  for(let m=1;m<=16;m++){
+    const st=mesaStatus(m);
+    const dots=operarios.filter(o=>o.mesa===m).map(o=>`<div class="dot ${o.estado===0?'g':o.estado===1?'y':'r'}"></div>`).join('');
+    c.innerHTML+=`<div class="mesa-card ${st}" onclick="abrirDetalleMesa(${m})">
+      <div class="mesa-num">${String(m).padStart(2,'0')}</div><div class="mesa-dots">${dots}</div></div>`;
+  }
+}
+function abrirDetalleMesa(m){
+  const personas=operarios.filter(o=>o.mesa===m);
+  const herr=herramientas.filter(h=>h.mesa===m);
+  const card=document.getElementById('mesa-det-card');
+  card.style.display='block';
+  document.getElementById('mesa-det-title').innerHTML=`📋 Detalle Mesa ${String(m).padStart(2,'0')}`;
+  let html=`<div class="section-lbl">Personas (3)</div>`;
+  personas.forEach(op=>{
+    const avCls=op.rol==='sel'?'av-sel':'av-emb';
+    const tag=op.rol==='sel'?`<span class="tag-sel">SEL</span>`:`<span class="tag-emb">EMB</span>`;
+    html+=`<div class="persona-row" onclick="toggleEstado('${op.id}');renderMesas();abrirDetalleMesa(${m})">
+      <div class="av ${avCls}">${initials(op.nombre)}</div>
+      <div class="p-info"><div class="p-nombre">${op.nombre} ${tag}</div></div>
+      <span class="eb ${['eb-p','eb-t','eb-a'][op.estado]}">${['Presente','Tarde','Ausente'][op.estado]}</span>
+      <span class="hora-txt">${op.hora}</span>
+    </div>`;
+  });
+  html+=`<div class="section-lbl" style="margin-top:12px">Herramientas del Seleccionador</div>`;
+  if(!herr.length) html+=`<div style="font-size:12px;color:var(--rojo)">⚠️ Sin herramientas entregadas aún</div>`;
+  herr.forEach(h=>{
+    const bCls={'ok':'hb-ok','en-uso':'hb-uso','vencida':'hb-venc'}[h.estado];
+    const bTxt={'ok':'Disponible','en-uso':'En uso','vencida':'⚠️ Vencida'}[h.estado];
+    html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--borde);font-size:12px">
+      <span>${h.tipo==='tijera'?'✂️':'📐'} <strong>${h.id}</strong></span>
+      <span class="hb ${bCls}">${bTxt}</span>
+    </div>`;
+  });
+  if(herr.filter(h=>h.tipo==='tijera').length<2||!herr.find(h=>h.tipo==='calibrador')){
+    html+=`<div style="font-size:11px;color:var(--rojo);margin-top:8px">⚠️ Herramientas pendientes de entrega</div>`;
+  }
+  document.getElementById('mesa-det-body').innerHTML=html;
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ══ HERRAMIENTAS ══
+function renderHerr(){
+  document.getElementById('h-d').textContent=herramientas.filter(h=>h.estado==='ok').length;
+  document.getElementById('h-u').textContent=herramientas.filter(h=>h.estado==='en-uso').length;
+  document.getElementById('h-v').textContent=herramientas.filter(h=>h.estado==='vencida').length;
+  ['tijera','calibrador'].forEach(tipo=>{
+    const cont=document.getElementById('herr-'+(tipo==='tijera'?'tijeras':'calibradores'));
+    cont.innerHTML='';
+    herramientas.filter(h=>h.tipo===tipo).forEach(h=>{
+      const cls=h.estado==='vencida'?'vencida':h.estado==='en-uso'?'en-uso':'';
+      const bCls={'ok':'hb-ok','en-uso':'hb-uso','vencida':'hb-venc'}[h.estado];
+      const bTxt={'ok':'Disponible','en-uso':'En uso','vencida':'⚠️ Vencida'}[h.estado];
+      const asig=h.mesa?`<div class="herr-asig">Mesa ${String(h.mesa).padStart(2,'0')} · ${h.operario?h.operario.split(' ')[0]:''}</div>`:'';
+      cont.innerHTML+=`<div class="herr-item ${cls}">
+        <div class="herr-top"><span class="herr-ico">${tipo==='tijera'?'✂️':'📐'}</span>
+          <div><div class="herr-nombre">${h.id}</div></div>
+        </div>${asig}
+        <div class="herr-bottom">
+          <span class="hb ${bCls}">${bTxt}</span>
+          <span class="herr-calib${h.vencida?' urg':''}">${h.vencida?'Vencida':'Calib: '+h.calibDias+' días'}</span>
+        </div>
+      </div>`;
+    });
+  });
+}
+
+// ══ QR SCANNER ══
+let videoStream=null,scanInterval=null,lastScanned='',lastScanTime=0;
+async function iniciarScanner(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    videoStream=stream;
+    const video=document.getElementById('qr-video');
+    video.srcObject=stream; await video.play();
+    document.getElementById('btn-on').style.display='none';
+    document.getElementById('btn-off').style.display='flex';
+    scanInterval=setInterval(()=>procesarFrame(video),300);
+    toast('📷 Cámara activa — apunta al QR');
+  }catch(e){toast('⚠️ No se pudo acceder a la cámara');}
+}
+function procesarFrame(video){
+  if(!window.jsQR)return;
+  const canvas=document.createElement('canvas');
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  const ctx=canvas.getContext('2d');ctx.drawImage(video,0,0);
+  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const code=jsQR(img.data,img.width,img.height);
+  if(code){
+    const now=Date.now();
+    if(code.data!==lastScanned||now-lastScanTime>4000){lastScanned=code.data;lastScanTime=now;procesarQR(code.data);}
+  }
+}
+function procesarQR(data){
+  const parts=data.split('|');
+  if(parts[0]!=='SAFCO'||!parts[1]){toast('⚠️ QR no reconocido');return;}
+  registrarPorId(parts[1]);
+}
+function registrarPorId(id){
+  const op=operarios.find(o=>o.id===id.trim().toUpperCase());
+  if(!op){toast(`⚠️ ID "${id}" no encontrado`);return;}
+  if(op.estado===0){toast(`ℹ️ ${op.nombre.split(' ')[0]} ya está registrado`);return;}
+  op.estado=0;op.hora=nowStr();
+  const res=document.getElementById('scan-result');
+  res.className='scan-result visible';
+  res.innerHTML=`✅ <strong>${op.nombre}</strong> registrado · Mesa ${op.mesa} · ${op.rol==='sel'?'Seleccionador':'Embalador'} · ${op.hora}`;
+  historial.unshift({tipo:'g',txt:`<strong>${op.nombre}</strong> (Mesa ${op.mesa}) — registrado vía QR`,hora:nowStr()});
+  renderAll();
+  toast(`✅ ${op.nombre.split(' ')[0]} registrado`);
+  setTimeout(()=>{const row=document.getElementById(`row-${op.id}`);if(row){row.classList.add('scanned');setTimeout(()=>row.classList.remove('scanned'),2000);}},100);
+}
+function registrarManual(){
+  const id=document.getElementById('manual-id').value.trim();
+  if(!id){toast('⚠️ Escribe un ID');return;}
+  registrarPorId(id);
+  document.getElementById('manual-id').value='';
+}
+function detenerScanner(){
+  if(videoStream){videoStream.getTracks().forEach(t=>t.stop());videoStream=null;}
+  if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
+  document.getElementById('btn-on').style.display='flex';
+  document.getElementById('btn-off').style.display='none';
+}
+function renderScanHist(){
+  const items=historial.filter(h=>h.txt.includes('QR'));
+  document.getElementById('scan-hist').innerHTML=items.length
+    ?items.map(h=>`<div class="hist-item"><div class="hdot ${h.tipo}"></div><div class="htxt">${h.txt}</div><div class="hhora">${h.hora}</div></div>`).join('')
+    :'<div style="font-size:12px;color:var(--txt-s);text-align:center;padding:8px">Sin registros QR aún en este turno</div>';
+}
+
+// ══ HISTORIAL ══
+function renderHist(){
+  document.getElementById('hist-lista').innerHTML=
+    historial.map(h=>`<div class="hist-item"><div class="hdot ${h.tipo}"></div><div class="htxt">${h.txt}</div><div class="hhora">${h.hora}</div></div>`).join('');
+}
+
+// ══ MODALES ══
+function abrirModal(id){
+  if(id==='modal-entrega'){
+    document.getElementById('e-sel').innerHTML=operarios.filter(o=>o.rol==='sel').map(o=>`<option value="${o.id}">${o.nombre} · Mesa ${String(o.mesa).padStart(2,'0')}</option>`).join('');
+    actualizarHerrsDisp();
+  }
+  if(id==='modal-devolucion'){
+    const uso=herramientas.filter(h=>h.estado==='en-uso');
+    document.getElementById('d-herr').innerHTML=uso.length?uso.map(h=>`<option value="${h.id}">${h.id} · Mesa ${h.mesa}</option>`).join(''):'<option disabled>Sin herramientas en uso</option>';
+  }
+  document.getElementById(id).classList.add('open');
+}
+function cerrarModal(id){document.getElementById(id).classList.remove('open');}
+function cerrarOv(id,ev){if(ev.target===document.getElementById(id))cerrarModal(id);}
+function actualizarHerrsDisp(){
+  const tipo=document.getElementById('e-tipo').value;
+  const disp=herramientas.filter(h=>h.tipo===tipo&&h.estado==='ok');
+  document.getElementById('e-herr').innerHTML=disp.length?disp.map(h=>`<option value="${h.id}">${h.id}</option>`).join(''):'<option disabled>Sin disponibles</option>';
+}
+function confirmarEntrega(){
+  const selId=document.getElementById('e-sel').value;
+  const herrId=document.getElementById('e-herr').value;
+  const op=operarios.find(o=>o.id===selId);
+  const h=herramientas.find(x=>x.id===herrId);
+  if(!h||h.estado!=='ok'){toast('⚠️ Sin disponibles');return;}
+  h.estado='en-uso';h.mesa=op.mesa;h.operario=op.nombre;
+  cerrarModal('modal-entrega');
+  historial.unshift({tipo:'y',txt:`<strong>${op.nombre}</strong> (Mesa ${op.mesa}) retiró <strong>${h.id}</strong>`,hora:nowStr()});
+  renderAll();toast(`✅ ${h.id} entregado a ${op.nombre.split(' ')[0]}`);
+}
+function confirmarDev(){
+  const herrId=document.getElementById('d-herr').value;
+  const est=document.getElementById('d-estado').value;
+  const h=herramientas.find(x=>x.id===herrId);
+  if(!h){toast('⚠️ Error');return;}
+  const opNombre=h.operario;
+  h.estado='ok';h.mesa=null;h.operario=null;
+  cerrarModal('modal-devolucion');
+  historial.unshift({tipo:'g',txt:`<strong>${opNombre?opNombre.split(' ')[0]:'Operario'}</strong> devolvió <strong>${h.id}</strong> · ${est.replace(/[✅⚠️❌]/g,'').trim()}`,hora:nowStr()});
+  renderAll();toast(`🔄 ${h.id} devuelto`);
+}
+function guardarAsistencia(){
+  const{p,a,t}=countOp();
+  historial.unshift({tipo:'g',txt:`<strong>Asistencia guardada</strong> — ${p} presentes · ${a} ausentes · ${t} tarde`,hora:nowStr()});
+  renderHist();toast('💾 Asistencia guardada correctamente');
+}
+function exportar(){toast('📤 Reporte generado · Descargando...');}
+
+renderAll();
+</script>
+</body>
+</html>

@@ -83,3 +83,25 @@ function changeSimulatedUser(username) {
         iframe.contentWindow.location.reload();
     }
 }
+
+// --- MODO TABLET KIOSCO / EXPANDIR CANVAS (Pura manipulación CSS para Capacitor/Hybrid) ---
+function toggleKioskTabletMode() {
+    const isKiosk = document.body.classList.toggle("kiosk-tablet-mode");
+    return isKiosk;
+}
+
+// Escuchar mensaje seguro postMessage desde iframes para manipular el layout de menu.html
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'TOGGLE_TABLET_KIOSK') {
+        const isKiosk = toggleKioskTabletMode();
+        try {
+            if (event.source && event.source.postMessage) {
+                event.source.postMessage({ type: 'TABLET_KIOSK_STATUS', isKiosk: isKiosk }, '*');
+            }
+        } catch (e) {
+            console.warn('PostMessage reply warning:', e);
+        }
+    }
+});
+
+window.toggleKioskTabletMode = toggleKioskTabletMode;

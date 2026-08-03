@@ -622,3 +622,48 @@ a {
   margin: 0 auto;
 }
 .btn-action-table:hover { background: #fee2e2; }
+
+/* Tablet Kiosk / Modo Pantalla Completa Canvas Edge-to-Edge */
+body.kiosk-tablet-mode {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+body.kiosk-tablet-mode .sidebar,
+body.kiosk-tablet-mode .topbar,
+body.kiosk-tablet-mode .safco-footer {
+  display: none !important;
+}
+
+body.kiosk-tablet-mode .main-wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  max-width: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+body.kiosk-tablet-mode .content-area {
+  height: 100vh !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+body.kiosk-tablet-mode iframe.content-iframe {
+  height: 100vh !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+
+

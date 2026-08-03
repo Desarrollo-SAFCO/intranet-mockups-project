@@ -28,7 +28,50 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link"><i class='bx bx-spreadsheet'></i> PRODUCCION</a>
+                <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                    <i class='bx bx-spreadsheet'></i> PRODUCCION
+                </a>
+                <ul class="submenu">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-folder'></i> Registros
+                        </a>
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <a href="produccion/asistencia.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-user-check'></i> Asistencia Producción
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a href="produccion/asignacion-mesas.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-grid-alt'></i> Asignación de Mesas
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a href="produccion/asignacion-herramientas.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-wrench'></i> Asignación Herramientas
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-table'></i> Tablas
+                        </a>
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <a href="produccion/tablas-mesas.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-list-check'></i> Mesas de Producción
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a href="produccion/tablas-herramientas.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-cog'></i> Herramientas Producción
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
             </li>
             <li class="sidebar-item">
                 <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
