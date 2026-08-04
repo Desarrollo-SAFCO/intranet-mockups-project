@@ -35,8 +35,8 @@
                 <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header y ocupar todo el espacio web">
                     <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
                 </button>
-                <button class="btn-safco btn-safco-teal" onclick="abrirModalTrasladoEquipoGlobal()">
-                    <i class='bx bx-transfer-alt'></i> Trasladar Equipo
+                <button class="btn-safco btn-safco-teal" id="btn-rendimiento-mode" onclick="toggleRendimientoMode()">
+                    <i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento
                 </button>
                 <button class="btn-safco btn-safco-secondary" onclick="finalizarProcesoLinea()">
                     <i class='bx bx-eraser'></i> Finalizar Proceso Línea
@@ -80,6 +80,13 @@
                     <div class="filter-item" style="flex: 2; min-width: 200px;">
                         <label for="input-busqueda">Buscar Operario o Mesa:</label>
                         <input type="text" id="input-busqueda" class="input-touch" placeholder="Ej: L1-R1-M03, Ana García..." oninput="renderMesas()">
+                    </div>
+
+                    <!-- Botón para ver números de rendimiento -->
+                    <div class="filter-item" id="filter-rendimiento-eye" style="display: none; align-items: flex-end;">
+                        <button class="btn-safco btn-safco-secondary" style="height: 38px; width: 38px; padding: 0; display: flex; justify-content: center; align-items: center;" onclick="toggleNumbersRendimiento()" title="Mostrar números de rendimiento">
+                            <i id="ico-rendimiento-eye" class='bx bx-show' style="font-size: 1.2rem; color: var(--safco-teal);"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -260,7 +267,28 @@
                         <i class='bx bx-check-double'></i> Confirmar Traslado
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Modal Touch: Vista de Rendimiento de Mesa -->
+    <div class="modal-backdrop-safco" id="modal-rendimiento-mesa">
+        <div class="modal-card-safco">
+            <div class="modal-card-header" style="background: var(--safco-teal);">
+                <h3 id="modal-rendimiento-titulo"><i class='bx bx-bar-chart-alt-2'></i> Rendimiento de Mesa</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-rendimiento-mesa')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                
+                <div id="box-rendimiento-integrantes" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- Se poblará dinámicamente -->
+                </div>
+
+                <div class="modal-card-actions" style="margin-top: 1.5rem;">
+                    <button class="btn-safco btn-safco-secondary" style="width: 100%;" onclick="cerrarModal('modal-rendimiento-mesa')">
+                        Cerrar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -268,8 +296,15 @@
     <!-- Scripts de Lógica y Datos -->
     <script src="js/produccion-data.js"></script>
     <script>
-        let mesaSeleccionadaCodigo = null;
-        let filtroKPIActual = 'TODAS';
+        // ESTADOS GLOBALES DE LA PANTALLA DE MESAS
+        let currentModalMesaCode = null;
+        let filtroKPIActual = 'TODAS'; // 'TODAS', 'COMPLETAS', 'SIN_SEL', 'VACIAS'
+
+        // ESTADOS PARA VISTA RENDIMIENTO
+        let isRendimientoMode = false;
+        let showRendimientoNumbers = false;
+        let hideNumbersTimeout = null;
+        let mockRendimiento = {}; // Guarda rendimientos fijos por operario para no variar al recargar la grilla
 
         document.addEventListener('DOMContentLoaded', () => {
             renderMesas();
@@ -353,6 +388,106 @@
             return 'EMB';
         }
 
+        // --- LÓGICA DE VISTA RENDIMIENTO ---
+        function toggleRendimientoMode() {
+            isRendimientoMode = !isRendimientoMode;
+            const btn = document.getElementById('btn-rendimiento-mode');
+            const eyeFilter = document.getElementById('filter-rendimiento-eye');
+
+            if (isRendimientoMode) {
+                btn.classList.remove('btn-safco-teal');
+                btn.classList.add('btn-safco-secondary');
+                btn.innerHTML = `<i class='bx bx-grid-alt'></i> Vista Asignación`;
+                eyeFilter.style.display = 'flex';
+            } else {
+                btn.classList.remove('btn-safco-secondary');
+                btn.classList.add('btn-safco-teal');
+                btn.innerHTML = `<i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento`;
+                eyeFilter.style.display = 'none';
+                
+                showRendimientoNumbers = false;
+                if (hideNumbersTimeout) clearTimeout(hideNumbersTimeout);
+                actualizarIconoOjo();
+            }
+            renderMesas();
+        }
+
+        function toggleNumbersRendimiento() {
+            showRendimientoNumbers = !showRendimientoNumbers;
+            actualizarIconoOjo();
+
+            if (hideNumbersTimeout) clearTimeout(hideNumbersTimeout);
+            
+            if (showRendimientoNumbers) {
+                hideNumbersTimeout = setTimeout(() => {
+                    showRendimientoNumbers = false;
+                    actualizarIconoOjo();
+                    renderMesas();
+                }, 20000); // 20 segundos
+            }
+            renderMesas();
+        }
+
+        function actualizarIconoOjo() {
+            const ico = document.getElementById('ico-rendimiento-eye');
+            if (showRendimientoNumbers) {
+                ico.classList.remove('bx-show');
+                ico.classList.add('bx-hide');
+            } else {
+                ico.classList.remove('bx-hide');
+                ico.classList.add('bx-show');
+            }
+        }
+
+        function abrirModalRendimientoMesa(mesaCodigo) {
+            document.getElementById('modal-rendimiento-titulo').innerHTML = `<i class='bx bx-bar-chart-alt-2'></i> Rendimiento: ${mesaCodigo}`;
+            const box = document.getElementById('box-rendimiento-integrantes');
+            box.innerHTML = '';
+
+            const asignaciones = ProduccionDB.getAsignacionesMesas();
+            const operarios = ProduccionDB.getOperarios();
+            const integrantes = asignaciones[mesaCodigo] || [];
+
+            if (integrantes.length === 0) {
+                box.innerHTML = `<div style="text-align: center; color: var(--safco-text-muted); font-style: italic; padding: 1rem;">La mesa está vacía.</div>`;
+            } else {
+                integrantes.forEach(item => {
+                    const op = operarios.find(o => o.id === item.opId);
+                    if (op) {
+                        const rend = mockRendimiento[op.id] || 0;
+                        let barColor = 'var(--safco-red)';
+                        let iconFace = "<i class='bx bx-sad' style='color: var(--safco-red); font-size: 1.8rem;'></i>";
+                        
+                        if (rend >= 90 && rend < 100) {
+                            barColor = '#f59e0b';
+                            iconFace = "<i class='bx bx-meh' style='color: #f59e0b; font-size: 1.8rem;'></i>";
+                        } else if (rend >= 100) {
+                            barColor = '#10b981';
+                            iconFace = "<i class='bx bx-smile' style='color: #10b981; font-size: 1.8rem;'></i>";
+                        }
+
+                        box.innerHTML += `
+                            <div style="background: #f8fafc; border: 1px solid var(--safco-border); border-radius: 8px; padding: 0.75rem; display: flex; align-items: center; gap: 1rem;">
+                                ${iconFace}
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; color: var(--safco-text-dark); margin-bottom: 0.2rem;">${op.nombre} <span style="font-weight: 400; font-size: 0.75rem; color: var(--safco-text-muted);">(${formatLaborShort(item.labor)})</span></div>
+                                    <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 0.3rem;">
+                                        <div style="width: ${Math.min(rend, 100)}%; height: 100%; background: ${barColor};"></div>
+                                    </div>
+                                    <div style="font-size: 0.8rem; font-weight: 800; color: ${barColor};">
+                                        Rendimiento: ${rend} cajas
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            document.getElementById('modal-rendimiento-mesa').classList.add('active');
+        }
+
+        // --- RENDERIZADO PRINCIPAL DE MESAS ---
         function renderMesas() {
             const linea = document.getElementById('select-linea').value;
             const riel = document.getElementById('select-riel').value;
@@ -427,16 +562,40 @@
                         const herrsPersona = op ? asignacionesHerr.filter(a => a.operarioId === op.id) : [];
                         const herrsTxt = herrsPersona.length ? herrsPersona.map(h => h.herramientaCodigo).join(', ') : 'Sin implementos';
 
+                        if (op && typeof mockRendimiento[op.id] === 'undefined') {
+                            mockRendimiento[op.id] = Math.floor(Math.random() * 51) + 70; // 70 to 120
+                        }
+
+                        let extraRendimientoHtml = '';
+                        if (isRendimientoMode && op) {
+                            const rend = mockRendimiento[op.id];
+                            let barColor = 'var(--safco-red)'; // < 90
+                            if (rend >= 90 && rend < 100) barColor = '#f59e0b'; // yellow
+                            else if (rend >= 100) barColor = '#10b981'; // green
+
+                            const txtDisplay = showRendimientoNumbers ? `${rend} cajas` : '';
+
+                            extraRendimientoHtml = `
+                                <div style="margin-top: 0.25rem; width: 100%;">
+                                    <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
+                                        <div style="width: ${Math.min(rend, 100)}%; height: 100%; background: ${barColor};"></div>
+                                    </div>
+                                    <div style="font-size: 0.65rem; font-weight: 700; color: ${barColor}; text-align: right; min-height: 12px; line-height: 1;">${txtDisplay}</div>
+                                </div>
+                            `;
+                        }
+
                         slotsHtml += `
                             <div class="mesa-slot-row">
-                                <div class="slot-persona-info">
+                                <div class="slot-persona-info" style="flex: 1;">
                                     <div class="slot-avatar ${avCls}">${iniciales}</div>
-                                    <div>
+                                    <div style="flex: 1;">
                                         <div class="slot-name">${op ? op.nombre : 'Operario'}</div>
-                                        <div style="font-size: 0.68rem; color: var(--safco-teal); font-weight: 600;">🔧 ${herrsTxt}</div>
+                                        ${!isRendimientoMode ? `<div style="font-size: 0.68rem; color: var(--safco-teal); font-weight: 600;">🔧 ${herrsTxt}</div>` : ''}
+                                        ${extraRendimientoHtml}
                                     </div>
                                 </div>
-                                <span class="badge-rol ${badgeRolCls}">${laborTextoCorto}</span>
+                                <span class="badge-rol ${badgeRolCls}" style="align-self: flex-start; margin-top: 2px;">${laborTextoCorto}</span>
                             </div>
                         `;
                     } else {
@@ -446,24 +605,15 @@
                                     <div class="slot-avatar av-empty">+</div>
                                     <span class="slot-name" style="color: var(--safco-text-muted); font-style: italic;">Puesto Libre</span>
                                 </div>
-                                <span class="badge-rol" style="background: #e2e8f0; color: #64748b;">SLOT ${i+1}</span>
+                                <span class="badge-rol" style="background: #e2e8f0; color: #64748b; align-self: flex-start; margin-top: 2px;">SLOT ${i+1}</span>
                             </div>
                         `;
                     }
                 }
 
-                contenedor.innerHTML += `
-                    <div class="mesa-card-item ${estadoCls}" onclick="abrirModalAsignar('${mesa.codigo}')">
-                        <div class="mesa-card-header">
-                            <span class="mesa-code-badge">${mesa.codigo}</span>
-                            <span class="mesa-status-pill ${pillCls}">${estadoPillTxt}</span>
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--safco-text-muted); margin-bottom: 0.5rem;">
-                            <i class='bx bx-map-pin'></i> ${mesa.linea} · ${mesa.riel}
-                        </div>
-                        <div class="mesa-slots-list">
-                            ${slotsHtml}
-                        </div>
+                let botonesAccionHtml = '';
+                if (!isRendimientoMode) {
+                    botonesAccionHtml = `
                         <div style="display: flex; gap: 0.35rem; margin-top: 0.5rem; justify-content: space-between; align-items: center;">
                             <button class="btn-safco btn-safco-teal" style="height: 30px; font-size: 0.72rem; padding: 0 0.6rem; flex: 1;" onclick="event.stopPropagation(); abrirModalTrasladoParaMesa('${mesa.codigo}')" title="Trasladar este equipo a otra mesa">
                                 <i class='bx bx-transfer-alt'></i> Trasladar Mesa
@@ -472,6 +622,19 @@
                                 <i class='bx bx-trash'></i>
                             </button>
                         </div>
+                    `;
+                }
+
+                contenedor.innerHTML += `
+                    <div class="mesa-card-item ${estadoCls}" onclick="isRendimientoMode ? abrirModalRendimientoMesa('${mesa.codigo}') : abrirModalAsignar('${mesa.codigo}')">
+                        <div class="mesa-card-header">
+                            <span class="mesa-code-badge">${mesa.codigo}</span>
+                            <span class="mesa-status-pill ${pillCls}">${estadoPillTxt}</span>
+                        </div>
+                        <div class="mesa-slots-list">
+                            ${slotsHtml}
+                        </div>
+                        ${botonesAccionHtml}
                     </div>
                 `;
             });
