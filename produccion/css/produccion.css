@@ -170,18 +170,7 @@ main.content-area {
 
 
 
-.produccion-banner::after {
-  content: '';
-  position: absolute;
-  right: -25px;
-  top: -25px;
-  width: 120px;
-  height: 120px;
-  background: var(--safco-red);
-  border-radius: 50%;
-  opacity: 0.18;
-  pointer-events: none;
-}
+
 
 .produccion-banner-title {
   display: flex;
@@ -511,15 +500,51 @@ main.content-area {
   text-transform: uppercase;
 }
 
-.pill-completa { background: var(--safco-teal-light); color: var(--safco-teal-dark); }
-.pill-incompleta { background: #fef3c7; color: #b45309; }
-.pill-sin-sel { background: var(--safco-red-border); color: var(--safco-red-hover); }
+.pill-completa { background: var(--safco-teal-light); color: var(--safco-teal-dark); font-weight: 700; }
+.pill-incompleta { background: #fef3c7; color: #b45309; font-weight: 700; }
+.pill-sin-sel { background: var(--safco-red-bg); color: var(--safco-red); border: 1.5px solid var(--safco-red-border); font-weight: 800; }
+.pill-vacia { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; font-weight: 800; }
 
-/* Badges para Herramientas */
+/* Estilos de Alerta Roja para Mesas Vacías y Sin Seleccionador */
+.mesa-card-item.sin-sel {
+  border-left: 6px solid var(--safco-red) !important;
+  background: #fffafa;
+}
+
+.mesa-card-item.vacia {
+  border-left: 6px solid var(--safco-red) !important;
+  background: #fff5f5;
+}
+
+/* Chips de Resumen de Selección de Implementos */
+.chip-resumen-implemento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  border: 1px solid var(--safco-teal);
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--safco-teal);
+  margin: 0.2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.chip-resumen-implemento .btn-remove-chip {
+  cursor: pointer;
+  color: var(--safco-red);
+  font-weight: 800;
+  margin-left: 0.2rem;
+}
+
+/* Badges para Implementos */
 .pill-asignado { background: var(--safco-green-light); color: var(--safco-green); border: 1px solid var(--safco-green); }
 .pill-disponible { background: var(--safco-amber-bg); color: #b45309; border: 1px solid var(--safco-amber-border); }
 .pill-perdida { background: var(--safco-red-bg); color: var(--safco-red-hover); border: 1px solid var(--safco-red-border); }
 .pill-deteriorada { background: var(--safco-gray-bg); color: var(--safco-gray); border: 1px solid var(--safco-border); }
+
 
 /* Slots de Personas en la Mesa */
 .mesa-slots-list {
@@ -838,8 +863,13 @@ main.content-area {
   .select-touch, .input-touch {
     height: 34px !important;
     font-size: 0.78rem !important;
-    padding: 0 0.5rem !important;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
   }
+  .input-with-icon {
+    padding-left: 2.7rem !important;
+  }
+
   .kpi-grid {
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
     gap: 0.5rem !important;

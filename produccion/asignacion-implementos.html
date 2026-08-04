@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFCO · Asignación de Implementos Producción</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Base Styles & Produccion Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/produccion.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body style="background-color: var(--safco-bg); min-height: 100vh;">
+    <main class="content-area" style="padding: 1.5rem; max-width: 1300px; margin: 0 auto;">
+        
+        <!-- Banner de Cabecera Ejecutiva -->
+        <div class="produccion-banner">
+            <div class="produccion-banner-title">
+                <div class="produccion-banner-icon">
+                    <i class='bx bx-wrench'></i>
+                </div>
+                <div>
+                    <h1>Asignación de Implementos Producción</h1>
+                    <p>Entrega Múltiple con Filtro por Tipo y Resumen de Selección · Devolución Múltiple con Observaciones</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header y ocupar todo el espacio web">
+                    <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
+                </button>
+                <button class="btn-safco btn-safco-primary" onclick="abrirModalEntregaMultiple()">
+                    <i class='bx bx-plus-circle'></i> Entregar Implementos Múltiples
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Colapsable de Filtros y KPIs -->
+        <div class="collapsible-filter-card expanded" id="panel-filtros-implementos">
+            <div class="collapsible-filter-header" onclick="togglePanelFiltros('panel-filtros-implementos')">
+                <div class="filter-header-title">
+                    <i class='bx bx-filter-alt'></i> Filtros de Implementos y Resumen de Estado
+                </div>
+                <button class="btn-toggle-panel" type="button">
+                    <span class="txt-toggle">Ocultar Filtros</span>
+                    <i class='bx bx-chevron-up ico-toggle'></i>
+                </button>
+            </div>
+            <div class="collapsible-filter-body">
+                <!-- Barra de Filtros -->
+                <div class="filter-bar-produccion" style="margin-bottom: 1rem;">
+                    <div class="filter-item" style="max-width: 180px;">
+                        <label for="filter-linea">Línea de Producción:</label>
+                        <select id="filter-linea" class="select-touch" onchange="renderImplementos()">
+                            <option value="TODAS">Todas las Líneas</option>
+                            <option value="Línea 1">Línea 1</option>
+                            <option value="Línea 2">Línea 2</option>
+                            <option value="Línea 3">Línea 3</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="max-width: 180px;">
+                        <label for="filter-tipo-implemento">Tipo de Implemento:</label>
+                        <select id="filter-tipo-implemento" class="select-touch" onchange="renderImplementos()">
+                            <option value="TODOS">Todos los Tipos</option>
+                            <option value="Tijera">✂️ Tijeras</option>
+                            <option value="Pesa Patrón">⚖️ Pesas Patrón</option>
+                            <option value="Calibrador">📐 Calibradores</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="flex: 2; min-width: 220px;">
+                        <label for="input-search-implemento">Buscar Operario, Mesa o Implemento:</label>
+                        <input type="text" id="input-search-implemento" class="input-touch" placeholder="Ej: Ana García, L1-R1-M03, Tijera 02..." oninput="renderImplementos()">
+                    </div>
+                </div>
+
+                <!-- Tarjetas KPI Resumen -->
+                <div class="kpi-grid" style="margin-bottom: 0;">
+                    <div class="kpi-card clickable active-kpi" id="kpi-card-herr-todas" onclick="filtrarPorKPI('TODAS')">
+                        <div class="kpi-val" id="kpi-operarios-con-herr">0</div>
+                        <div class="kpi-lbl">Operarios Equipados</div>
+                    </div>
+                    <div class="kpi-card clickable" id="kpi-card-herr-disp" onclick="filtrarPorKPI('DISPONIBLES')">
+                        <div class="kpi-val ok" id="kpi-herr-disp">0</div>
+                        <div class="kpi-lbl">Disponibles Almacén</div>
+                    </div>
+                    <div class="kpi-card clickable" id="kpi-card-herr-uso" onclick="filtrarPorKPI('EN_USO')">
+                        <div class="kpi-val warn" id="kpi-herr-uso">0</div>
+                        <div class="kpi-lbl">En Uso en Mesa</div>
+                    </div>
+                    <div class="kpi-card clickable" id="kpi-card-herr-venc" onclick="filtrarPorKPI('VENCIDAS')">
+                        <div class="kpi-val bad" id="kpi-herr-venc">0</div>
+                        <div class="kpi-lbl">Calibración Vencida</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista Principal: Tarjetas de Operarios con sus Implementos y Mesas -->
+        <div id="contenedor-operarios-herramientas">
+            <!-- Renderizado dinámico -->
+        </div>
+
+    </main>
+
+    <!-- Modal Touch: Entrega Múltiple de Implementos con Filtro y Resumen de Chips -->
+    <div class="modal-backdrop-safco" id="modal-entrega-multiple">
+        <div class="modal-card-safco">
+            <div class="modal-card-header">
+                <h3><i class='bx bx-plus-circle'></i> Entregar Implementos Múltiples</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-entrega-multiple')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                
+                <div class="form-group-safco">
+                    <label for="select-op-entrega-mult">Seleccionar Operario:</label>
+                    <select id="select-op-entrega-mult" class="select-touch" style="width: 100%;">
+                        <!-- Opciones cargadas dinámicamente -->
+                    </select>
+                </div>
+
+                <!-- Filtro por Tipo de Implemento dentro del Modal -->
+                <div class="form-group-safco">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                        <label for="filter-modal-tipo-implemento" style="margin: 0;">Filtrar Implementos por Tipo:</label>
+                        <select id="filter-modal-tipo-implemento" class="select-touch" style="height: 32px; font-size: 0.8rem;" onchange="poblarCheckboxesHerramientasDisponibles()">
+                            <option value="TODOS">Todos los Tipos</option>
+                            <option value="Tijera">✂️ Tijeras</option>
+                            <option value="Pesa Patrón">⚖️ Pesas Patrón</option>
+                            <option value="Calibrador">📐 Calibradores</option>
+                        </select>
+                    </div>
+                    
+                    <div id="lista-herramientas-disponibles-checkboxes" style="max-height: 180px; overflow-y: auto; border: 1.5px solid var(--safco-border); border-radius: 8px; padding: 0.75rem; background: #ffffff;">
+                        <!-- Checkboxes cargados dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Resumen de Implementos Seleccionados con Chips -->
+                <div class="form-group-safco">
+                    <label style="font-weight: 800; color: var(--safco-teal);">Resumen de Selección para Entregar:</label>
+                    <div id="box-resumen-implementos-seleccionados" style="min-height: 48px; max-height: 120px; overflow-y: auto; background: var(--safco-teal-bg); border: 1px solid var(--safco-teal-light); border-radius: 8px; padding: 0.5rem;">
+                        <!-- Chips en tiempo real -->
+                    </div>
+                </div>
+
+                <div class="modal-card-actions">
+                    <button class="btn-safco btn-safco-secondary" style="flex: 1;" onclick="cerrarModal('modal-entrega-multiple')">Cancelar</button>
+                    <button class="btn-safco btn-safco-teal" style="flex: 1;" onclick="confirmarEntregaMultiple()">
+                        <i class='bx bx-check-double'></i> Entregar Seleccionados
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Touch: Devolución Múltiple con Observación por Implemento -->
+    <div class="modal-backdrop-safco" id="modal-devolucion-persona">
+        <div class="modal-card-safco" style="max-width: 600px;">
+            <div class="modal-card-header" style="background-color: var(--safco-teal-dark);">
+                <h3 id="titulo-devolucion-persona"><i class='bx bx-refresh'></i> Devolver Implementos de Operario</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-devolucion-persona')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <input type="hidden" id="dev-op-id-hidden">
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                    <label style="font-weight: 800; color: var(--safco-text-dark); margin: 0;">Seleccionar Implementos a Devolver:</label>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--safco-teal); cursor: pointer;">
+                        <input type="checkbox" id="chk-dev-todos" onchange="toggleDevolverTodos(this.checked)"> Marcar Todos
+                    </label>
+                </div>
+
+                <div id="contenedor-items-devolucion-multiple" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--safco-border); border-radius: 8px; padding: 0.6rem; background: #ffffff; margin-bottom: 1rem;">
+                    <!-- Items de devolución con selects y textarea de observaciones -->
+                </div>
+
+                <div class="modal-card-actions">
+                    <button class="btn-safco btn-safco-secondary" style="flex: 1;" onclick="cerrarModal('modal-devolucion-persona')">Cancelar</button>
+                    <button class="btn-safco btn-safco-primary" style="flex: 1;" onclick="confirmarDevolucionMultiple()">
+                        <i class='bx bx-archive-in'></i> Registrar Devoluciones
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Lógica y Datos -->
+    <script src="js/produccion-data.js"></script>
+    <script>
+        let filtroKPIActual = 'TODAS';
+        let implementosSeleccionadosSet = new Set();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderImplementos();
+        });
+
+        // Toggle Modo Tablet Kiosco CSS puro
+        function toggleTabletKioskMode() {
+            let isKiosk = document.body.classList.toggle('standalone-kiosk-mode');
+
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'TOGGLE_TABLET_KIOSK' }, '*');
+                }
+            } catch (e) {
+                console.warn('Cross-origin frame notice:', e);
+            }
+
+            actualizarBotonKioskUI(isKiosk);
+        }
+
+        function actualizarBotonKioskUI(isKiosk) {
+            const btn = document.getElementById('btn-kiosk-mode');
+            if (btn) {
+                if (isKiosk) {
+                    btn.classList.add('active-kiosk');
+                    btn.innerHTML = `<i class='bx bx-exit-fullscreen'></i> <span class="txt-kiosk">Restaurar Navegación</span>`;
+                } else {
+                    btn.classList.remove('active-kiosk');
+                    btn.innerHTML = `<i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>`;
+                }
+            }
+        }
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'TABLET_KIOSK_STATUS') {
+                const isKiosk = event.data.isKiosk;
+                actualizarBotonKioskUI(isKiosk);
+                if (isKiosk) document.body.classList.add('standalone-kiosk-mode');
+                else document.body.classList.remove('standalone-kiosk-mode');
+            }
+        });
+
+        function togglePanelFiltros(panelId) {
+            const panel = document.getElementById(panelId);
+            const isExpanded = panel.classList.contains('expanded');
+            const txtToggle = panel.querySelector('.txt-toggle');
+            const icoToggle = panel.querySelector('.ico-toggle');
+
+            if (isExpanded) {
+                panel.classList.remove('expanded');
+                if (txtToggle) txtToggle.textContent = 'Mostrar Filtros';
+                if (icoToggle) {
+                    icoToggle.classList.remove('bx-chevron-up');
+                    icoToggle.classList.add('bx-chevron-down');
+                }
+            } else {
+                panel.classList.add('expanded');
+                if (txtToggle) txtToggle.textContent = 'Ocultar Filtros';
+                if (icoToggle) {
+                    icoToggle.classList.remove('bx-chevron-down');
+                    icoToggle.classList.add('bx-chevron-up');
+                }
+            }
+        }
+
+        function filtrarPorKPI(tipoKPI) {
+            filtroKPIActual = tipoKPI;
+            document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-kpi'));
+            if (tipoKPI === 'TODAS') document.getElementById('kpi-card-herr-todas').classList.add('active-kpi');
+            if (tipoKPI === 'DISPONIBLES') document.getElementById('kpi-card-herr-disp').classList.add('active-kpi');
+            if (tipoKPI === 'EN_USO') document.getElementById('kpi-card-herr-uso').classList.add('active-kpi');
+            if (tipoKPI === 'VENCIDAS') document.getElementById('kpi-card-herr-venc').classList.add('active-kpi');
+            renderImplementos();
+        }
+
+        function renderImplementos() {
+            const fLinea = document.getElementById('filter-linea').value;
+            const fTipo = document.getElementById('filter-tipo-implemento').value;
+            const search = document.getElementById('input-search-implemento').value.toLowerCase().trim();
+
+            const herrs = ProduccionDB.getHerramientas();
+            const asignacionesMesas = ProduccionDB.getAsignacionesMesas();
+            const asignacionesHerr = ProduccionDB.getAsignacionesHerramientas();
+            const operarios = ProduccionDB.getOperarios();
+            const mesas = ProduccionDB.getMesas();
+
+            const opToMesaMap = {};
+            Object.keys(asignacionesMesas).forEach(codigoMesa => {
+                const mesaObj = mesas.find(m => m.codigo === codigoMesa);
+                const integrs = asignacionesMesas[codigoMesa] || [];
+                integrs.forEach(x => {
+                    const opId = typeof x === 'string' ? x : x.opId;
+                    const labor = typeof x === 'string' ? 'Operario' : x.labor;
+                    if (opId) {
+                        opToMesaMap[opId] = {
+                            codigo: codigoMesa,
+                            linea: mesaObj ? mesaObj.linea : 'Línea 1',
+                            riel: mesaObj ? mesaObj.riel : 'Riel 1',
+                            labor: labor || 'Operario'
+                        };
+                    }
+                });
+            });
+
+            const herrByOpMap = {};
+            asignacionesHerr.forEach(asig => {
+                if (!herrByOpMap[asig.operarioId]) {
+                    herrByOpMap[asig.operarioId] = [];
+                }
+                herrByOpMap[asig.operarioId].push(asig);
+            });
+
+            const totalDisp = herrs.filter(h => h.estado === 'Disponible').length;
+            const totalUso = herrs.filter(h => h.estado === 'Asignado').length;
+            const totalVenc = herrs.filter(h => h.estado === 'Deteriorada' || h.estado === 'Perdida').length;
+            const totalOpsEquipados = Object.keys(herrByOpMap).length;
+
+            document.getElementById('kpi-herr-disp').textContent = totalDisp;
+            document.getElementById('kpi-herr-uso').textContent = totalUso;
+            document.getElementById('kpi-herr-venc').textContent = totalVenc;
+            document.getElementById('kpi-operarios-con-herr').textContent = totalOpsEquipados;
+
+            const contenedor = document.getElementById('contenedor-operarios-herramientas');
+            contenedor.innerHTML = '';
+
+            const operariosAMostrar = operarios.filter(op => opToMesaMap[op.id] || (herrByOpMap[op.id] && herrByOpMap[op.id].length > 0));
+
+            if (operariosAMostrar.length === 0) {
+                contenedor.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--safco-text-muted);">No hay entregas registradas ni operarios en mesa. Usa el botón "Entregar Implementos Múltiples".</div>`;
+                return;
+            }
+
+            operariosAMostrar.forEach(op => {
+                const infoMesa = opToMesaMap[op.id] || { codigo: 'Sin Mesa', linea: 'Línea 1', riel: 'Riel 1', labor: op.cargo };
+                const herrsAsignadas = herrByOpMap[op.id] || [];
+
+                if (fLinea !== 'TODAS' && infoMesa.linea !== fLinea) return;
+
+                let herrsFiltradas = herrsAsignadas;
+                if (fTipo !== 'TODOS') {
+                    herrsFiltradas = herrsAsignadas.filter(h => h.tipo === fTipo);
+                    if (herrsFiltradas.length === 0 && search === '') return;
+                }
+
+                if (filtroKPIActual === 'EN_USO' && herrsAsignadas.length === 0) return;
+                if (filtroKPIActual === 'VENCIDAS') {
+                    const tieneVenc = herrsAsignadas.some(h => {
+                        const ho = herrs.find(x => x.codigo === h.herramientaCodigo);
+                        return ho && (ho.estado === 'Deteriorada' || ho.estado === 'Perdida');
+                    });
+                    if (!tieneVenc) return;
+                }
+
+                if (search) {
+                    const matchOp = op.nombre.toLowerCase().includes(search);
+                    const matchMesa = infoMesa.codigo.toLowerCase().includes(search);
+                    const matchHerr = herrsAsignadas.some(h => h.herramientaCodigo.toLowerCase().includes(search));
+                    if (!matchOp && !matchMesa && !matchHerr) return;
+                }
+
+                const iniciales = op.nombre.split(' ').map(n => n[0]).join('').substring(0, 2);
+                const isSeleccionador = infoMesa.labor === 'Seleccionador';
+
+                let herrsChipsHtml = '';
+                if (herrsAsignadas.length === 0) {
+                    herrsChipsHtml = `<span style="font-size: 0.8rem; color: var(--safco-red); font-style: italic;"><i class='bx bx-error-circle'></i> Sin implementos asignados</span>`;
+                } else {
+                    herrsAsignadas.forEach(h => {
+                        const icon = h.tipo === 'Tijera' ? '✂️' : (h.tipo === 'Calibrador' ? '📐' : '⚖️');
+                        const hObj = herrs.find(x => x.codigo === h.herramientaCodigo);
+                        const isVencida = hObj && (hObj.estado === 'Deteriorada' || hObj.estado === 'Perdida');
+                        const calibTxt = isVencida ? `⚠️ ${hObj.estado}` : `Calib: ${hObj ? hObj.diasCalibracion : 15} días`;
+
+                        herrsChipsHtml += `
+                            <div class="herr-chip ${isVencida ? 'warn' : ''}">
+                                <span class="herr-chip-icon">${icon}</span>
+                                <div>
+                                    <div class="herr-chip-name">${h.herramientaCodigo}</div>
+                                    <div class="herr-chip-calib">${calibTxt} · ${h.fechaEntrega}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                contenedor.innerHTML += `
+                    <div class="operario-herr-card ${herrsAsignadas.length === 0 ? 'incompleto-herr' : ''}">
+                        <div class="operario-card-header">
+                            <div class="op-main-det">
+                                <div class="op-big-avatar">${iniciales}</div>
+                                <div>
+                                    <div class="op-title-name">${op.nombre} <span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${infoMesa.labor}</span></div>
+                                    <div class="op-mesa-tag"><i class='bx bx-table'></i> ${infoMesa.codigo} (${infoMesa.linea} - ${infoMesa.riel})</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.4rem;">
+                                <button class="btn-safco btn-safco-teal" style="height: 36px; padding: 0 0.8rem; font-size: 0.8rem;" onclick="abrirModalEntregaParaOp('${op.id}')">
+                                    <i class='bx bx-plus'></i> Entregar
+                                </button>
+                                <button class="btn-safco btn-safco-secondary" style="height: 36px; padding: 0 0.8rem; font-size: 0.8rem;" onclick="abrirModalDevolucionMultiplePersona('${op.id}')">
+                                    <i class='bx bx-refresh'></i> Devolver
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--safco-text-muted); margin-bottom: 0.35rem;">
+                                Implementos a su cargo (${herrsAsignadas.length}):
+                            </div>
+                            <div class="herr-chips-grid">
+                                ${herrsChipsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ENTREGA MÚLTIPLE DE IMPLEMENTOS CON RESUMEN DE CHIPS
+        function abrirModalEntregaMultiple() {
+            implementosSeleccionadosSet.clear();
+            poblarSelectOperariosEntrega();
+            poblarCheckboxesHerramientasDisponibles();
+            renderResumenChipsEntrega();
+            document.getElementById('modal-entrega-multiple').classList.add('active');
+        }
+
+        function abrirModalEntregaParaOp(opId) {
+            implementosSeleccionadosSet.clear();
+            poblarSelectOperariosEntrega();
+            document.getElementById('select-op-entrega-mult').value = opId;
+            poblarCheckboxesHerramientasDisponibles();
+            renderResumenChipsEntrega();
+            document.getElementById('modal-entrega-multiple').classList.add('active');
+        }
+
+        function poblarSelectOperariosEntrega() {
+            const operarios = ProduccionDB.getOperarios();
+            const asignacionesMesas = ProduccionDB.getAsignacionesMesas();
+            const select = document.getElementById('select-op-entrega-mult');
+            select.innerHTML = '';
+
+            const opMesaMap = {};
+            Object.keys(asignacionesMesas).forEach(codigoMesa => {
+                const integrs = asignacionesMesas[codigoMesa] || [];
+                integrs.forEach(x => {
+                    const opId = typeof x === 'string' ? x : x.opId;
+                    if (opId) opMesaMap[opId] = codigoMesa;
+                });
+            });
+
+            operarios.forEach(op => {
+                const mesa = opMesaMap[op.id];
+                const mesaTxt = mesa ? ` · Mesa ${mesa}` : '';
+                select.innerHTML += `<option value="${op.id}">${op.nombre} (${op.cargo}${mesaTxt})</option>`;
+            });
+        }
+
+        function poblarCheckboxesHerramientasDisponibles() {
+            const fTipoModal = document.getElementById('filter-modal-tipo-implemento').value;
+            const herrs = ProduccionDB.getHerramientas();
+            let disp = herrs.filter(h => h.estado === 'Disponible');
+
+            if (fTipoModal !== 'TODOS') {
+                disp = disp.filter(h => h.tipo === fTipoModal);
+            }
+
+            const cont = document.getElementById('lista-herramientas-disponibles-checkboxes');
+            cont.innerHTML = '';
+
+            if (disp.length === 0) {
+                cont.innerHTML = `<div style="color: var(--safco-red); font-size: 0.85rem; text-align: center; padding: 1rem;">No hay implementos del tipo seleccionados en almacén.</div>`;
+                return;
+            }
+
+            disp.forEach(h => {
+                const icon = h.tipo === 'Tijera' ? '✂️' : (h.tipo === 'Calibrador' ? '📐' : '⚖️');
+                const isChecked = implementosSeleccionadosSet.has(h.codigo) ? 'checked' : '';
+                cont.innerHTML += `
+                    <label style="display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid var(--safco-border); font-size: 0.85rem; cursor: pointer;">
+                        <input type="checkbox" name="chk-herr-disp" value="${h.codigo}" ${isChecked} onchange="onToggleImplementoCheckbox(this, '${h.codigo}')" style="width: 18px; height: 18px; accent-color: var(--safco-teal);">
+                        <span>${icon} <strong>${h.codigo}</strong> (${h.tipo})</span>
+                    </label>
+                `;
+            });
+        }
+
+        function onToggleImplementoCheckbox(chk, codigo) {
+            if (chk.checked) {
+                implementosSeleccionadosSet.add(codigo);
+            } else {
+                implementosSeleccionadosSet.delete(codigo);
+            }
+            renderResumenChipsEntrega();
+        }
+
+        function renderResumenChipsEntrega() {
+            const box = document.getElementById('box-resumen-implementos-seleccionados');
+            box.innerHTML = '';
+
+            if (implementosSeleccionadosSet.size === 0) {
+                box.innerHTML = `<span style="font-size: 0.78rem; color: var(--safco-text-muted); font-style: italic;">Sin implementos seleccionados aún. Marca las casillas superiores.</span>`;
+                return;
+            }
+
+            const herrs = ProduccionDB.getHerramientas();
+            implementosSeleccionadosSet.forEach(codigo => {
+                const hObj = herrs.find(x => x.codigo === codigo);
+                const icon = hObj ? (hObj.tipo === 'Tijera' ? '✂️' : (hObj.tipo === 'Calibrador' ? '📐' : '⚖️')) : '🔧';
+
+                box.innerHTML += `
+                    <span class="chip-resumen-implemento">
+                        ${icon} ${codigo}
+                        <span class="btn-remove-chip" onclick="removerChipSeleccionado('${codigo}')">&times;</span>
+                    </span>
+                `;
+            });
+        }
+
+        function removerChipSeleccionado(codigo) {
+            implementosSeleccionadosSet.delete(codigo);
+            poblarCheckboxesHerramientasDisponibles();
+            renderResumenChipsEntrega();
+        }
+
+        function confirmarEntregaMultiple() {
+            const opId = document.getElementById('select-op-entrega-mult').value;
+            const seleccionadas = Array.from(implementosSeleccionadosSet);
+
+            if (!opId) {
+                Swal.fire('Atención', 'Selecciona a un operario.', 'warning');
+                return;
+            }
+
+            if (seleccionadas.length === 0) {
+                Swal.fire('Atención', 'Selecciona al menos un implemento para entregar.', 'warning');
+                return;
+            }
+
+            ProduccionDB.entregarHerramientasMultiples(opId, seleccionadas);
+            cerrarModal('modal-entrega-multiple');
+            renderImplementos();
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: `${seleccionadas.length} Implementos entregados con éxito`,
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+
+        // DEVOLUCIÓN MÚLTIPLE DE IMPLEMENTOS CON OBSERVACIÓN
+        function abrirModalDevolucionMultiplePersona(opId) {
+            document.getElementById('dev-op-id-hidden').value = opId;
+            const operarios = ProduccionDB.getOperarios();
+            const opObj = operarios.find(o => o.id === opId);
+
+            document.getElementById('titulo-devolucion-persona').innerHTML = `<i class='bx bx-refresh'></i> Devolver Implementos - ${opObj ? opObj.nombre : ''}`;
+            document.getElementById('chk-dev-todos').checked = false;
+
+            const asignacionesHerr = ProduccionDB.getAsignacionesHerramientas();
+            const herrsPersona = asignacionesHerr.filter(a => a.operarioId === opId);
+            const cont = document.getElementById('contenedor-items-devolucion-multiple');
+            cont.innerHTML = '';
+
+            if (herrsPersona.length === 0) {
+                cont.innerHTML = `<div style="text-align: center; color: var(--safco-text-muted); padding: 1.5rem;">Esta persona no tiene implementos asignados a su cargo.</div>`;
+                return;
+            }
+
+            herrsPersona.forEach((h, idx) => {
+                const icon = h.tipo === 'Tijera' ? '✂️' : (h.tipo === 'Calibrador' ? '📐' : '⚖️');
+                cont.innerHTML += `
+                    <div style="background: #f8fafc; border: 1px solid var(--safco-border); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.6rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.4rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--safco-teal); cursor: pointer; margin: 0;">
+                                <input type="checkbox" class="chk-item-dev" value="${h.herramientaCodigo}" onchange="toggleDevolucionItemOptions('${h.herramientaCodigo}')" style="width: 18px; height: 18px; accent-color: var(--safco-teal);">
+                                <span>${icon} <strong>${h.herramientaCodigo}</strong> (${h.tipo})</span>
+                            </label>
+                            
+                            <select id="sel-estado-dev-${h.herramientaCodigo}" class="select-touch" style="height: 32px; font-size: 0.78rem; font-weight: 700; width: 220px;" onchange="onDevolucionEstadoChange('${h.herramientaCodigo}')">
+                                <option value="Disponible">✅ Excelente / Listo para Reuso</option>
+                                <option value="Deteriorada">⚪ Deteriorada (No Usable)</option>
+                                <option value="Perdida">🔴 Reportada Perdida</option>
+                            </select>
+                        </div>
+                        
+                        <div id="box-obs-dev-${h.herramientaCodigo}" style="display: none; margin-top: 0.4rem;">
+                            <input type="text" id="input-obs-dev-${h.herramientaCodigo}" class="input-touch" style="width: 100%; height: 32px; font-size: 0.78rem; border-color: var(--safco-amber-border);" placeholder="Observación / Detalle de la incidencia...">
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('modal-devolucion-persona').classList.add('active');
+        }
+
+        function toggleDevolverTodos(checked) {
+            document.querySelectorAll('.chk-item-dev').forEach(chk => {
+                chk.checked = checked;
+                toggleDevolucionItemOptions(chk.value);
+            });
+        }
+
+        function toggleDevolucionItemOptions(codigo) {
+            onDevolucionEstadoChange(codigo);
+        }
+
+        function onDevolucionEstadoChange(codigo) {
+            const chk = document.querySelector(`.chk-item-dev[value="${codigo}"]`);
+            const sel = document.getElementById(`sel-estado-dev-${codigo}`);
+            const boxObs = document.getElementById(`box-obs-dev-${codigo}`);
+
+            if (chk && chk.checked && sel && (sel.value === 'Deteriorada' || sel.value === 'Perdida')) {
+                boxObs.style.display = 'block';
+            } else {
+                boxObs.style.display = 'none';
+            }
+        }
+
+        function confirmarDevolucionMultiple() {
+            const opId = document.getElementById('dev-op-id-hidden').value;
+            const checkboxes = document.querySelectorAll('.chk-item-dev:checked');
+
+            if (checkboxes.length === 0) {
+                Swal.fire('Atención', 'Selecciona al menos un implemento a devolver.', 'warning');
+                return;
+            }
+
+            const itemsDevolucion = [];
+            checkboxes.forEach(chk => {
+                const codigo = chk.value;
+                const estado = document.getElementById(`sel-estado-dev-${codigo}`).value;
+                const obs = document.getElementById(`input-obs-dev-${codigo}`).value;
+
+                itemsDevolucion.push({
+                    herramientaCodigo: codigo,
+                    estadoDevolucion: estado,
+                    observacion: obs
+                });
+            });
+
+            ProduccionDB.devolverImplementosMultiples(opId, itemsDevolucion);
+            cerrarModal('modal-devolucion-persona');
+            renderImplementos();
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: `${itemsDevolucion.length} Implementos devueltos con éxito`,
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+
+        function cerrarModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+    </script>
+</body>
+</html>

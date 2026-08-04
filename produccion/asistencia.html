@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAFCO · Registro de Asistencia Producción</title>
+    <title>SAFCO · Reporte de Asistencia Producción</title>
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,8 +27,8 @@
                     <i class='bx bx-user-check'></i>
                 </div>
                 <div>
-                    <h1>Registro de Asistencia Producción</h1>
-                    <p>Búsqueda y Lectura de Fotocheck/DNI con Pistola Láser · Confirmación de Asistencia</p>
+                    <h1>Reporte de Asistencia Producción</h1>
+                    <p>Consolidado Oficial de Asistencia del Turno · Generado automáticamente desde Asignación de Mesas</p>
                 </div>
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -38,58 +38,52 @@
             </div>
         </div>
 
-        <!-- Caja de Entrada para Pistola Láser y Búsqueda Directa -->
-        <div class="laser-input-box">
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                <div style="flex: 3; min-width: 260px; position: relative;">
-                    <i class='bx bx-search' style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--safco-teal); font-size: 1.3rem;"></i>
-                    <input type="text" id="input-laser-search" class="input-touch" style="width: 100%; padding-left: 2.7rem; font-size: 1.05rem; font-weight: 700; border-color: var(--safco-teal);" placeholder="Escanea el DNI con la pistola láser o escribe apellidos/nombres..." autofocus oninput="onInputLaserChange(this.value)">
-                </div>
-            </div>
-   
-        </div>
-
-        <!-- 1. Resultados de Búsqueda / Lectura Láser -->
-        <div class="card" style="margin-bottom: 1.5rem; border-radius: 12px; padding: 1.25rem; border: 1.5px solid var(--safco-teal);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--safco-teal); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
-                    <i class='bx bx-search-alt'></i> Resultados de Búsqueda / Coincidencias DNI (<span id="txt-coincidencias-count">0</span>)
-                </h3>
-                <span style="font-size: 0.78rem; color: var(--safco-text-muted);">Selecciona estado y presiona "Agregar a Asistencia"</span>
-            </div>
-
-            <div class="table-safco-container">
-                <table class="table-safco">
-                    <thead>
-                        <tr>
-                            <th>DNI</th>
-                            <th>NOMBRES Y APELLIDOS</th>
-                            <th>CARGO / ROL</th>
-                            <th>SELECCIONAR LLEGADA</th>
-                            <th style="text-align: right;">ACCIÓN</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-resultados-busqueda">
-                        <!-- Carga coincidencias -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 2. Panel Colapsable de Lista Oficial de Asistencia Registrada -->
-        <div class="collapsible-filter-card expanded" id="panel-oficial-asistencia">
-            <div class="collapsible-filter-header" onclick="togglePanelFiltros('panel-oficial-asistencia')">
+        <!-- Panel Colapsable de Filtros y KPIs de Asistencia -->
+        <div class="collapsible-filter-card expanded" id="panel-filtros-reporte-asistencia">
+            <div class="collapsible-filter-header" onclick="togglePanelFiltros('panel-filtros-reporte-asistencia')">
                 <div class="filter-header-title">
-                    <i class='bx bx-list-check'></i> Personal Registrado en Asistencia del Turno Hoy (<span id="kpi-asist-presentes">0</span>)
+                    <i class='bx bx-filter-alt'></i> Filtros de Reporte y Resumen de Asistencia
                 </div>
                 <button class="btn-toggle-panel" type="button">
-                    <span class="txt-toggle">Ocultar Registrados</span>
+                    <span class="txt-toggle">Ocultar Filtros</span>
                     <i class='bx bx-chevron-up ico-toggle'></i>
                 </button>
             </div>
             <div class="collapsible-filter-body">
+                <!-- Barra de Filtros -->
+                <div class="filter-bar-produccion" style="margin-bottom: 1rem;">
+                    <div class="filter-item" style="max-width: 150px;">
+                        <label for="filter-reporte-fecha">Fecha:</label>
+                        <input type="date" id="filter-reporte-fecha" class="input-touch" onchange="renderReporteAsistencia()">
+                    </div>
+
+                    <div class="filter-item" style="max-width: 180px;">
+                        <label for="filter-reporte-linea">Línea:</label>
+                        <select id="filter-reporte-linea" class="select-touch" onchange="renderReporteAsistencia()">
+                            <option value="TODAS">Todas las Líneas</option>
+                            <option value="Línea 1">Línea 1</option>
+                            <option value="Línea 2">Línea 2</option>
+                            <option value="Línea 3">Línea 3</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="max-width: 160px;">
+                        <label for="filter-reporte-estado">Estado Ingreso:</label>
+                        <select id="filter-reporte-estado" class="select-touch" onchange="renderReporteAsistencia()">
+                            <option value="TODOS">Todos los Estados</option>
+                            <option value="En hora">🟢 En hora</option>
+                            <option value="Tarde">🟠 Tarde</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="flex: 2; min-width: 220px;">
+                        <label for="input-search-asistencia">Buscar Operario o DNI:</label>
+                        <input type="text" id="input-search-asistencia" class="input-touch" placeholder="Ej: Ana García, 45892011..." oninput="renderReporteAsistencia()">
+                    </div>
+                </div>
+
                 <!-- Tarjetas KPI Resumen Asistencia -->
-                <div class="kpi-grid" style="margin-bottom: 1rem;">
+                <div class="kpi-grid" style="margin-bottom: 0;">
                     <div class="kpi-card">
                         <div class="kpi-val ok" id="kpi-total-asist">0</div>
                         <div class="kpi-lbl">Total Registrados</div>
@@ -102,27 +96,32 @@
                         <div class="kpi-val warn" id="kpi-asist-tarde">0</div>
                         <div class="kpi-lbl">Tarde</div>
                     </div>
-                </div>
-
-                <!-- Tabla Personal Registrado -->
-                <div class="table-safco-container">
-                    <table class="table-safco">
-                        <thead>
-                            <tr>
-                                <th>DNI</th>
-                                <th>NOMBRES Y APELLIDOS</th>
-                                <th>CARGO</th>
-                                <th>ESTADO INGRESO</th>
-                                <th>HORA REGISTRO</th>
-                                <th style="text-align: right;">ESTADO ASISTENCIA</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-asistencia-registrada">
-                            <!-- Rendering dinámico -->
-                        </tbody>
-                    </table>
+                    <div class="kpi-card">
+                        <div class="kpi-val" id="kpi-operarios-en-mesa" style="color: var(--safco-teal);">0</div>
+                        <div class="kpi-lbl">En Mesas Activas</div>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Tabla Reporte Oficial de Asistencia -->
+        <div class="table-safco-container">
+            <table class="table-safco">
+                <thead>
+                    <tr>
+                        <th>DNI</th>
+                        <th>NOMBRES Y APELLIDOS</th>
+                        <th>CARGO / ROL</th>
+                        <th>MESA ASIGNADA</th>
+                        <th>FECHA REGISTRO</th>
+                        <th>HORA REGISTRO</th>
+                        <th style="text-align: right;">ESTADO ASISTENCIA</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-reporte-asistencia">
+                    <!-- Rendering dinámico -->
+                </tbody>
+            </table>
         </div>
 
     </main>
@@ -131,7 +130,7 @@
     <script src="js/produccion-data.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            renderBusquedaYAsistencia();
+            renderReporteAsistencia();
         });
 
         // Toggle Modo Tablet Kiosco CSS puro (Apto para Capacitor y Web)
@@ -179,14 +178,14 @@
 
             if (isExpanded) {
                 panel.classList.remove('expanded');
-                if (txtToggle) txtToggle.textContent = 'Mostrar Registrados';
+                if (txtToggle) txtToggle.textContent = 'Mostrar Filtros';
                 if (icoToggle) {
                     icoToggle.classList.remove('bx-chevron-up');
                     icoToggle.classList.add('bx-chevron-down');
                 }
             } else {
                 panel.classList.add('expanded');
-                if (txtToggle) txtToggle.textContent = 'Ocultar Registrados';
+                if (txtToggle) txtToggle.textContent = 'Ocultar Filtros';
                 if (icoToggle) {
                     icoToggle.classList.remove('bx-chevron-down');
                     icoToggle.classList.add('bx-chevron-up');
@@ -194,109 +193,65 @@
             }
         }
 
-        function onInputLaserChange(val) {
-            renderBusquedaYAsistencia();
-        }
+        function renderReporteAsistencia() {
+            const fFecha = document.getElementById('filter-reporte-fecha').value;
+            const fLinea = document.getElementById('filter-reporte-linea').value;
+            const fEstado = document.getElementById('filter-reporte-estado').value;
+            const search = document.getElementById('input-search-asistencia').value.toLowerCase().trim();
 
-        function renderBusquedaYAsistencia() {
-            const search = document.getElementById('input-laser-search').value.toLowerCase().trim();
-
-            const operarios = ProduccionDB.getOperarios();
             const asistencias = ProduccionDB.getAsistencia();
 
-            const asistMap = {};
-            asistencias.forEach(a => { asistMap[a.id] = a; });
+            let asistFiltrada = asistencias;
 
-            const tbodyBusqueda = document.getElementById('tbody-resultados-busqueda');
-            tbodyBusqueda.innerHTML = '';
+            if (fFecha) {
+                asistFiltrada = asistFiltrada.filter(a => a.fechaRegistro === fFecha);
+            }
 
-            let coincidencias = operarios.filter(o => !asistMap[o.id]);
+            if (fLinea !== 'TODAS') {
+                asistFiltrada = asistFiltrada.filter(a => a.lineaAsignada === fLinea);
+            }
+
+            if (fEstado !== 'TODOS') {
+                asistFiltrada = asistFiltrada.filter(a => a.estadoAsistencia === fEstado);
+            }
 
             if (search) {
-                coincidencias = coincidencias.filter(o => o.nombre.toLowerCase().includes(search) || o.dni.includes(search));
+                asistFiltrada = asistFiltrada.filter(a => a.nombre.toLowerCase().includes(search) || a.dni.includes(search));
             }
 
-            document.getElementById('txt-coincidencias-count').textContent = coincidencias.length;
-
-            if (coincidencias.length === 0) {
-                tbodyBusqueda.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--safco-text-muted); padding: 1.5rem;">${search ? 'No se encontraron personas pendientes con ese DNI o Nombre.' : 'Escribe o escanea con la pistola láser un DNI o Apellido para buscar personal.'}</td></tr>`;
-            } else {
-                coincidencias.forEach(op => {
-                    const isSeleccionador = op.cargo === 'Seleccionador';
-                    tbodyBusqueda.innerHTML += `
-                        <tr id="row-search-${op.id}">
-                            <td data-label="DNI" style="font-family: 'DM Mono', monospace; font-size: 0.88rem; font-weight: 700; color: var(--safco-text-dark);">${op.dni}</td>
-                            <td data-label="Nombre" style="font-size: 0.95rem; font-weight: 800; color: var(--safco-teal);">${op.nombre}</td>
-                            <td data-label="Cargo"><span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${op.cargo}</span></td>
-                            <td data-label="Horario">
-                                <select id="sel-llegada-${op.id}" class="select-touch" style="height: 34px; padding: 0 0.5rem; font-size: 0.8rem; font-weight: 700;">
-                                    <option value="En hora">🟢 En hora</option>
-                                    <option value="Tarde">🟠 Tarde</option>
-                                </select>
-                            </td>
-                            <td data-label="Acción" style="text-align: right;">
-                                <button class="btn-safco btn-safco-teal" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem;" onclick="confirmarAgregarAsistencia('${op.id}')">
-                                    <i class='bx bx-user-plus'></i> Agregar
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-
-            const tbodyRegistrados = document.getElementById('tbody-asistencia-registrada');
-            tbodyRegistrados.innerHTML = '';
-
-            document.getElementById('kpi-asist-presentes').textContent = asistencias.length;
+            // KPIs
             document.getElementById('kpi-total-asist').textContent = asistencias.length;
             document.getElementById('kpi-asist-enhora').textContent = asistencias.filter(a => a.estadoAsistencia === 'En hora').length;
             document.getElementById('kpi-asist-tarde').textContent = asistencias.filter(a => a.estadoAsistencia === 'Tarde').length;
+            document.getElementById('kpi-operarios-en-mesa').textContent = asistencias.filter(a => a.mesaAsignada).length;
 
-            if (asistencias.length === 0) {
-                tbodyRegistrados.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--safco-text-muted); padding: 1.5rem;">No hay personal registrado en asistencia hoy. Usa el buscador superior para agregar operarios.</td></tr>`;
-            } else {
-                asistencias.forEach(a => {
-                    const isSeleccionador = a.cargo === 'Seleccionador';
-                    tbodyRegistrados.innerHTML += `
-                        <tr>
-                            <td data-label="DNI" style="font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--safco-text-dark);">${a.dni}</td>
-                            <td data-label="Nombre" style="font-size: 0.92rem; font-weight: 700; color: var(--safco-teal);">${a.nombre}</td>
-                            <td data-label="Cargo"><span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${a.cargo}</span></td>
-                            <td data-label="Ingreso">
-                                <span class="mesa-status-pill ${a.estadoAsistencia === 'En hora' ? 'pill-completa' : 'pill-incompleta'}">
-                                    ${a.estadoAsistencia}
-                                </span>
-                            </td>
-                            <td data-label="Hora" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-muted);">${a.horaRegistro}</td>
-                            <td data-label="Estado" style="text-align: right;">
-                                <span class="mesa-status-pill pill-completa"><i class='bx bx-check-double'></i> Registrado</span>
-                            </td>
-                        </tr>
-                    `;
-                });
+            const tbody = document.getElementById('tbody-reporte-asistencia');
+            tbody.innerHTML = '';
+
+            if (asistFiltrada.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--safco-text-muted); padding: 2rem;">No hay registros de asistencia con los filtros seleccionados.</td></tr>`;
+                return;
             }
 
-        }
+            asistFiltrada.forEach(a => {
+                const isSeleccionador = a.cargo === 'Seleccionador';
+                const mesaTxt = a.mesaAsignada ? `<span class="op-mesa-tag"><i class='bx bx-table'></i> ${a.mesaAsignada}</span>` : `<span style="color: var(--safco-text-muted); font-style: italic;">Sin asignar</span>`;
 
-        function confirmarAgregarAsistencia(opId) {
-            const selectLlegada = document.getElementById(`sel-llegada-${opId}`);
-            const modoLlegada = selectLlegada ? selectLlegada.value : 'En hora';
-
-            const operarios = ProduccionDB.getOperarios();
-            const opObj = operarios.find(o => o.id === opId);
-
-            ProduccionDB.registrarAsistenciaPersona(opId, modoLlegada);
-
-            document.getElementById('input-laser-search').value = '';
-            renderBusquedaYAsistencia();
-
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: `✅ ${opObj ? opObj.nombre : 'Operario'} agregado a Asistencia (${modoLlegada})`,
-                showConfirmButton: false,
-                timer: 2000
+                tbody.innerHTML += `
+                    <tr>
+                        <td data-label="DNI" style="font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--safco-text-dark);">${a.dni}</td>
+                        <td data-label="Nombre" style="font-size: 0.92rem; font-weight: 700; color: var(--safco-teal);">${a.nombre}</td>
+                        <td data-label="Cargo"><span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${a.cargo}</span></td>
+                        <td data-label="Mesa">${mesaTxt}</td>
+                        <td data-label="Fecha" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-dark);">${a.fechaRegistro || 'N/A'}</td>
+                        <td data-label="Hora" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-muted);">${a.horaRegistro}</td>
+                        <td data-label="Estado" style="text-align: right;">
+                            <span class="mesa-status-pill ${a.estadoAsistencia === 'En hora' ? 'pill-completa' : 'pill-incompleta'}">
+                                ${a.estadoAsistencia}
+                            </span>
+                        </td>
+                    </tr>
+                `;
             });
         }
     </script>

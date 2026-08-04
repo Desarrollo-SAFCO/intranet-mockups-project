@@ -2,18 +2,18 @@
  * produccion-data.js
  * Módulo de Gestión de Datos para el Área de Producción de SAFCO
  * Persistencia en localStorage con soporte para Asistencia, Asignación de Mesas,
- * Catálogo de Herramientas (Estados: Asignado, Disponible, Perdida, Deteriorada),
- * Historial de Herramientas y Mantenimiento de Infraestructura.
+ * Catálogo de Implementos (Estados: Asignado, Disponible, Perdida, Deteriorada),
+ * Historial de Implementos con Trazabilidad y Observaciones.
  */
 
 const STORAGE_KEYS = {
-    MESAS: 'safco_produccion_mesas_v3',
-    HERRAMIENTAS: 'safco_produccion_herramientas_v3',
-    OPERARIOS: 'safco_produccion_operarios_v3',
-    ASISTENCIA: 'safco_produccion_asistencia_v3',
-    ASIGNACIONES_MESAS: 'safco_produccion_asig_mesas_v3',
-    ASIGNACIONES_HERR: 'safco_produccion_asig_herr_v3',
-    HISTORIAL_HERR: 'safco_produccion_hist_herr_v3'
+    MESAS: 'safco_produccion_mesas_v6',
+    HERRAMIENTAS: 'safco_produccion_herramientas_v6',
+    OPERARIOS: 'safco_produccion_operarios_v6',
+    ASISTENCIA: 'safco_produccion_asistencia_v6',
+    ASIGNACIONES_MESAS: 'safco_produccion_asig_mesas_v6',
+    ASIGNACIONES_HERR: 'safco_produccion_asig_herr_v6',
+    HISTORIAL_HERR: 'safco_produccion_hist_herr_v6'
 };
 
 // --- MAESTRO DE OPERARIOS SAFCO ---
@@ -48,14 +48,27 @@ function generateDefaultAsistencia() {
     const ops = DEFAULT_OPERARIOS;
     const horaDefault = '07:00';
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    const defAsig = generateDefaultAsignacionesMesas();
+    const opToMesa = {};
+    Object.keys(defAsig).forEach(mCode => {
+        defAsig[mCode].forEach(item => {
+            opToMesa[item.opId] = mCode;
+        });
+    });
+
     for (let i = 0; i < 16; i++) {
+        const mesa = opToMesa[ops[i].id] || null;
         asist.push({
             id: ops[i].id,
             dni: ops[i].dni,
             nombre: ops[i].nombre,
             cargo: ops[i].cargo,
             estadoAsistencia: i === 6 ? 'Tarde' : 'En hora',
-            horaRegistro: i === 6 ? '07:22' : horaDefault
+            fechaRegistro: todayStr,
+            horaRegistro: i === 6 ? '07:22' : horaDefault,
+            mesaAsignada: mesa,
+            lineaAsignada: mesa ? 'Línea 1' : null
         });
     }
     return asist;
@@ -189,21 +202,18 @@ function generateDefaultAsignacionesHerramientas() {
 function generateDefaultHistorialHerramientas() {
     return {
         'Tijera 1': [
-            { operarioNombre: 'Ana García Mamani', fecha: '2026-08-03', hora: '07:00', estado: 'En uso (Actual)' },
-            { operarioNombre: 'María Torres Calle', fecha: '2026-08-02', hora: '07:00 - 15:00', estado: 'Devuelta (Bueno)' }
+            { operarioNombre: 'Ana García Mamani', fecha: '2026-08-03', hora: '07:00', estado: 'En uso (Actual)', observacion: 'Entrega inicial en turno mañana.' },
+            { operarioNombre: 'María Torres Calle', fecha: '2026-08-02', hora: '07:00 - 15:00', estado: 'Devuelta (Bueno)', observacion: 'Retorno en óptimo estado.' }
         ],
         'Calibrador 1': [
-            { operarioNombre: 'Ana García Mamani', fecha: '2026-08-03', hora: '07:05', estado: 'En uso (Actual)' }
+            { operarioNombre: 'Ana García Mamani', fecha: '2026-08-03', hora: '07:05', estado: 'En uso (Actual)', observacion: 'Verificación diaria.' }
         ],
-        // Historial de la Tijera 19 (Perdida)
         'Tijera 19': [
-            { operarioNombre: 'Carlos López Ramos (Último Poseedor)', fecha: '2026-08-02', hora: '22:30', estado: '🔴 Reportada Perdida al finalizar turno Noche' },
-            { operarioNombre: 'Diego Castro Rios', fecha: '2026-08-01', hora: '07:00 - 15:00', estado: 'Devuelta (Bueno)' }
+            { operarioNombre: 'Carlos López Ramos (Último Poseedor)', fecha: '2026-08-02', hora: '22:30', estado: '🔴 Reportada Perdida al finalizar turno Noche', observacion: 'No fue entregada en caja al cierre de turno.' }
         ],
-        // Historial de la Tijera 18 (Deteriorada)
         'Tijera 18': [
-            { operarioNombre: 'Lucía Quispe Vega (Último Poseedor)', fecha: '2026-08-02', hora: '18:15', estado: '⚪ Entregada con melladura / deterioro' },
-            { operarioNombre: 'Juan Pérez Quispe', fecha: '2026-08-01', hora: '07:00 - 15:00', estado: 'Devuelta (Bueno)' }
+            { operarioNombre: 'Lucía Quispe Vega (Último Poseedor)', fecha: '2026-08-02', hora: '18:15', estado: '⚪ Entregada con melladura / deterioro', observacion: 'Melladura por contacto con estructura de empaque.' },
+            { operarioNombre: 'Juan Pérez Quispe', fecha: '2026-08-01', hora: '07:00 - 15:00', estado: 'Devuelta (Bueno)', observacion: 'Sin observaciones.' }
         ]
     };
 }
@@ -233,17 +243,30 @@ const ProduccionDB = {
         localStorage.setItem(STORAGE_KEYS.ASISTENCIA, JSON.stringify(asistList));
     },
 
-    registrarAsistenciaPersona: function(opId, estadoHora = 'En hora') {
+    registrarAsistenciaPersona: function(opId, estadoHora = 'En hora', codigoMesa = null) {
         const asist = this.getAsistencia();
         const ops = this.getOperarios();
+        const mesas = this.getMesas();
+
+        let lineaMesa = null;
+        if (codigoMesa) {
+            const m = mesas.find(x => x.codigo === codigoMesa);
+            if (m) lineaMesa = m.linea;
+        }
 
         const existe = asist.find(a => a.id === opId);
         const now = new Date();
+        const fechaStr = now.toISOString().split('T')[0];
         const horaStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
         if (existe) {
             existe.estadoAsistencia = estadoHora;
+            existe.fechaRegistro = fechaStr;
             existe.horaRegistro = horaStr;
+            if (codigoMesa) {
+                existe.mesaAsignada = codigoMesa;
+                existe.lineaAsignada = lineaMesa;
+            }
         } else {
             const opObj = ops.find(o => o.id === opId);
             if (opObj) {
@@ -253,7 +276,10 @@ const ProduccionDB = {
                     nombre: opObj.nombre,
                     cargo: opObj.cargo,
                     estadoAsistencia: estadoHora,
-                    horaRegistro: horaStr
+                    fechaRegistro: fechaStr,
+                    horaRegistro: horaStr,
+                    mesaAsignada: codigoMesa,
+                    lineaAsignada: lineaMesa
                 });
             }
         }
@@ -307,7 +333,6 @@ const ProduccionDB = {
         return nuevas;
     },
 
-    // Métodos para Activar / Anular Mesas
     activarMesa: function(mesaId) {
         const mesas = this.getMesas();
         const m = mesas.find(x => x.id === mesaId);
@@ -344,16 +369,55 @@ const ProduccionDB = {
         localStorage.setItem(STORAGE_KEYS.ASIGNACIONES_MESAS, JSON.stringify(asig));
     },
 
-    guardarMesaIntegrantes: function(codigoMesa, arrayIntegrantes) {
+    guardarMesaIntegrantes: function(codigoMesa, arrayIntegrantes, estadoLlegada = 'En hora') {
         const asig = this.getAsignacionesMesas();
         const nuevosIds = arrayIntegrantes.map(x => x.opId);
+
+        // Remover de cualquier otra mesa
         Object.keys(asig).forEach(mCode => {
             asig[mCode] = asig[mCode].filter(item => !nuevosIds.includes(item.opId));
         });
 
         asig[codigoMesa] = arrayIntegrantes;
+
+        // REGISTRO AUTOMÁTICO DE ASISTENCIA al colocar operario en mesa (En hora / Tarde)
+        arrayIntegrantes.forEach(item => {
+            if (item.opId) {
+                this.registrarAsistenciaPersona(item.opId, estadoLlegada, codigoMesa);
+            }
+        });
+
         this.saveAsignacionesMesas(asig);
         return asig;
+    },
+
+    // TRASLADO DE EQUIPO DE MESA COMPLETO
+    trasladarEquipoMesa: function(origenCodigo, destinoCodigo) {
+        const asig = this.getAsignacionesMesas();
+        const integrantesOrigen = asig[origenCodigo] || [];
+
+        if (integrantesOrigen.length === 0) return false;
+
+        // Limpiar la mesa de destino y origen, luego asignar el equipo en destino
+        asig[destinoCodigo] = [...integrantesOrigen];
+        asig[origenCodigo] = [];
+
+        // Actualizar el reporte de asistencia con la nueva mesa
+        const asist = this.getAsistencia();
+        const mesas = this.getMesas();
+        const mDest = mesas.find(x => x.codigo === destinoCodigo);
+        
+        integrantesOrigen.forEach(item => {
+            const a = asist.find(x => x.id === item.opId);
+            if (a) {
+                a.mesaAsignada = destinoCodigo;
+                if (mDest) a.lineaAsignada = mDest.linea;
+            }
+        });
+        this.saveAsistencia(asist);
+
+        this.saveAsignacionesMesas(asig);
+        return true;
     },
 
     limpiarMesa: function(codigoMesa) {
@@ -408,7 +472,7 @@ const ProduccionDB = {
             'Calibrador': { pref: 'CAL', name: 'Calibrador' }
         };
 
-        const config = prefixMap[tipo] || { pref: 'HERR', name: tipo };
+        const config = prefixMap[tipo] || { pref: 'IMP', name: tipo };
         const fechaActual = new Date().toISOString().split('T')[0];
         const nuevas = [];
 
@@ -448,7 +512,7 @@ const ProduccionDB = {
         const h = herrs.find(x => x.id === herrId);
         if (h) {
             h.estado = 'Disponible';
-            h.descripcion = 'Reactivada y habilitada para uso.';
+            h.descripcion = 'Reactivado y habilitado para uso.';
             this.saveHerramientas(herrs);
             return true;
         }
@@ -496,7 +560,8 @@ const ProduccionDB = {
                     operarioNombre: opObj ? opObj.nombre : 'Operario',
                     fecha: fechaStr,
                     hora: horaStr,
-                    estado: 'En uso (Actual)'
+                    estado: 'En uso (Actual)',
+                    observacion: 'Entrega regular a operario.'
                 });
             }
         });
@@ -507,7 +572,8 @@ const ProduccionDB = {
         return true;
     },
 
-    devolverHerramientaPorOperario: function(operarioId, herrCodigo, estadoDevolucion) {
+    // DEVOLUCIÓN MÚLTIPLE DE IMPLEMENTOS CON OBSERVACIÓN POR CADA UNO
+    devolverImplementosMultiples: function(operarioId, itemsDevolucionArray) {
         let asigHerr = this.getAsignacionesHerramientas();
         const herrs = this.getHerramientas();
         const historial = this.getHistorialHerramientas();
@@ -518,32 +584,55 @@ const ProduccionDB = {
         const horaStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
         const fechaStr = now.toISOString().split('T')[0];
 
-        asigHerr = asigHerr.filter(a => !(a.operarioId === operarioId && a.herramientaCodigo === herrCodigo));
+        itemsDevolucionArray.forEach(item => {
+            const herrCod = item.herramientaCodigo;
+            const estadoDev = item.estadoDevolucion || 'Disponible';
+            const obs = item.observacion || '';
 
-        const herrObj = herrs.find(h => h.codigo === herrCodigo);
-        let estadoHistTxt = 'Devuelta (Bueno)';
+            // Remover de asignaciones activas
+            asigHerr = asigHerr.filter(a => !(a.operarioId === operarioId && a.herramientaCodigo === herrCod));
 
-        if (herrObj) {
-            if (estadoDevolucion.includes('Deteriorada')) {
-                herrObj.estado = 'Deteriorada';
-                herrObj.descripcion = 'Devuelto con daño / falla reportada.';
-                estadoHistTxt = '⚪ Entregada con deterioro / daño';
-            } else if (estadoDevolucion.includes('Perdida')) {
-                herrObj.estado = 'Perdida';
-                herrObj.descripcion = 'Reportado perdido al devolver.';
-                estadoHistTxt = '🔴 Reportada Perdida / Extraviada';
-            } else {
-                herrObj.estado = 'Disponible';
-                estadoHistTxt = 'Devuelta al almacén (Bueno)';
+            const herrObj = herrs.find(h => h.codigo === herrCod);
+            let estadoHistTxt = 'Devuelto al almacén (Bueno)';
+
+            if (herrObj) {
+                if (estadoDev.includes('Deteriorada')) {
+                    herrObj.estado = 'Deteriorada';
+                    herrObj.descripcion = obs || 'Devuelto con daño / falla reportada.';
+                    estadoHistTxt = '⚪ Entregada con deterioro / daño';
+                } else if (estadoDev.includes('Perdida')) {
+                    herrObj.estado = 'Perdida';
+                    herrObj.descripcion = obs || 'Reportado perdido al devolver.';
+                    estadoHistTxt = '🔴 Reportada Perdida / Extraviada';
+                } else {
+                    herrObj.estado = 'Disponible';
+                    if (obs) herrObj.descripcion = obs;
+                    estadoHistTxt = 'Devuelta al almacén (Bueno)';
+                }
             }
-        }
 
-        if (!historial[herrCodigo]) historial[herrCodigo] = [];
-        historial[herrCodigo].unshift({
-            operarioNombre: `${opObj ? opObj.nombre : 'Operario'} (Último Poseedor)`,
-            fecha: fechaStr,
-            hora: horaStr,
-            estado: estadoHistTxt
+            if (!historial[herrCod]) historial[herrCod] = [];
+
+            // Buscar si ya existe una entrada activa de préstamo para este operario u operario genérico
+            const activeIndex = historial[herrCod].findIndex(h => h.estado.includes('En uso') || h.estado.includes('Actual'));
+
+            if (activeIndex !== -1) {
+                // Actualizar la entrada existente sin duplicar la tarjeta del operario
+                const regExistente = historial[herrCod][activeIndex];
+                regExistente.estado = estadoHistTxt;
+                regExistente.fecha = fechaStr;
+                regExistente.hora = regExistente.hora.includes('-') ? regExistente.hora : `${regExistente.hora} - ${horaStr}`;
+                if (obs) regExistente.observacion = obs;
+            } else {
+                // Si no existía entrada previa en uso, se agrega el registro consolidado de devolución
+                historial[herrCod].unshift({
+                    operarioNombre: opObj ? opObj.nombre : 'Operario',
+                    fecha: fechaStr,
+                    hora: horaStr,
+                    estado: estadoHistTxt,
+                    observacion: obs || 'Devolución procesada.'
+                });
+            }
         });
 
         this.saveAsignacionesHerramientas(asigHerr);
@@ -551,6 +640,7 @@ const ProduccionDB = {
         this.saveHistorialHerramientas(historial);
         return true;
     },
+
 
     getHistorialHerramientas: function() {
         const data = localStorage.getItem(STORAGE_KEYS.HISTORIAL_HERR);
