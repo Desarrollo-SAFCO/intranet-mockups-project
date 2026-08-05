@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFCO · Catálogo de Implementos Calidad</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Base Styles & Produccion Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../produccion/css/produccion.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body style="background-color: var(--safco-bg); min-height: 100vh;">
+    <main class="content-area" style="padding: 1.5rem; max-width: 1300px; margin: 0 auto;">
+        
+        <!-- Banner de Cabecera Ejecutiva -->
+        <div class="produccion-banner" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+            <div class="produccion-banner-title">
+                <div class="produccion-banner-icon" style="background: rgba(255,255,255,0.2);">
+                    <i class='bx bx-cog'></i>
+                </div>
+                <div>
+                    <h1>Catálogo de Implementos de Calidad</h1>
+                    <p>Inventario de Indumentaria y EPPs (Casacas de frío, Chalecos, Mandil, Tocas de tela) con Trazabilidad</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Modo Tablet">
+                    <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
+                </button>
+                <button class="btn-safco" style="background: rgba(255,255,255,0.18); color: #ffffff; border: 1px solid rgba(255,255,255,0.4); font-weight: 700;" onclick="abrirModalNuevoTipo()">
+                    <i class='bx bx-category-plus'></i> Agregar Tipo de Implemento
+                </button>
+                <button class="btn-safco" style="background: #ffffff; color: #0369a1; font-weight: 800;" onclick="abrirModalAltaMasiva()">
+                    <i class='bx bx-plus-circle'></i> Crear Implementos Masivos
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Colapsable de Filtros y KPIs -->
+        <div class="collapsible-filter-card expanded" id="panel-filtros-catalogo">
+            <div class="collapsible-filter-header" onclick="togglePanelFiltros('panel-filtros-catalogo')">
+                <div class="filter-header-title" style="color: #0369a1;">
+                    <i class='bx bx-filter-alt'></i> Filtros de Inventario y KPIs
+                </div>
+                <button class="btn-toggle-panel" type="button" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">
+                    <span class="txt-toggle">Ocultar Filtros</span>
+                    <i class='bx bx-chevron-up ico-toggle'></i>
+                </button>
+            </div>
+            <div class="collapsible-filter-body">
+                <!-- Barra de Filtros -->
+                <div class="filter-bar-produccion" style="margin-bottom: 1rem;">
+                    <div class="filter-item" style="max-width: 200px;">
+                        <label for="filter-tipo">Tipo de Implemento:</label>
+                        <select id="filter-tipo" class="select-touch" onchange="renderTablaCatalog()">
+                            <option value="TODOS">Todos los Tipos</option>
+                            <option value="Casaca de Frío">🧥 Casacas de Frío</option>
+                            <option value="Chaleco">🦺 Chalecos</option>
+                            <option value="Mandil">🥼 Mandiles</option>
+                            <option value="Toca de Tela">🧢 Tocas de Tela</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="max-width: 180px;">
+                        <label for="filter-estado">Estado:</label>
+                        <select id="filter-estado" class="select-touch" onchange="renderTablaCatalog()">
+                            <option value="TODOS">Todos los Estados</option>
+                            <option value="Disponible">Disponible</option>
+                            <option value="Asignado">Asignado</option>
+                            <option value="Deteriorada">Deteriorada</option>
+                            <option value="Perdida">Perdida</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="flex: 2; min-width: 220px;">
+                        <label for="input-search">Buscar Código o Descripción:</label>
+                        <input type="text" id="input-search" class="input-touch" placeholder="Ej: Casaca de Frío 01, CHL-02..." oninput="renderTablaCatalog()">
+                    </div>
+                </div>
+
+                <!-- Tarjetas KPI Resumen -->
+                <div class="kpi-grid" style="margin-bottom: 0;">
+                    <div class="kpi-card clickable active-kpi" id="kpi-cat-todas" onclick="filtrarPorEstadoKPI('TODOS')">
+                        <div class="kpi-val" id="kpi-total-impl" style="color: #0369a1;">0</div>
+                        <div class="kpi-lbl">Total Registrados</div>
+                    </div>
+                    <div class="kpi-card clickable" id="kpi-cat-disp" onclick="filtrarPorEstadoKPI('Disponible')">
+                        <div class="kpi-val ok" id="kpi-total-disp">0</div>
+                        <div class="kpi-lbl">Disponibles Almacén</div>
+                    </div>
+                    <div class="kpi-card clickable" id="kpi-cat-asig" onclick="filtrarPorEstadoKPI('Asignado')">
+                        <div class="kpi-val warn" id="kpi-total-asig">0</div>
+                        <div class="kpi-lbl">En Uso Asignados</div>
+                    </div>
+                    <div class="kpi-card clickable" id="kpi-cat-det" onclick="filtrarPorEstadoKPI('Deteriorada')">
+                        <div class="kpi-val bad" id="kpi-total-det">0</div>
+                        <div class="kpi-lbl">Deterioradas / Bajas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Estándar SAFCO -->
+        <div class="table-safco-container">
+            <table class="table-safco">
+                <thead style="background: #0369a1;">
+                    <tr>
+                        <th style="background: #0369a1;">Código</th>
+                        <th style="background: #0369a1;">Tipo</th>
+                        <th style="background: #0369a1;">Estado</th>
+                        <th style="background: #0369a1;">Descripción / Observación</th>
+                        <th style="background: #0369a1;">Registro</th>
+                        <th style="background: #0369a1; text-align: center;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-catalogo">
+                    <!-- Cargado dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <!-- Modal Touch: Alta Masiva de Implementos -->
+    <div class="modal-backdrop-safco" id="modal-alta-masiva">
+        <div class="modal-card-safco">
+            <div class="modal-card-header" style="background: #0369a1;">
+                <h3><i class='bx bx-plus-circle'></i> Alta Masiva de Implementos Calidad</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-alta-masiva')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <div class="form-group-safco">
+                    <label for="alta-tipo">Tipo de Implemento Calidad:</label>
+                    <select id="alta-tipo" class="select-touch" style="width: 100%;">
+                        <option value="Casaca de Frío">🧥 Casaca de Frío</option>
+                        <option value="Chaleco">🦺 Chaleco</option>
+                        <option value="Mandil">🥼 Mandil</option>
+                        <option value="Toca de Tela">🧢 Toca de Tela</option>
+                    </select>
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="alta-cantidad">Cantidad a Generar:</label>
+                    <input type="number" id="alta-cantidad" class="input-touch" style="width: 100%;" min="1" max="50" value="5">
+                </div>
+
+                <div class="modal-card-actions">
+                    <button class="btn-safco btn-safco-secondary" style="flex: 1;" onclick="cerrarModal('modal-alta-masiva')">Cancelar</button>
+                    <button class="btn-safco" style="flex: 1; background: #0369a1; color: white;" onclick="confirmarAltaMasiva()">
+                        <i class='bx bx-check'></i> Generar Implementos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Touch: Historial de Trazabilidad -->
+    <div class="modal-backdrop-safco" id="modal-historial">
+        <div class="modal-card-safco" style="max-width: 650px;">
+            <div class="modal-card-header" style="background: #0284c7;">
+                <h3 id="titulo-modal-historial"><i class='bx bx-history'></i> Historial de Trazabilidad</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-historial')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <div id="contenedor-linea-tiempo" style="max-height: 350px; overflow-y: auto; padding: 0.5rem;">
+                    <!-- Timeline dinámico -->
+                </div>
+                <div class="modal-card-actions" style="margin-top: 1rem;">
+                    <button class="btn-safco btn-safco-secondary" style="width: 100%;" onclick="cerrarModal('modal-historial')">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Touch: Registro de Nuevo Tipo de Implemento de Calidad -->
+    <div class="modal-backdrop-safco" id="modal-nuevo-tipo">
+        <div class="modal-card-safco">
+            <div class="modal-card-header" style="background: #0369a1;">
+                <h3><i class='bx bx-category-plus'></i> Agregar Nuevo Tipo de Implemento</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-nuevo-tipo')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <div class="form-group-safco">
+                    <label for="nuevo-tipo-nombre">Nombre del Tipo de Implemento:</label>
+                    <input type="text" id="nuevo-tipo-nombre" class="input-touch" style="width: 100%;" placeholder="Ej: Guantes Nitrilo, Botas Térmicas...">
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="nuevo-tipo-prefijo">Prefijo Código (3 Letras):</label>
+                    <input type="text" id="nuevo-tipo-prefijo" class="input-touch" style="width: 100%; text-transform: uppercase;" placeholder="Ej: GUA, BOT, LEN" maxlength="5">
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="nuevo-tipo-icono">Icono / Emoji Representativo:</label>
+                    <select id="nuevo-tipo-icono" class="select-touch" style="width: 100%;">
+                        <option value="🧤">🧤 Guantes</option>
+                        <option value="🥾">🥾 Botas de Seguridad / Térmicas</option>
+                        <option value="🥽">🥽 Lentes de Seguridad</option>
+                        <option value="🧥">🧥 Casaca / Abrigo</option>
+                        <option value="🎽">🎽 Chaleco Especial</option>
+                        <option value="🥼">🥼 Mandil / Guardapolvo</option>
+                        <option value="🧢">🧢 Gorra / Toca</option>
+                        <option value="🛡️">🛡️ Equipo Protección</option>
+                    </select>
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="nuevo-tipo-cant-inicial">Generar Lote Inicial en Almacén (Opcional):</label>
+                    <input type="number" id="nuevo-tipo-cant-inicial" class="input-touch" style="width: 100%;" value="5" min="0" max="50">
+                </div>
+
+                <div class="modal-card-actions">
+                    <button class="btn-safco btn-safco-secondary" style="flex: 1;" onclick="cerrarModal('modal-nuevo-tipo')">Cancelar</button>
+                    <button class="btn-safco" style="flex: 1; background: #0369a1; color: white;" onclick="confirmarNuevoTipoImplemento()">
+                        <i class='bx bx-check'></i> Guardar Tipo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Lógica y Datos de Calidad -->
+    <script src="js/calidad-data.js"></script>
+    <script>
+        let filtroEstadoKPI = 'TODOS';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            poblarSelectsTiposImplementos();
+            renderTablaCatalog();
+        });
+
+        function poblarSelectsTiposImplementos() {
+            const tipos = CalidadDB.getTiposHerramientas();
+            
+            const selFiltro = document.getElementById('filter-tipo');
+            const valFiltro = selFiltro ? selFiltro.value : 'TODOS';
+            if (selFiltro) {
+                selFiltro.innerHTML = `<option value="TODOS">Todos los Tipos</option>`;
+                tipos.forEach(t => {
+                    selFiltro.innerHTML += `<option value="${t.nombre}">${t.icono} ${t.nombre}</option>`;
+                });
+                selFiltro.value = valFiltro;
+            }
+
+            const selModalAlta = document.getElementById('alta-tipo');
+            if (selModalAlta) {
+                selModalAlta.innerHTML = '';
+                tipos.forEach(t => {
+                    selModalAlta.innerHTML += `<option value="${t.nombre}">${t.icono} ${t.nombre}</option>`;
+                });
+            }
+        }
+
+        function abrirModalNuevoTipo() {
+            document.getElementById('nuevo-tipo-nombre').value = '';
+            document.getElementById('nuevo-tipo-prefijo').value = '';
+            document.getElementById('nuevo-tipo-cant-inicial').value = '5';
+            document.getElementById('modal-nuevo-tipo').classList.add('active');
+        }
+
+        function confirmarNuevoTipoImplemento() {
+            const nom = document.getElementById('nuevo-tipo-nombre').value.trim();
+            const pref = document.getElementById('nuevo-tipo-prefijo').value.trim();
+            const ico = document.getElementById('nuevo-tipo-icono').value;
+            const cantInicial = parseInt(document.getElementById('nuevo-tipo-cant-inicial').value) || 0;
+
+            if (!nom) {
+                Swal.fire('Atención', 'Ingresa el nombre del nuevo tipo de implemento.', 'warning');
+                return;
+            }
+
+            const nuevoTipoObj = CalidadDB.addTipoHerramienta(nom, pref, ico);
+
+            if (cantInicial > 0) {
+                CalidadDB.addHerramientasBulk(nuevoTipoObj.nombre, cantInicial, 30);
+            }
+
+            cerrarModal('modal-nuevo-tipo');
+            poblarSelectsTiposImplementos();
+            renderTablaCatalog();
+
+            Swal.fire({
+                title: '¡Tipo de Implemento Creado!',
+                text: `El tipo "${nom}" (${ico}) fue registrado exitosamente en Calidad.`,
+                icon: 'success',
+                confirmButtonColor: '#0369a1'
+            });
+        }
+
+        function toggleTabletKioskMode() {
+            let isKiosk = document.body.classList.toggle('standalone-kiosk-mode');
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'TOGGLE_TABLET_KIOSK' }, '*');
+                }
+            } catch (e) {
+                console.warn('Cross-origin frame notice:', e);
+            }
+            actualizarBotonKioskUI(isKiosk);
+        }
+
+        function actualizarBotonKioskUI(isKiosk) {
+            const btn = document.getElementById('btn-kiosk-mode');
+            if (btn) {
+                if (isKiosk) {
+                    btn.classList.add('active-kiosk');
+                    btn.innerHTML = `<i class='bx bx-exit-fullscreen'></i> <span class="txt-kiosk">Restaurar Navegación</span>`;
+                } else {
+                    btn.classList.remove('active-kiosk');
+                    btn.innerHTML = `<i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>`;
+                }
+            }
+        }
+
+        function togglePanelFiltros(panelId) {
+            const panel = document.getElementById(panelId);
+            panel.classList.toggle('expanded');
+        }
+
+        function getIconForTipo(tipo) {
+            if (tipo === 'Casaca de Frío') return '🧥';
+            if (tipo === 'Chaleco') return '🦺';
+            if (tipo === 'Mandil') return '🥼';
+            if (tipo === 'Toca de Tela') return '🧢';
+            return '🔧';
+        }
+
+        function filtrarPorEstadoKPI(est) {
+            filtroEstadoKPI = est;
+            document.getElementById('filter-estado').value = est;
+            document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-kpi'));
+            if (est === 'TODOS') document.getElementById('kpi-cat-todas').classList.add('active-kpi');
+            if (est === 'Disponible') document.getElementById('kpi-cat-disp').classList.add('active-kpi');
+            if (est === 'Asignado') document.getElementById('kpi-cat-asig').classList.add('active-kpi');
+            if (est === 'Deteriorada') document.getElementById('kpi-cat-det').classList.add('active-kpi');
+            renderTablaCatalog();
+        }
+
+        function renderTablaCatalog() {
+            const fTipo = document.getElementById('filter-tipo').value;
+            const fEstado = document.getElementById('filter-estado').value;
+            const search = document.getElementById('input-search').value.toLowerCase().trim();
+
+            const herrs = CalidadDB.getHerramientas();
+
+            document.getElementById('kpi-total-impl').textContent = herrs.length;
+            document.getElementById('kpi-total-disp').textContent = herrs.filter(h => h.estado === 'Disponible').length;
+            document.getElementById('kpi-total-asig').textContent = herrs.filter(h => h.estado === 'Asignado').length;
+            document.getElementById('kpi-total-det').textContent = herrs.filter(h => h.estado === 'Deteriorada' || h.estado === 'Perdida').length;
+
+            let lista = herrs;
+            if (fTipo !== 'TODOS') lista = lista.filter(h => h.tipo === fTipo);
+            if (fEstado !== 'TODOS') lista = lista.filter(h => h.estado === fEstado);
+
+            if (search) {
+                lista = lista.filter(h => h.codigo.toLowerCase().includes(search) || h.id.toLowerCase().includes(search) || (h.descripcion && h.descripcion.toLowerCase().includes(search)));
+            }
+
+            const tbody = document.getElementById('tbody-catalogo');
+            tbody.innerHTML = '';
+
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--safco-text-muted); padding: 2rem;">No se encontraron implementos de Calidad con los filtros seleccionados.</td></tr>`;
+                return;
+            }
+
+            lista.forEach(h => {
+                const icon = getIconForTipo(h.tipo);
+                let pillClass = 'pill-disponible';
+                if (h.estado === 'Asignado') pillClass = 'pill-asignado';
+                if (h.estado === 'Deteriorada') pillClass = 'pill-deteriorada';
+                if (h.estado === 'Perdida') pillClass = 'pill-perdida';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${h.codigo}</strong> <span style="font-size: 0.72rem; color: var(--safco-text-muted);">(${h.id})</span></td>
+                        <td>${icon} ${h.tipo}</td>
+                        <td><span class="mesa-status-pill ${pillClass}">${h.estado}</span></td>
+                        <td>${h.descripcion || '<span style="color: var(--safco-text-muted); font-style: italic;">Sin observaciones</span>'}</td>
+                        <td>${h.fechaRegistro || '2026-01-15'}</td>
+                        <td style="text-align: center;">
+                            <div style="display: flex; justify-content: center; gap: 0.35rem;">
+                                <button class="btn-safco" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border-color: #bae6fd;" onclick="verHistorial('${h.codigo}')" title="Ver Historial">
+                                    <i class='bx bx-history'></i> Historial
+                                </button>
+                                ${h.estado === 'Deteriorada' || h.estado === 'Perdida' ? `
+                                    <button class="btn-safco btn-safco-teal" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="reactivarImplemento('${h.id}')" title="Rehabilitar">
+                                        <i class='bx bx-check-circle'></i> Reactivar
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function abrirModalAltaMasiva() {
+            document.getElementById('modal-alta-masiva').classList.add('active');
+        }
+
+        function confirmarAltaMasiva() {
+            const tipo = document.getElementById('alta-tipo').value;
+            const cant = parseInt(document.getElementById('alta-cantidad').value) || 1;
+
+            CalidadDB.addHerramientasBulk(tipo, cant);
+            cerrarModal('modal-alta-masiva');
+            renderTablaCatalog();
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: `${cant} Implementos de ${tipo} generados con éxito`,
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+
+        function reactivarImplemento(id) {
+            Swal.fire({
+                title: 'Reactivar Implemento',
+                text: '¿Deseas habilitar este implemento para disponible en almacén de Calidad?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, reactivar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#0369a1'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    CalidadDB.activarHerramienta(id);
+                    renderTablaCatalog();
+                    Swal.fire('Reactivado', 'El implemento vuelve a estar disponible.', 'success');
+                }
+            });
+        }
+
+        function verHistorial(codigo) {
+            document.getElementById('titulo-modal-historial').innerHTML = `<i class='bx bx-history'></i> Trazabilidad - ${codigo}`;
+            const historial = CalidadDB.getHistorialHerramientas();
+            const registros = historial[codigo] || [];
+
+            const cont = document.getElementById('contenedor-linea-tiempo');
+            cont.innerHTML = '';
+
+            if (registros.length === 0) {
+                cont.innerHTML = `<div style="text-align: center; color: var(--safco-text-muted); padding: 1.5rem;">No hay registros de historial de uso para este implemento.</div>`;
+            } else {
+                registros.forEach(reg => {
+                    cont.innerHTML += `
+                        <div style="border-left: 3px solid #0369a1; padding-left: 0.85rem; margin-bottom: 1rem; position: relative;">
+                            <div style="font-weight: 800; color: var(--safco-text-dark); font-size: 0.9rem;">${reg.operarioNombre}</div>
+                            <div style="font-size: 0.75rem; color: #0369a1; font-weight: 700;">${reg.estado} · ${reg.fecha} (${reg.hora})</div>
+                            <div style="font-size: 0.8rem; color: var(--safco-text-muted); margin-top: 0.2rem;">${reg.observacion || 'Sin observaciones.'}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('modal-historial').classList.add('active');
+        }
+
+        function cerrarModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+    </script>
+</body>
+</html>

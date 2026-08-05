@@ -35,6 +35,9 @@
                 <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header y ocupar todo el espacio web">
                     <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
                 </button>
+                <button class="btn-safco btn-safco-secondary" onclick="abrirModalNuevoTipo()">
+                    <i class='bx bx-category-plus'></i> Agregar Tipo de Implemento
+                </button>
                 <button class="btn-safco btn-safco-primary" onclick="abrirModalNuevaHerr()">
                     <i class='bx bx-plus-circle'></i> Agregar Implementos
                 </button>
@@ -144,6 +147,50 @@
                 </div>
             </div>
         </div>
+    <!-- Modal Touch: Registro de Nuevo Tipo de Implemento -->
+    <div class="modal-backdrop-safco" id="modal-nuevo-tipo">
+        <div class="modal-card-safco">
+            <div class="modal-card-header" style="background: var(--safco-teal);">
+                <h3><i class='bx bx-category-plus'></i> Agregar Nuevo Tipo de Implemento</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-nuevo-tipo')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <div class="form-group-safco">
+                    <label for="nuevo-tipo-nombre">Nombre del Tipo de Implemento:</label>
+                    <input type="text" id="nuevo-tipo-nombre" class="input-touch" style="width: 100%;" placeholder="Ej: Botas de Jebe, Guantes Anticorte...">
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="nuevo-tipo-prefijo">Prefijo Código (3 Letras):</label>
+                    <input type="text" id="nuevo-tipo-prefijo" class="input-touch" style="width: 100%; text-transform: uppercase;" placeholder="Ej: BOT, GUA, CUT" maxlength="5">
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="nuevo-tipo-icono">Icono / Emoji Representativo:</label>
+                    <select id="nuevo-tipo-icono" class="select-touch" style="width: 100%;">
+                        <option value="🥾">🥾 Botas de Seguridad</option>
+                        <option value="🧤">🧤 Guantes</option>
+                        <option value="🥽">🥽 Lentes / Antiparras</option>
+                        <option value="🔪">🔪 Cúter / Navaja</option>
+                        <option value="🎽">🎽 Chaleco Especial</option>
+                        <option value="🛡️">🛡️ Equipo Protección</option>
+                        <option value="🔧">🔧 Herramienta General</option>
+                    </select>
+                </div>
+
+                <div class="form-group-safco">
+                    <label for="nuevo-tipo-cant-inicial">Generar Lote Inicial en Almacén (Opcional):</label>
+                    <input type="number" id="nuevo-tipo-cant-inicial" class="input-touch" style="width: 100%;" value="5" min="0" max="50">
+                </div>
+
+                <div class="modal-card-actions">
+                    <button class="btn-safco btn-safco-secondary" style="flex: 1;" onclick="cerrarModal('modal-nuevo-tipo')">Cancelar</button>
+                    <button class="btn-safco btn-safco-teal" style="flex: 1;" onclick="confirmarNuevoTipoImplemento()">
+                        <i class='bx bx-check'></i> Guardar Tipo
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal: Editar Implemento -->
@@ -218,6 +265,7 @@
     <script src="js/produccion-data.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            poblarSelectsTiposImplementos();
             renderTablaHerramientas();
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.action-menu-container')) {
@@ -225,6 +273,64 @@
                 }
             });
         });
+
+        function poblarSelectsTiposImplementos() {
+            const tipos = ProduccionDB.getTiposHerramientas();
+            
+            const selFiltro = document.getElementById('filter-tbl-tipo-herr');
+            const valFiltro = selFiltro ? selFiltro.value : 'TODOS';
+            if (selFiltro) {
+                selFiltro.innerHTML = `<option value="TODOS">Todos los Tipos</option>`;
+                tipos.forEach(t => {
+                    selFiltro.innerHTML += `<option value="${t.nombre}">${t.icono} ${t.nombre}</option>`;
+                });
+                selFiltro.value = valFiltro;
+            }
+
+            const selModalAdd = document.getElementById('modal-add-tipo-herr');
+            if (selModalAdd) {
+                selModalAdd.innerHTML = '';
+                tipos.forEach(t => {
+                    selModalAdd.innerHTML += `<option value="${t.nombre}">${t.icono} ${t.nombre}</option>`;
+                });
+            }
+        }
+
+        function abrirModalNuevoTipo() {
+            document.getElementById('nuevo-tipo-nombre').value = '';
+            document.getElementById('nuevo-tipo-prefijo').value = '';
+            document.getElementById('nuevo-tipo-cant-inicial').value = '5';
+            document.getElementById('modal-nuevo-tipo').classList.add('active');
+        }
+
+        function confirmarNuevoTipoImplemento() {
+            const nom = document.getElementById('nuevo-tipo-nombre').value.trim();
+            const pref = document.getElementById('nuevo-tipo-prefijo').value.trim();
+            const ico = document.getElementById('nuevo-tipo-icono').value;
+            const cantInicial = parseInt(document.getElementById('nuevo-tipo-cant-inicial').value) || 0;
+
+            if (!nom) {
+                Swal.fire('Atención', 'Ingresa el nombre del nuevo tipo de implemento.', 'warning');
+                return;
+            }
+
+            const nuevoTipoObj = ProduccionDB.addTipoHerramienta(nom, pref, ico);
+
+            if (cantInicial > 0) {
+                ProduccionDB.addHerramientasBulk(nuevoTipoObj.nombre, cantInicial, 30);
+            }
+
+            cerrarModal('modal-nuevo-tipo');
+            poblarSelectsTiposImplementos();
+            renderTablaHerramientas();
+
+            Swal.fire({
+                title: '¡Tipo de Implemento Creado!',
+                text: `El tipo "${nom}" (${ico}) fue registrado exitosamente.`,
+                icon: 'success',
+                confirmButtonColor: '#004a4c'
+            });
+        }
 
         // Toggle Modo Tablet Kiosco CSS puro
         function toggleTabletKioskMode() {

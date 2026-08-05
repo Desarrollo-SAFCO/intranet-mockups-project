@@ -27,7 +27,7 @@
         </div>
         
         <ul class="sidebar-menu">
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="PRODUCCION">
                 <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
                     <i class='bx bx-spreadsheet'></i> PRODUCCION
                 </a>
@@ -80,7 +80,7 @@
                     </li>
                 </ul>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="GENERAL">
                 <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
                     <i class='bx bx-list-ul'></i> GENERAL
                 </a>
@@ -99,7 +99,7 @@
                     </li>
                 </ul>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="ADMINISTRACION">
                 <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
                     <i class='bx bx-briefcase'></i> ADMINISTRACION
                 </a>
@@ -123,7 +123,7 @@
                     </li>
                 </ul>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="TRANSPORTES">
                 <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
                     <i class='bx bx-bus'></i> TRANSPORTES
                 </a>
@@ -142,22 +142,50 @@
                     </li>
                 </ul>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="COMERCIAL">
                 <a href="#" class="sidebar-link"><i class='bx bx-line-chart'></i> COMERCIAL</a>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="SISTEMAS">
                 <a href="#" class="sidebar-link"><i class='bx bx-desktop'></i> SISTEMAS</a>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="EXPORTADORA">
                 <a href="#" class="sidebar-link"><i class='bx bx-package'></i> EXPORTADORA</a>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="RECURSOS-HUMANOS">
                 <a href="#" class="sidebar-link"><i class='bx bx-smile'></i> RECURSOS-<br>HUMANOS</a>
             </li>
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link"><i class='bx bx-checkbox-checked'></i> CALIDAD</a>
+            <li class="sidebar-item" data-module="CALIDAD">
+                <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                    <i class='bx bx-checkbox-checked'></i> CALIDAD
+                </a>
+                <ul class="submenu">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-folder'></i> Registros
+                        </a>
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <a href="calidad/asignacion-implementos.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-wrench'></i> Asignación de Implementos
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
+                            <i class='bx bx-table'></i> Tablas
+                        </a>
+                        <ul class="submenu">
+                            <li class="sidebar-item">
+                                <a href="calidad/tablas-implementos.html" target="contentFrame" class="sidebar-link">
+                                    <i class='bx bx-cog'></i> Catálogo de Implementos
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="SEGURIDAD">
                 <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
                     <i class='bx bx-shield-quarter'></i> SEGURIDAD
                 </a>
@@ -178,7 +206,7 @@
                     </li>
                 </ul>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="FRIO">
                 <a href="#" class="sidebar-link has-submenu" onclick="toggleSubmenu(event, this)">
                     <i class='bx bx-cloud-snow'></i> FRIO Y DESPACHO
                 </a>
@@ -198,7 +226,7 @@
                     </li>
                 </ul>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item" data-module="CONTABILIDAD">
                 <a href="#" class="sidebar-link"><i class='bx bx-calculator'></i> CONTABILIDAD</a>
             </li>
         </ul>
@@ -221,6 +249,9 @@
                     <div style="display: flex; flex-direction: column; text-align: left;">
                         <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">Simular Usuario</span>
                         <select id="topbarSimUserSelect" onchange="changeSimulatedUser(this.value)" style="border: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: var(--text-title); outline: none; cursor: pointer; text-transform: uppercase; padding: 0;">
+                            <option value="admin">Admin (ADMINISTRADOR TOTAL)</option>
+                            <option value="produccion">Producción (SOLO PRODUCCIÓN)</option>
+                            <option value="calidad">Calidad (SOLO CALIDAD)</option>
                             <option value="alex.quintanilla">Alex Quintanilla (SISTEMAS)</option>
                             <option value="carlos.mendoza">Carlos Mendoza (SEGURIDAD)</option>
                             <option value="ana.rodriguez">Ana Rodríguez (FRIO)</option>

@@ -13,8 +13,15 @@ const STORAGE_KEYS = {
     ASISTENCIA: 'safco_produccion_asistencia_v6',
     ASIGNACIONES_MESAS: 'safco_produccion_asig_mesas_v6',
     ASIGNACIONES_HERR: 'safco_produccion_asig_herr_v6',
-    HISTORIAL_HERR: 'safco_produccion_hist_herr_v6'
+    HISTORIAL_HERR: 'safco_produccion_hist_herr_v6',
+    TIPOS_HERRAMIENTAS: 'safco_produccion_tipos_v6'
 };
+
+const DEFAULT_TIPOS_HERRAMIENTAS = [
+    { id: 'TIPO-01', nombre: 'Tijera', prefijo: 'TIJ', icono: '✂️' },
+    { id: 'TIPO-02', nombre: 'Pesa Patrón', prefijo: 'PES', icono: '⚖️' },
+    { id: 'TIPO-03', nombre: 'Calibrador', prefijo: 'CAL', icono: '📐' }
+];
 
 // --- MAESTRO DE OPERARIOS SAFCO ---
 const DEFAULT_OPERARIOS = [
@@ -138,6 +145,7 @@ function generateDefaultHerramientas() {
             codigo: `Pesa Patrón ${i}`,
             tipo: 'Pesa Patrón',
             estado: est,
+            
             descripcion: desc,
             diasCalibracion: Math.floor(Math.random() * 25) + 5,
             fechaRegistro: '2026-01-15'
@@ -450,6 +458,36 @@ const ProduccionDB = {
         return JSON.parse(data);
     },
 
+    getTiposHerramientas: function() {
+        const data = localStorage.getItem(STORAGE_KEYS.TIPOS_HERRAMIENTAS);
+        if (!data) {
+            localStorage.setItem(STORAGE_KEYS.TIPOS_HERRAMIENTAS, JSON.stringify(DEFAULT_TIPOS_HERRAMIENTAS));
+            return DEFAULT_TIPOS_HERRAMIENTAS;
+        }
+        return JSON.parse(data);
+    },
+
+    saveTiposHerramientas: function(tipos) {
+        localStorage.setItem(STORAGE_KEYS.TIPOS_HERRAMIENTAS, JSON.stringify(tipos));
+    },
+
+    addTipoHerramienta: function(nombre, prefijo, icono = '🔧') {
+        const tipos = this.getTiposHerramientas();
+        const existe = tipos.find(t => t.nombre.toLowerCase() === nombre.toLowerCase().trim());
+        if (existe) return existe;
+
+        const pref = (prefijo || nombre.substring(0, 3)).toUpperCase().trim();
+        const nuevo = {
+            id: `TIPO-${Date.now()}`,
+            nombre: nombre.trim(),
+            prefijo: pref,
+            icono: icono || '🔧'
+        };
+        tipos.push(nuevo);
+        this.saveTiposHerramientas(tipos);
+        return nuevo;
+    },
+
     saveHerramientas: function(herramientas) {
         localStorage.setItem(STORAGE_KEYS.HERRAMIENTAS, JSON.stringify(herramientas));
     },
@@ -466,13 +504,9 @@ const ProduccionDB = {
             }
         });
 
-        const prefixMap = {
-            'Tijera': { pref: 'TIJ', name: 'Tijera' },
-            'Pesa Patrón': { pref: 'PES', name: 'Pesa Patrón' },
-            'Calibrador': { pref: 'CAL', name: 'Calibrador' }
-        };
-
-        const config = prefixMap[tipo] || { pref: 'IMP', name: tipo };
+        const tipos = this.getTiposHerramientas();
+        const tipoObj = tipos.find(t => t.nombre === tipo);
+        const config = tipoObj ? { pref: tipoObj.prefijo, name: tipoObj.nombre } : { pref: (tipo.substring(0, 3)).toUpperCase(), name: tipo };
         const fechaActual = new Date().toISOString().split('T')[0];
         const nuevas = [];
 
