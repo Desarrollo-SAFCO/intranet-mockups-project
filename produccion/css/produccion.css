@@ -482,9 +482,15 @@ main.content-area {
 
 .riel-pool-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 0.85rem;
   width: 100%;
+}
+
+@media (min-width: 1400px) {
+  .riel-pool-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* Grilla de Mesas (Legacy fallback) */
@@ -1035,7 +1041,7 @@ main.content-area {
 }
 
 /* Modo Móvil (<= 600px): 1 Riel por fila y 1 Mesa por fila */
-@media (max-width: 600px) {
+@media (max-width: 400px) {
   .rieles-main-grid {
     grid-template-columns: 1fr !important;
     gap: 0.85rem !important;
