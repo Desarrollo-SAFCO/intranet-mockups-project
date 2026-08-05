@@ -31,16 +31,31 @@
                     <p>Asignación Directa por Escaneo Láser/QR · Alerta de Mesas sin Seleccionador · Traslado de Equipos</p>
                 </div>
             </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header y ocupar todo el espacio web">
-                    <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
-                </button>
-                <button class="btn-safco btn-safco-teal" id="btn-rendimiento-mode" onclick="toggleRendimientoMode()">
-                    <i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento
-                </button>
-                <button class="btn-safco btn-safco-secondary" onclick="finalizarProcesoLinea()">
-                    <i class='bx bx-eraser'></i> Finalizar Proceso Línea
-                </button>
+        <div style="display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;">
+                <!-- Fila 1: Vistas + Tablet -->
+                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                    <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header">
+                        <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
+                    </button>
+                    <button class="btn-safco btn-safco-teal" id="btn-rendimiento-mode" onclick="toggleRendimientoMode()" title="Vista de rendimiento por barra de progreso">
+                        <i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento
+                    </button>
+                    <button class="btn-safco" id="btn-cajas-mode" onclick="toggleCajasMode()" title="Vista de cajas aprobadas y rechazadas por operario" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: none;">
+                        <i class='bx bx-package'></i> Vista Cajas
+                    </button>
+                </div>
+                <!-- Fila 2: Acciones de Línea -->
+                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                    <button class="btn-safco btn-safco-secondary" id="btn-config-dia-anterior" onclick="aplicarConfigDiaAnterior()" title="Restaurar la configuración de mesas del día anterior">
+                        <i class='bx bx-time-five'></i> Config. Día Anterior
+                    </button>
+                    <button class="btn-safco btn-safco-secondary" id="btn-rotar-operarios" onclick="confirmarRotarOperarios()" title="Rotar operarios entre mesas completas de la línea">
+                        <i class='bx bx-rotate-right'></i> Rotar Operarios
+                    </button>
+                    <button class="btn-safco btn-safco-secondary" onclick="finalizarProcesoLinea()" style="color: var(--safco-red);">
+                        <i class='bx bx-eraser'></i> Finalizar Proceso
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -152,51 +167,10 @@
                 </div>
 
 
-                <!-- Slot 1 -->
-                <div class="form-group-safco" style="background: #f8fafc; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--safco-border);">
-                    <label style="font-weight: 800; color: var(--safco-teal);">Slot 1:</label>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <select id="slot-op-0" class="select-touch" style="flex: 2; min-width: 200px;">
-                            <!-- Operarios maestría -->
-                        </select>
-                        <select id="slot-labor-0" class="select-touch" style="flex: 1; min-width: 140px;" onchange="onLaborChange(0)">
-                            <option value="Seleccionador">Seleccionador (SEL)</option>
-                            <option value="Embalador 1">Embalador 1 (EMB 1)</option>
-                            <option value="Embalador 2">Embalador 2 (EMB 2)</option>
-                        </select>
-                    </div>
+                <!-- Slots dinámicos generados por JS -->
+                <div id="box-slots-modal">
+                    <!-- Se genera dinámicamente por poblarSlotsModalMesa() -->
                 </div>
-
-                <!-- Slot 2 -->
-                <div class="form-group-safco" style="background: #f8fafc; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--safco-border);">
-                    <label style="font-weight: 800; color: var(--safco-text-dark);">Slot 2:</label>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <select id="slot-op-1" class="select-touch" style="flex: 2; min-width: 200px;">
-                            <!-- Operarios maestría -->
-                        </select>
-                        <select id="slot-labor-1" class="select-touch" style="flex: 1; min-width: 140px;" onchange="onLaborChange(1)">
-                            <option value="Embalador 1">Embalador 1 (EMB 1)</option>
-                            <option value="Seleccionador">Seleccionador (SEL)</option>
-                            <option value="Embalador 2">Embalador 2 (EMB 2)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Slot 3 -->
-                <div class="form-group-safco" style="background: #f8fafc; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--safco-border);">
-                    <label style="font-weight: 800; color: var(--safco-text-dark);">Slot 3:</label>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <select id="slot-op-2" class="select-touch" style="flex: 2; min-width: 200px;">
-                            <!-- Operarios maestría -->
-                        </select>
-                        <select id="slot-labor-2" class="select-touch" style="flex: 1; min-width: 140px;" onchange="onLaborChange(2)">
-                            <option value="Embalador 2">Embalador 2 (EMB 2)</option>
-                            <option value="Seleccionador">Seleccionador (SEL)</option>
-                            <option value="Embalador 1">Embalador 1 (EMB 1)</option>
-                        </select>
-                    </div>
-                </div>
-
 
                 <!-- Detalle de Implementos de los integrantes -->
                 <div id="box-herramientas-mesa-modal" style="margin-top: 1rem; padding: 0.75rem; background: var(--safco-teal-bg); border-radius: 8px; font-size: 0.8rem; color: var(--safco-teal);">
@@ -293,22 +267,48 @@
         </div>
     </div>
 
+    <!-- Modal Touch: Vista de Cajas por Operario -->
+    <div class="modal-backdrop-safco" id="modal-cajas-mesa">
+        <div class="modal-card-safco">
+            <div class="modal-card-header" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                <h3 id="modal-cajas-titulo"><i class='bx bx-package'></i> Cajas por Mesa</h3>
+                <button class="btn-close-safco" onclick="cerrarModal('modal-cajas-mesa')">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <div id="box-cajas-integrantes" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- Se poblará dinámicamente -->
+                </div>
+                <div class="modal-card-actions" style="margin-top: 1.5rem;">
+                    <button class="btn-safco btn-safco-secondary" style="width: 100%;" onclick="cerrarModal('modal-cajas-mesa')">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts de Lógica y Datos -->
+    <script src="../js/shared.js"></script>
     <script src="js/produccion-data.js"></script>
     <script>
         // ESTADOS GLOBALES DE LA PANTALLA DE MESAS
         let currentModalMesaCode = null;
+        let mesaSeleccionadaCodigo = null;
         let filtroKPIActual = 'TODAS'; // 'TODAS', 'COMPLETAS', 'SIN_SEL', 'VACIAS'
 
         // ESTADOS PARA VISTA RENDIMIENTO
         let isRendimientoMode = false;
         let showRendimientoNumbers = false;
         let hideNumbersTimeout = null;
-        let mockRendimiento = {}; // Guarda rendimientos fijos por operario para no variar al recargar la grilla
+        let mockRendimiento = {}; // Guarda rendimientos fijos por operario
+
+        // ESTADOS PARA VISTA CAJAS
+        let isCajasMode = false;
+        let mockCajas = {}; // { opId: { aprobadas: N, rechazadas: M } }
 
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             renderMesas();
         });
+
 
         // Toggle Modo Tablet Kiosco CSS puro
         function toggleTabletKioskMode() {
@@ -391,7 +391,10 @@
         // --- LÓGICA DE VISTA RENDIMIENTO ---
         function toggleRendimientoMode() {
             isRendimientoMode = !isRendimientoMode;
+            if (isRendimientoMode) isCajasMode = false; // mutuamente exclusivos
+
             const btn = document.getElementById('btn-rendimiento-mode');
+            const btnC = document.getElementById('btn-cajas-mode');
             const eyeFilter = document.getElementById('filter-rendimiento-eye');
 
             if (isRendimientoMode) {
@@ -399,17 +402,98 @@
                 btn.classList.add('btn-safco-secondary');
                 btn.innerHTML = `<i class='bx bx-grid-alt'></i> Vista Asignación`;
                 eyeFilter.style.display = 'flex';
+                btnC.style.opacity = '0.5';
             } else {
                 btn.classList.remove('btn-safco-secondary');
                 btn.classList.add('btn-safco-teal');
                 btn.innerHTML = `<i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento`;
                 eyeFilter.style.display = 'none';
-                
                 showRendimientoNumbers = false;
                 if (hideNumbersTimeout) clearTimeout(hideNumbersTimeout);
                 actualizarIconoOjo();
+                btnC.style.opacity = '1';
             }
             renderMesas();
+        }
+
+        // --- LÓGICA DE VISTA CAJAS ---
+        function toggleCajasMode() {
+            isCajasMode = !isCajasMode;
+            if (isCajasMode) {
+                isRendimientoMode = false;
+                // Restablecer botón de rendimiento
+                const btnR = document.getElementById('btn-rendimiento-mode');
+                btnR.classList.remove('btn-safco-secondary');
+                btnR.classList.add('btn-safco-teal');
+                btnR.innerHTML = `<i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento`;
+                document.getElementById('filter-rendimiento-eye').style.display = 'none';
+                showRendimientoNumbers = false;
+            }
+
+            const btn = document.getElementById('btn-cajas-mode');
+            if (isCajasMode) {
+                btn.style.background = 'linear-gradient(135deg, #4c1d95, #3b0764)';
+                btn.innerHTML = `<i class='bx bx-grid-alt'></i> Vista Asignación`;
+            } else {
+                btn.style.background = 'linear-gradient(135deg, #7c3aed, #6d28d9)';
+                btn.innerHTML = `<i class='bx bx-package'></i> Vista Cajas`;
+            }
+            renderMesas();
+        }
+
+        function abrirModalCajasMesa(mesaCodigo) {
+            document.getElementById('modal-cajas-titulo').innerHTML = `<i class='bx bx-package'></i> Cajas: ${mesaCodigo}`;
+            const box = document.getElementById('box-cajas-integrantes');
+            box.innerHTML = '';
+
+            const asignaciones = ProduccionDB.getAsignacionesMesas();
+            const operarios = ProduccionDB.getOperarios();
+            const integrantes = asignaciones[mesaCodigo] || [];
+
+            if (integrantes.length === 0) {
+                box.innerHTML = `<div style="text-align: center; color: var(--safco-text-muted); font-style: italic; padding: 1rem;">La mesa está vacía.</div>`;
+            } else {
+                integrantes.forEach(item => {
+                    const op = operarios.find(o => o.id === item.opId);
+                    if (op) {
+                        if (typeof mockCajas[op.id] === 'undefined') {
+                            mockCajas[op.id] = {
+                                aprobadas: Math.floor(Math.random() * 80) + 60,
+                                rechazadas: Math.floor(Math.random() * 15)
+                            };
+                        }
+                        const { aprobadas, rechazadas } = mockCajas[op.id];
+                        const total = aprobadas + rechazadas;
+                        const pctApro = total > 0 ? Math.round((aprobadas / total) * 100) : 0;
+                        const barColor = pctApro >= 90 ? '#10b981' : pctApro >= 75 ? '#f59e0b' : '#ef4444';
+
+                        box.innerHTML += `
+                            <div style="background: #f8fafc; border: 1px solid var(--safco-border); border-radius: 8px; padding: 0.75rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <div style="font-weight: 700; color: var(--safco-text-dark);">${op.nombre}
+                                        <span style="font-size: 0.73rem; color: var(--safco-text-muted); font-weight: 400;">(${formatLaborShort(item.labor)})</span>
+                                    </div>
+                                    <div style="font-size: 0.78rem; font-weight: 800; color: ${barColor};">${pctApro}% OK</div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.4rem;">
+                                    <div style="flex: 1; background: #dcfce7; border-radius: 6px; padding: 0.4rem 0.6rem; text-align: center;">
+                                        <div style="font-size: 1.3rem; font-weight: 800; color: #16a34a;">${aprobadas}</div>
+                                        <div style="font-size: 0.68rem; font-weight: 700; color: #15803d;">✅ Aprobadas</div>
+                                    </div>
+                                    <div style="flex: 1; background: #fee2e2; border-radius: 6px; padding: 0.4rem 0.6rem; text-align: center;">
+                                        <div style="font-size: 1.3rem; font-weight: 800; color: #dc2626;">${rechazadas}</div>
+                                        <div style="font-size: 0.68rem; font-weight: 700; color: #b91c1c;">❌ Rechazadas</div>
+                                    </div>
+                                </div>
+                                <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                                    <div style="width: ${pctApro}%; height: 100%; background: ${barColor}; transition: width 0.5s;"></div>
+                                </div>
+                            </div>`;
+                    }
+                });
+            }
+
+            document.getElementById('modal-cajas-mesa').classList.add('active');
         }
 
         function toggleNumbersRendimiento() {
@@ -430,6 +514,7 @@
 
         function actualizarIconoOjo() {
             const ico = document.getElementById('ico-rendimiento-eye');
+            if (!ico) return;
             if (showRendimientoNumbers) {
                 ico.classList.remove('bx-show');
                 ico.classList.add('bx-hide');
@@ -438,6 +523,62 @@
                 ico.classList.add('bx-show');
             }
         }
+
+        // --- CONFIGURACIÓN DÍA ANTERIOR ---
+        function aplicarConfigDiaAnterior() {
+            const linea = document.getElementById('select-linea').value;
+            const riel = document.getElementById('select-riel').value;
+            const restauradas = ProduccionDB.restaurarConfigDiaAnterior(linea, riel === 'TODOS' ? 'TODOS' : riel);
+
+            renderMesas();
+
+            if (restauradas === 0) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Sin configuración previa',
+                    text: 'No se encontró una configuración del día anterior para esta línea. Finalice el proceso de hoy para guardar el snapshot.',
+                    confirmButtonColor: '#004a4c'
+                });
+            } else {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `✅ ${restauradas} mesa(s) restauradas con la configuración del día anterior`,
+                    showConfirmButton: false,
+                    timer: 2800
+                });
+            }
+        }
+
+        // --- ROTACIÓN CIRCULAR DE OPERARIOS ---
+        function confirmarRotarOperarios() {
+            const linea = document.getElementById('select-linea').value;
+            const riel = document.getElementById('select-riel').value;
+
+            Swal.fire({
+                title: '¿Rotar Operarios?',
+                html: `Los operarios de las mesas <strong>completas (3/3)</strong> de <strong>${linea}</strong> rotarán circularmente: los de Mesa 1 pasan a Mesa 2, Mesa 2 a Mesa 3, y los de la última mesa pasan a la primera.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#004a4c',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="bx bx-rotate-right"></i> Sí, Rotar',
+                cancelButtonText: 'Cancelar'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    const rotadas = ProduccionDB.rotarOperariosLinea(linea, riel === 'TODOS' ? 'TODOS' : riel);
+                    renderMesas();
+
+                    if (rotadas < 2) {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Se necesitan al menos 2 mesas completas para rotar', showConfirmButton: false, timer: 2500 });
+                    } else {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `🔄 ${rotadas} mesas rotadas exitosamente`, showConfirmButton: false, timer: 2200 });
+                    }
+                }
+            });
+        }
+
 
         function abrirModalRendimientoMesa(mesaCodigo) {
             document.getElementById('modal-rendimiento-titulo').innerHTML = `<i class='bx bx-bar-chart-alt-2'></i> Rendimiento: ${mesaCodigo}`;
@@ -566,23 +707,33 @@
                             mockRendimiento[op.id] = Math.floor(Math.random() * 51) + 70; // 70 to 120
                         }
 
-                        let extraRendimientoHtml = '';
+                        let extraModeHtml = '';
                         if (isRendimientoMode && op) {
                             const rend = mockRendimiento[op.id];
-                            let barColor = 'var(--safco-red)'; // < 90
-                            if (rend >= 90 && rend < 100) barColor = '#f59e0b'; // yellow
-                            else if (rend >= 100) barColor = '#10b981'; // green
-
+                            let barColor = 'var(--safco-red)';
+                            if (rend >= 90 && rend < 100) barColor = '#f59e0b';
+                            else if (rend >= 100) barColor = '#10b981';
                             const txtDisplay = showRendimientoNumbers ? `${rend} cajas` : '';
-
-                            extraRendimientoHtml = `
+                            extraModeHtml = `
                                 <div style="margin-top: 0.25rem; width: 100%;">
-                                    <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
+                                    <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
                                         <div style="width: ${Math.min(rend, 100)}%; height: 100%; background: ${barColor};"></div>
                                     </div>
-                                    <div style="font-size: 0.65rem; font-weight: 700; color: ${barColor}; text-align: right; min-height: 12px; line-height: 1;">${txtDisplay}</div>
-                                </div>
-                            `;
+                                    <div style="font-size: 0.65rem; font-weight: 700; color: ${barColor}; text-align: right; min-height: 12px;">${txtDisplay}</div>
+                                </div>`;
+                        } else if (isCajasMode && op) {
+                            if (typeof mockCajas[op.id] === 'undefined') {
+                                mockCajas[op.id] = {
+                                    aprobadas: Math.floor(Math.random() * 80) + 60,
+                                    rechazadas: Math.floor(Math.random() * 15)
+                                };
+                            }
+                            const { aprobadas, rechazadas } = mockCajas[op.id];
+                            extraModeHtml = `
+                                <div style="display: flex; gap: 4px; margin-top: 0.25rem;">
+                                    <span style="background: #dcfce7; color: #16a34a; font-size: 0.65rem; font-weight: 800; border-radius: 4px; padding: 1px 5px;">✅ ${aprobadas}</span>
+                                    <span style="background: #fee2e2; color: #dc2626; font-size: 0.65rem; font-weight: 800; border-radius: 4px; padding: 1px 5px;">❌ ${rechazadas}</span>
+                                </div>`;
                         }
 
                         slotsHtml += `
@@ -591,8 +742,8 @@
                                     <div class="slot-avatar ${avCls}">${iniciales}</div>
                                     <div style="flex: 1;">
                                         <div class="slot-name">${op ? op.nombre : 'Operario'}</div>
-                                        ${!isRendimientoMode ? `<div style="font-size: 0.68rem; color: var(--safco-teal); font-weight: 600;">🔧 ${herrsTxt}</div>` : ''}
-                                        ${extraRendimientoHtml}
+                                        ${(!isRendimientoMode && !isCajasMode) ? `<div style="font-size: 0.68rem; color: var(--safco-teal); font-weight: 600;">🔧 ${herrsTxt}</div>` : ''}
+                                        ${extraModeHtml}
                                     </div>
                                 </div>
                                 <span class="badge-rol ${badgeRolCls}" style="align-self: flex-start; margin-top: 2px;">${laborTextoCorto}</span>
@@ -612,7 +763,7 @@
                 }
 
                 let botonesAccionHtml = '';
-                if (!isRendimientoMode) {
+                if (!isRendimientoMode && !isCajasMode) {
                     botonesAccionHtml = `
                         <div style="display: flex; gap: 0.35rem; margin-top: 0.5rem; justify-content: space-between; align-items: center;">
                             <button class="btn-safco btn-safco-teal" style="height: 30px; font-size: 0.72rem; padding: 0 0.6rem; flex: 1;" onclick="event.stopPropagation(); abrirModalTrasladoParaMesa('${mesa.codigo}')" title="Trasladar este equipo a otra mesa">
@@ -625,8 +776,14 @@
                     `;
                 }
 
+                const clickFn = isRendimientoMode
+                    ? `abrirModalRendimientoMesa('${mesa.codigo}')`
+                    : isCajasMode
+                        ? `abrirModalCajasMesa('${mesa.codigo}')`
+                        : `abrirModalAsignar('${mesa.codigo}')`;
+
                 contenedor.innerHTML += `
-                    <div class="mesa-card-item ${estadoCls}" onclick="isRendimientoMode ? abrirModalRendimientoMesa('${mesa.codigo}') : abrirModalAsignar('${mesa.codigo}')">
+                    <div class="mesa-card-item ${estadoCls}" onclick="${clickFn}">
                         <div class="mesa-card-header">
                             <span class="mesa-code-badge">${mesa.codigo}</span>
                             <span class="mesa-status-pill ${pillCls}">${estadoPillTxt}</span>
@@ -670,33 +827,69 @@
 
             const integrantesActuales = asignaciones[codigoMesa] || [];
 
-            ['slot-op-0', 'slot-op-1', 'slot-op-2'].forEach((slotId, index) => {
-                const sel = document.getElementById(slotId);
-                const laborSel = document.getElementById(`slot-labor-${index}`);
+            // --- Construir slots HTML dinámicamente con botón Dar Salida ---
+            const laborOpts = [
+                { val: 'Seleccionador', txt: 'Seleccionador (SEL)' },
+                { val: 'Embalador 1', txt: 'Embalador 1 (EMB 1)' },
+                { val: 'Embalador 2', txt: 'Embalador 2 (EMB 2)' }
+            ];
 
-                sel.innerHTML = `<option value="">-- (Puesto Libre) --</option>`;
+            const defaultLabors = ['Seleccionador', 'Embalador 1', 'Embalador 2'];
 
-                const actualObj = integrantesActuales[index];
-                if (actualObj) {
-                    laborSel.value = actualObj.labor;
-                }
+            let slotsHtml = '';
+            for (let idx = 0; idx < 3; idx++) {
+                const actualObj = integrantesActuales[idx];
+                const isOcupado = !!actualObj;
+                const headerColor = idx === 0 ? 'var(--safco-teal)' : 'var(--safco-text-dark)';
 
+                // Build options for operator select
+                let opOptions = `<option value="">-- (Puesto Libre) --</option>`;
                 operarios.forEach(op => {
                     const mesaDondeEsta = opMesaAsignadaMap[op.id];
                     const esEnEstaMesa = (mesaDondeEsta === codigoMesa && actualObj && actualObj.opId === op.id);
                     const estaEnOtraMesa = mesaDondeEsta && mesaDondeEsta !== codigoMesa;
-
-                    let disabledTxt = '';
-                    let labelMesa = '';
-
-                    if (estaEnOtraMesa) {
-                        disabledTxt = 'disabled';
-                        labelMesa = ` (Asignado en ${mesaDondeEsta})`;
-                    }
-
-                    const selected = esEnEstaMesa ? 'selected' : '';
-                    sel.innerHTML += `<option value="${op.id}" ${selected} ${disabledTxt}>${op.nombre} [DNI: ${op.dni}] (${op.cargo})${labelMesa}</option>`;
+                    const disabledAttr = estaEnOtraMesa ? 'disabled' : '';
+                    const labelMesa = estaEnOtraMesa ? ` (en ${mesaDondeEsta})` : '';
+                    const selectedAttr = esEnEstaMesa ? 'selected' : '';
+                    opOptions += `<option value="${op.id}" ${selectedAttr} ${disabledAttr}>${op.nombre} [${op.dni}] (${op.cargo})${labelMesa}</option>`;
                 });
+
+                // Build options for labor select
+                let laborOptions = '';
+                laborOpts.forEach(l => {
+                    const defOrder = defaultLabors[idx];
+                    // Put the expected default first
+                    if (l.val === defOrder) laborOptions = `<option value="${l.val}">${l.txt}</option>` + laborOptions;
+                    else laborOptions += `<option value="${l.val}">${l.txt}</option>`;
+                });
+
+                const salidaBtn = isOcupado ? `
+                    <button type="button"
+                        style="height: 36px; padding: 0 0.6rem; background: #fee2e2; color: #dc2626; border: 1.5px solid #fca5a5; border-radius: 8px; font-size: 0.72rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; transition: background 0.2s;"
+                        onclick="darSalidaOperarioModal('${actualObj.opId}', '${codigoMesa}')"
+                        title="Registrar salida de este operario">
+                        <i class='bx bx-log-out' style='font-size: 0.85rem;'></i> Salida
+                    </button>` : '';
+
+                slotsHtml += `
+                    <div class="form-group-safco" style="background: #f8fafc; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--safco-border);">
+                        <label style="font-weight: 800; color: ${headerColor};">Slot ${idx + 1}:</label>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                            <select id="slot-op-${idx}" class="select-touch" style="flex: 2; min-width: 180px;">${opOptions}</select>
+                            <select id="slot-labor-${idx}" class="select-touch" style="flex: 1; min-width: 130px;" onchange="onLaborChange(${idx})">${laborOptions}</select>
+                            ${salidaBtn}
+                        </div>
+                    </div>`;
+            }
+
+            document.getElementById('box-slots-modal').innerHTML = slotsHtml;
+
+            // Restore labor values from asignaciones
+            integrantesActuales.forEach((actualObj, idx) => {
+                if (actualObj) {
+                    const laborSel = document.getElementById(`slot-labor-${idx}`);
+                    if (laborSel) laborSel.value = actualObj.labor;
+                }
             });
 
             const boxHerr = document.getElementById('box-herramientas-mesa-modal');
@@ -713,6 +906,50 @@
                 });
             }
             boxHerr.innerHTML = herrHtml;
+        }
+
+        // DAR SALIDA desde el Modal de Asignación
+        function darSalidaOperarioModal(opId, codigoMesa) {
+            const operarios = ProduccionDB.getOperarios();
+            const op = operarios.find(o => o.id === opId);
+            const nomOp = op ? op.nombre : 'Operario';
+
+            Swal.fire({
+                title: `Dar Salida: ${nomOp}`,
+                html: `
+                    <div style="text-align: left; margin-top: 0.5rem;">
+                        <label style="font-size: 0.85rem; font-weight: 700; color: #334155;">Motivo de la salida:</label>
+                        <input id="swal-motivo-salida" class="swal2-input" placeholder="Ej: Permiso médico, malestar, permiso personal..." style="margin-top: 0.4rem; font-size: 0.9rem;">
+                    </div>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="bx bx-log-out"></i> Registrar Salida',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const motivo = document.getElementById('swal-motivo-salida').value.trim();
+                    if (!motivo) {
+                        Swal.showValidationMessage('Debes ingresar un motivo de salida.');
+                        return false;
+                    }
+                    return motivo;
+                }
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    ProduccionDB.darSalidaOperario(opId, codigoMesa, res.value);
+                    poblarSlotsModalMesa(codigoMesa);
+                    renderMesas();
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: `🚪 Salida de ${nomOp} registrada`,
+                        showConfirmButton: false,
+                        timer: 2500
+                    });
+                }
+            });
         }
 
         // LÓGICA: Máximo 1 Seleccionador por Mesa (los demás puestos pasan a Embalador automáticamente)

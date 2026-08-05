@@ -68,11 +68,12 @@
                     </div>
 
                     <div class="filter-item" style="max-width: 160px;">
-                        <label for="filter-reporte-estado">Estado Ingreso:</label>
+                        <label for="filter-reporte-estado">Estado Asistencia:</label>
                         <select id="filter-reporte-estado" class="select-touch" onchange="renderReporteAsistencia()">
                             <option value="TODOS">Todos los Estados</option>
                             <option value="En hora">🟢 En hora</option>
                             <option value="Tarde">🟠 Tarde</option>
+                            <option value="Salida">🔴 Salida</option>
                         </select>
                     </div>
 
@@ -100,6 +101,10 @@
                         <div class="kpi-val" id="kpi-operarios-en-mesa" style="color: var(--safco-teal);">0</div>
                         <div class="kpi-lbl">En Mesas Activas</div>
                     </div>
+                    <div class="kpi-card">
+                        <div class="kpi-val bad" id="kpi-asist-salidas">0</div>
+                        <div class="kpi-lbl">Salidas Anticipadas</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -113,9 +118,10 @@
                         <th>NOMBRES Y APELLIDOS</th>
                         <th>CARGO / ROL</th>
                         <th>MESA ASIGNADA</th>
-                        <th>FECHA REGISTRO</th>
-                        <th>HORA REGISTRO</th>
-                        <th style="text-align: right;">ESTADO ASISTENCIA</th>
+                        <th>FECHA / HORA</th>
+                        <th>HORA SALIDA</th>
+                        <th>MOTIVO SALIDA</th>
+                        <th style="text-align: right;">ESTADO</th>
                     </tr>
                 </thead>
                 <tbody id="tbody-reporte-asistencia">
@@ -127,9 +133,11 @@
     </main>
 
     <!-- Scripts de Lógica y Datos -->
+    <script src="../js/shared.js"></script>
     <script src="js/produccion-data.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             renderReporteAsistencia();
         });
 
@@ -223,6 +231,7 @@
             document.getElementById('kpi-total-asist').textContent = asistencias.length;
             document.getElementById('kpi-asist-enhora').textContent = asistencias.filter(a => a.estadoAsistencia === 'En hora').length;
             document.getElementById('kpi-asist-tarde').textContent = asistencias.filter(a => a.estadoAsistencia === 'Tarde').length;
+            document.getElementById('kpi-asist-salidas').textContent = asistencias.filter(a => a.estadoAsistencia === 'Salida').length;
             document.getElementById('kpi-operarios-en-mesa').textContent = asistencias.filter(a => a.mesaAsignada).length;
 
             const tbody = document.getElementById('tbody-reporte-asistencia');
@@ -235,20 +244,35 @@
 
             asistFiltrada.forEach(a => {
                 const isSeleccionador = a.cargo === 'Seleccionador';
-                const mesaTxt = a.mesaAsignada ? `<span class="op-mesa-tag"><i class='bx bx-table'></i> ${a.mesaAsignada}</span>` : `<span style="color: var(--safco-text-muted); font-style: italic;">Sin asignar</span>`;
+                const mesaTxt = a.mesaAsignada
+                    ? `<span class="op-mesa-tag"><i class='bx bx-table'></i> ${a.mesaAsignada}</span>`
+                    : `<span style="color: var(--safco-text-muted); font-style: italic;">Sin asignar</span>`;
+
+                let estadoPillCls = 'pill-incompleta';
+                let estadoIcon = '';
+                if (a.estadoAsistencia === 'En hora') { estadoPillCls = 'pill-completa'; estadoIcon = '🟢'; }
+                else if (a.estadoAsistencia === 'Tarde') { estadoPillCls = 'pill-incompleta'; estadoIcon = '🟠'; }
+                else if (a.estadoAsistencia === 'Salida') { estadoPillCls = 'pill-vacia'; estadoIcon = '🔴'; }
+
+                const horaSalidaTxt = a.horaSalida
+                    ? `<span style="font-family: 'DM Mono', monospace; font-weight: 700; color: #dc2626;">${a.horaSalida}</span>`
+                    : `<span style="color: #94a3b8; font-style: italic;">—</span>`;
+
+                const motivoSalidaTxt = a.motivoSalida
+                    ? `<span style="font-size: 0.8rem; color: #dc2626; font-weight: 600;">${a.motivoSalida}</span>`
+                    : `<span style="color: #94a3b8; font-style: italic; font-size: 0.8rem;">—</span>`;
 
                 tbody.innerHTML += `
-                    <tr>
+                    <tr ${a.estadoAsistencia === 'Salida' ? 'style="background: #fff5f5;"' : ''}>
                         <td data-label="DNI" style="font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--safco-text-dark);">${a.dni}</td>
                         <td data-label="Nombre" style="font-size: 0.92rem; font-weight: 700; color: var(--safco-teal);">${a.nombre}</td>
                         <td data-label="Cargo"><span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${a.cargo}</span></td>
                         <td data-label="Mesa">${mesaTxt}</td>
-                        <td data-label="Fecha" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-dark);">${a.fechaRegistro || 'N/A'}</td>
-                        <td data-label="Hora" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-muted);">${a.horaRegistro}</td>
+                        <td data-label="Fecha/Hora" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-dark);">${a.fechaRegistro || 'N/A'} ${a.horaRegistro || ''}</td>
+                        <td data-label="Hora Salida">${horaSalidaTxt}</td>
+                        <td data-label="Motivo">${motivoSalidaTxt}</td>
                         <td data-label="Estado" style="text-align: right;">
-                            <span class="mesa-status-pill ${a.estadoAsistencia === 'En hora' ? 'pill-completa' : 'pill-incompleta'}">
-                                ${a.estadoAsistencia}
-                            </span>
+                            <span class="mesa-status-pill ${estadoPillCls}">${estadoIcon} ${a.estadoAsistencia}</span>
                         </td>
                     </tr>
                 `;

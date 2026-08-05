@@ -5,16 +5,27 @@
 // Verificador de Sesión (Prevenir acceso a páginas protegidas si no hay mock login)
 function checkAuth() {
     const session = localStorage.getItem("userSession");
-    // Si no está en el login y no hay sesión, redirigir al login
-    if (!session && !window.location.pathname.endsWith("index.html") && !window.location.pathname.endsWith("/")) {
-        window.location.href = "/index.html";
+    const path = window.location.pathname;
+    const isLoginPage = path.endsWith("index.html") || path.endsWith("/");
+    if (!session && !isLoginPage) {
+        let redirectPath = "index.html";
+        if (path.includes("/produccion/") || path.includes("/calidad/") || path.includes("/administracion/") || path.includes("/transportes/") || path.includes("/seguridad/") || path.includes("/frio/") || path.includes("/general/")) {
+            redirectPath = "../index.html";
+        }
+        window.location.href = redirectPath;
     }
 }
 
 // Cerrar sesión
-function logout() {
+function logout(e) {
+    if (e && e.preventDefault) e.preventDefault();
     localStorage.removeItem("userSession");
-    window.location.href = "/index.html"; // Ajustar si hay rutas absolutas en server diferente
+    let redirectPath = "index.html";
+    const path = window.location.pathname;
+    if (path.includes("/produccion/") || path.includes("/calidad/") || path.includes("/administracion/") || path.includes("/transportes/") || path.includes("/seguridad/") || path.includes("/frio/") || path.includes("/general/")) {
+        redirectPath = "../index.html";
+    }
+    window.location.href = redirectPath;
 }
 
 // Formatear una fecha YYYY-MM-DD para viz (ej: 26/03/2026)

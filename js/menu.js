@@ -48,23 +48,28 @@ document.addEventListener("DOMContentLoaded", () => {
 // Aplicar permisos de visibilidad en el Menú Lateral según la Sesión
 function applyRolePermissions() {
     const sessionData = localStorage.getItem("userSession");
+    if (!sessionData) {
+        checkAuth();
+        return;
+    }
+
     let user = "admin";
     let scope = "ALL";
 
-    if (sessionData) {
-        try {
-            const data = JSON.parse(sessionData);
-            user = (data.user || "admin").toLowerCase();
-            scope = data.scope || (user === "produccion" ? "PRODUCCION" : (user === "calidad" ? "CALIDAD" : "ALL"));
+    try {
+        const data = JSON.parse(sessionData);
+        user = (data.user || "admin").toLowerCase();
+        scope = data.scope || (user === "produccion" ? "PRODUCCION" : (user === "calidad" ? "CALIDAD" : "ALL"));
 
-            const displayEl = document.getElementById("displayUser");
-            if (displayEl) displayEl.textContent = data.user.toUpperCase();
-            
-            const selectEl = document.getElementById("topbarSimUserSelect");
-            if (selectEl) selectEl.value = data.user;
-        } catch (e) {
-            console.error("Error leyendo sesión:", e);
-        }
+        const displayEl = document.getElementById("displayUser");
+        if (displayEl) displayEl.textContent = data.user.toUpperCase();
+        
+        const selectEl = document.getElementById("topbarSimUserSelect");
+        if (selectEl) selectEl.value = data.user;
+    } catch (e) {
+        console.error("Error leyendo sesión:", e);
+        checkAuth();
+        return;
     }
 
     const menuItems = document.querySelectorAll('.sidebar-menu > li[data-module]');

@@ -262,9 +262,11 @@
     </div>
 
     <!-- Scripts de Lógica y Datos -->
+    <script src="../js/shared.js"></script>
     <script src="js/produccion-data.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             poblarSelectsTiposImplementos();
             renderTablaHerramientas();
             document.addEventListener('click', (e) => {

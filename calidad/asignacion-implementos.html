@@ -187,12 +187,14 @@
     </div>
 
     <!-- Scripts de Lógica y Datos de Calidad -->
+    <script src="../js/shared.js"></script>
     <script src="js/calidad-data.js"></script>
     <script>
         let filtroKPIActual = 'TODAS';
         let implementosSeleccionadosSet = new Set();
 
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             poblarSelectsTiposImplementos();
             renderImplementos();
         });

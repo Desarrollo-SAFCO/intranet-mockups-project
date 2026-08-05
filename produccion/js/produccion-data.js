@@ -14,7 +14,8 @@ const STORAGE_KEYS = {
     ASIGNACIONES_MESAS: 'safco_produccion_asig_mesas_v6',
     ASIGNACIONES_HERR: 'safco_produccion_asig_herr_v6',
     HISTORIAL_HERR: 'safco_produccion_hist_herr_v6',
-    TIPOS_HERRAMIENTAS: 'safco_produccion_tipos_v6'
+    TIPOS_HERRAMIENTAS: 'safco_produccion_tipos_v6',
+    SNAPSHOT_MESAS: 'safco_produccion_snapshot_mesas_v6'
 };
 
 const DEFAULT_TIPOS_HERRAMIENTAS = [
@@ -439,12 +440,99 @@ const ProduccionDB = {
         const mesas = this.getMesas();
         const asig = this.getAsignacionesMesas();
 
+        // Guardar snapshot ANTES de limpiar (configuración del día actual → será "día anterior" mañana)
+        const snapshot = JSON.parse(localStorage.getItem(STORAGE_KEYS.SNAPSHOT_MESAS) || '{}');
         const mesasSub = mesas.filter(m => m.linea === linea && (riel === 'TODOS' || m.riel === riel));
         mesasSub.forEach(m => {
+            if (asig[m.codigo] && asig[m.codigo].length > 0) {
+                snapshot[m.codigo] = [...asig[m.codigo]];
+            }
             asig[m.codigo] = [];
+        });
+        localStorage.setItem(STORAGE_KEYS.SNAPSHOT_MESAS, JSON.stringify(snapshot));
+
+        this.saveAsignacionesMesas(asig);
+        return true;
+    },
+
+    // RESTAURAR CONFIGURACIÓN DEL DÍA ANTERIOR (desde snapshot)
+    restaurarConfigDiaAnterior: function(linea, riel) {
+        const snapshot = JSON.parse(localStorage.getItem(STORAGE_KEYS.SNAPSHOT_MESAS) || '{}');
+        const asig = this.getAsignacionesMesas();
+        const mesas = this.getMesas();
+
+        const mesasSub = mesas.filter(m => m.linea === linea && (riel === 'TODOS' || m.riel === riel));
+        let restauradas = 0;
+
+        mesasSub.forEach(m => {
+            const snap = snapshot[m.codigo];
+            if (snap && snap.length > 0) {
+                // Solo restaurar si la mesa actualmente está vacía
+                if (!asig[m.codigo] || asig[m.codigo].length === 0) {
+                    asig[m.codigo] = [...snap];
+                    restauradas++;
+                }
+            }
         });
 
         this.saveAsignacionesMesas(asig);
+        return restauradas;
+    },
+
+    // ROTACIÓN CIRCULAR DE OPERARIOS ENTRE MESAS COMPLETAS DE UNA LÍNEA/RIEL
+    rotarOperariosLinea: function(linea, riel) {
+        const mesas = this.getMesas();
+        const asig = this.getAsignacionesMesas();
+
+        // Obtener mesas completas (exactamente 3 integrantes) ordenadas por código
+        let mesasSub = mesas.filter(m => m.linea === linea && (riel === 'TODOS' || m.riel === riel));
+        mesasSub.sort((a, b) => a.codigo.localeCompare(b.codigo));
+
+        const mesasCompletas = mesasSub.filter(m => {
+            const integrs = asig[m.codigo] || [];
+            return integrs.length === 3;
+        });
+
+        if (mesasCompletas.length < 2) return 0;
+
+        // Guardar los integrantes en un array paralelo antes de rotar
+        const grupos = mesasCompletas.map(m => [...(asig[m.codigo] || [])]);
+
+        // Rotación circular: la configuración de la mesa N va a la mesa N+1
+        // La última mesa recibe la configuración de la primera (ciclo)
+        for (let i = 0; i < mesasCompletas.length; i++) {
+            const destIdx = (i + 1) % mesasCompletas.length;
+            asig[mesasCompletas[destIdx].codigo] = grupos[i];
+        }
+
+        this.saveAsignacionesMesas(asig);
+        return mesasCompletas.length;
+    },
+
+    // DAR SALIDA A UN OPERARIO CON MOTIVO — lo remueve de la mesa y registra en asistencia
+    darSalidaOperario: function(opId, codigoMesa, motivo) {
+        // 1. Remover de la mesa
+        const asig = this.getAsignacionesMesas();
+        if (asig[codigoMesa]) {
+            asig[codigoMesa] = asig[codigoMesa].filter(item => item.opId !== opId);
+        }
+        this.saveAsignacionesMesas(asig);
+
+        // 2. Actualizar registro de asistencia con salida
+        const asist = this.getAsistencia();
+        const now = new Date();
+        const fechaStr = now.toISOString().split('T')[0];
+        const horaStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+        const registro = asist.find(a => a.id === opId);
+        if (registro) {
+            registro.estadoAsistencia = 'Salida';
+            registro.horaSalida = horaStr;
+            registro.fechaSalida = fechaStr;
+            registro.motivoSalida = motivo || 'Sin especificar';
+            registro.mesaAsignada = null;
+        }
+        this.saveAsistencia(asist);
         return true;
     },
 
