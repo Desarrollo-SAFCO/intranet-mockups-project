@@ -83,7 +83,7 @@
     </style>
 </head>
 <body style="background-color: var(--safco-bg); min-height: 100vh;">
-    <main class="content-area" style="padding: 1.5rem; max-width: 1300px; margin: 0 auto;">
+    <main class="content-area" style="padding: 1.25rem; max-width: 100%; width: 100%; margin: 0 auto;">
         
         <!-- Banner de Cabecera Ejecutiva -->
         <div class="produccion-banner" style="align-items: flex-start; gap: 1rem;">
@@ -236,7 +236,7 @@
         </div>
 
         <!-- Rejilla de Mesas -->
-        <div class="mesas-grid-container" id="contenedor-mesas">
+        <div id="contenedor-mesas" style="width: 100%;">
             <!-- Renderizado dinámico -->
         </div>
 
@@ -669,34 +669,124 @@
             }
         }
 
-        // --- ROTACIÓN CIRCULAR DE OPERARIOS ---
+        // --- ROTACIÓN CIRCULAR DE OPERARIOS (POR RIEL INDEPENDIENTE) ---
         function confirmarRotarOperarios() {
             const linea = document.getElementById('select-linea').value;
-            const riel = document.getElementById('select-riel').value;
+            const rielSel = document.getElementById('select-riel').value;
+
+            let r1Checked = (rielSel === 'TODOS' || rielSel === 'Riel 1');
+            let r2Checked = (rielSel === 'TODOS' || rielSel === 'Riel 2');
 
             Swal.fire({
-                title: '¿Rotar Operarios?',
-                html: `Los operarios de las mesas <strong>completas (3/3)</strong> de <strong>${linea}</strong> rotarán circularmente: los de Mesa 1 pasan a Mesa 2, Mesa 2 a Mesa 3, y los de la última mesa pasan a la primera.`,
+                title: '🔄 Rotación de Operarios por Riel',
+                html: `
+                    <div style="text-align: left; background: #f8fafc; padding: 1rem; border-radius: 10px; border: 1px solid #e2e8f0; margin-top: 0.5rem;">
+                        <p style="font-size: 0.85rem; color: #475569; margin-bottom: 0.75rem; font-weight: 600;">
+                            Seleccione los rieles de <strong>${linea}</strong> que desea rotar (los operarios rotan únicamente dentro de su propio riel):
+                        </p>
+                        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                            <label style="display: flex; align-items: center; gap: 0.6rem; font-weight: 700; color: #004a4c; cursor: pointer; font-size: 0.95rem;">
+                                <input type="checkbox" id="chk-rotar-r1" ${r1Checked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #004a4c;">
+                                <span>🛤️ Riel 1</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.6rem; font-weight: 700; color: #004a4c; cursor: pointer; font-size: 0.95rem;">
+                                <input type="checkbox" id="chk-rotar-r2" ${r2Checked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #004a4c;">
+                                <span>🛤️ Riel 2</span>
+                            </label>
+                        </div>
+                    </div>`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#004a4c',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="bx bx-rotate-right"></i> Sí, Rotar',
-                cancelButtonText: 'Cancelar'
+                confirmButtonText: '<i class="bx bx-rotate-right"></i> Ejecutar Rotación',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const r1 = document.getElementById('chk-rotar-r1').checked;
+                    const r2 = document.getElementById('chk-rotar-r2').checked;
+                    if (!r1 && !r2) {
+                        Swal.showValidationMessage('Debes seleccionar al menos un riel para rotar.');
+                        return false;
+                    }
+                    return { r1, r2 };
+                }
             }).then((res) => {
                 if (res.isConfirmed) {
-                    const rotadas = ProduccionDB.rotarOperariosLinea(linea, riel === 'TODOS' ? 'TODOS' : riel);
+                    const rielesToRotate = [];
+                    if (res.value.r1) rielesToRotate.push('Riel 1');
+                    if (res.value.r2) rielesToRotate.push('Riel 2');
+
+                    const totalRotadas = ProduccionDB.rotarOperariosPorRieles(linea, rielesToRotate);
                     renderMesas();
 
-                    if (rotadas < 2) {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Se necesitan al menos 2 mesas completas para rotar', showConfirmButton: false, timer: 2500 });
+                    if (totalRotadas < 2) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'info',
+                            title: 'No hay suficientes mesas con operarios (mínimo 2) en los rieles seleccionados',
+                            showConfirmButton: false,
+                            timer: 2500
+                        });
                     } else {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `🔄 ${rotadas} mesas rotadas exitosamente`, showConfirmButton: false, timer: 2200 });
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: `🔄 ${totalRotadas} mesas rotadas en ${rielesToRotate.join(' y ')}`,
+                            showConfirmButton: false,
+                            timer: 2500
+                        });
                     }
                 }
             });
         }
 
+        function confirmarRotarSoloRiel(rielNombre) {
+            const linea = document.getElementById('select-linea').value;
+            Swal.fire({
+                title: `Rotar ${rielNombre}`,
+                html: `Los operarios asignados en <strong>${rielNombre}</strong> (${linea}) rotarán circularmente entre sus mesas.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#004a4c',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: `<i class="bx bx-rotate-right"></i> Rotar ${rielNombre}`,
+                cancelButtonText: 'Cancelar'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    const totalRotadas = ProduccionDB.rotarOperariosPorRieles(linea, [rielNombre]);
+                    renderMesas();
+                    if (totalRotadas < 2) {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: `Se necesitan al menos 2 mesas con operarios en ${rielNombre}`, showConfirmButton: false, timer: 2500 });
+                    } else {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `🔄 Mesas de ${rielNombre} rotadas exitosamente`, showConfirmButton: false, timer: 2200 });
+                    }
+                }
+            });
+        }
+
+        // --- COLAPSO / EXPANSION DINÁMICA DE RIELES ---
+        const estadoColapsoRieles = {};
+
+        function toggleRielPool(rielKey) {
+            estadoColapsoRieles[rielKey] = !estadoColapsoRieles[rielKey];
+            const grid = document.getElementById(`riel-pool-grid-${rielKey}`);
+            const btn = document.getElementById(`btn-toggle-riel-${rielKey}`);
+            if (!grid) return;
+
+            if (estadoColapsoRieles[rielKey]) {
+                grid.style.display = 'none';
+                if (btn) {
+                    btn.innerHTML = `<i class='bx bx-chevron-down ico-toggle-riel'></i> <span class="txt-toggle-riel">Mostrar</span>`;
+                }
+            } else {
+                grid.style.display = 'grid';
+                if (btn) {
+                    btn.innerHTML = `<i class='bx bx-chevron-up ico-toggle-riel'></i> <span class="txt-toggle-riel">Ocultar</span>`;
+                }
+            }
+        }
 
         function abrirModalRendimientoMesa(mesaCodigo) {
             document.getElementById('modal-rendimiento-titulo').innerHTML = `<i class='bx bx-bar-chart-alt-2'></i> Rendimiento: ${mesaCodigo}`;
@@ -746,10 +836,10 @@
             document.getElementById('modal-rendimiento-mesa').classList.add('active');
         }
 
-        // --- RENDERIZADO PRINCIPAL DE MESAS ---
+        // --- RENDERIZADO PRINCIPAL DE MESAS AGRUPADAS POR CONTENEDOR DE RIEL ---
         function renderMesas() {
             const linea = document.getElementById('select-linea').value;
-            const riel = document.getElementById('select-riel').value;
+            const rielFiltro = document.getElementById('select-riel').value;
             const busqueda = document.getElementById('input-busqueda').value.toLowerCase().trim();
 
             const todalMesas = ProduccionDB.getMesas();
@@ -757,8 +847,7 @@
             const asignacionesHerr = ProduccionDB.getAsignacionesHerramientas();
             const operarios = ProduccionDB.getOperarios();
 
-            let mesasFiltradas = todalMesas.filter(m => m.linea === linea);
-            if (riel !== 'TODOS') mesasFiltradas = mesasFiltradas.filter(m => m.riel === riel);
+            let mesasLinea = todalMesas.filter(m => m.linea === linea);
 
             const contenedor = document.getElementById('contenedor-mesas');
             contenedor.innerHTML = '';
@@ -767,154 +856,201 @@
             let cSinSel = 0;
             let cVacias = 0;
 
-            mesasFiltradas.forEach(mesa => {
-                const integrantes = asignacionesMesas[mesa.codigo] || [];
-                const cantidadTotal = integrantes.length;
-                const tieneSeleccionador = integrantes.some(x => x.labor === 'Seleccionador');
+            const rielesAMostrar = rielFiltro === 'TODOS' ? ['Riel 1', 'Riel 2'] : [rielFiltro];
+            const isSingle = rielesAMostrar.length === 1;
 
-                let estadoCls = 'completa';
-                let estadoPillTxt = 'Operativa (3/3)';
-                let pillCls = 'pill-completa';
+            let mainGridHtml = `<div class="rieles-main-grid ${isSingle ? 'single-riel' : ''}">`;
 
-                if (cantidadTotal === 0) {
-                    estadoCls = 'vacia';
-                    estadoPillTxt = 'Mesa Vacía (0/3)';
-                    pillCls = 'pill-vacia';
-                    cVacias++;
-                } else if (!tieneSeleccionador) {
-                    estadoCls = 'sin-sel';
-                    estadoPillTxt = 'Sin Seleccionador SEL';
-                    pillCls = 'pill-sin-sel';
-                    cSinSel++;
-                } else if (cantidadTotal < 3) {
-                    estadoCls = 'incompleta';
-                    estadoPillTxt = `Incompleta (${cantidadTotal}/3)`;
-                    pillCls = 'pill-incompleta';
-                } else {
-                    cCompletas++;
-                }
+            rielesAMostrar.forEach(rielNombre => {
+                const mesasRiel = mesasLinea.filter(m => m.riel === rielNombre);
 
-                if (filtroKPIActual === 'COMPLETAS' && (cantidadTotal !== 3 || !tieneSeleccionador)) return;
-                if (filtroKPIActual === 'SIN_SEL' && (cantidadTotal === 0 || tieneSeleccionador)) return;
-                if (filtroKPIActual === 'VACIAS' && cantidadTotal !== 0) return;
+                let cardsHtml = '';
+                let mesasMostradasCount = 0;
 
-                if (busqueda) {
-                    const coincideMesa = mesa.codigo.toLowerCase().includes(busqueda);
-                    const coincideOp = integrantes.some(item => {
-                        const op = operarios.find(o => o.id === item.opId);
-                        return op && (op.nombre.toLowerCase().includes(busqueda) || op.dni.includes(busqueda));
-                    });
-                    if (!coincideMesa && !coincideOp) return;
-                }
+                mesasRiel.forEach(mesa => {
+                    const integrantes = asignacionesMesas[mesa.codigo] || [];
+                    const cantidadTotal = integrantes.length;
+                    const tieneSeleccionador = integrantes.some(x => x.labor === 'Seleccionador');
 
-                let slotsHtml = '';
-                for (let i = 0; i < 3; i++) {
-                    const item = integrantes[i];
-                    if (item) {
-                        const op = operarios.find(o => o.id === item.opId);
-                        const isSeleccionador = item.labor === 'Seleccionador';
-                        const avCls = isSeleccionador ? 'av-sel' : 'av-emb';
-                        const badgeRolCls = isSeleccionador ? 'b-sel' : 'b-emb';
-                        const iniciales = op ? op.nombre.split(' ').map(n => n[0]).join('').substring(0, 2) : 'OP';
-                        const laborTextoCorto = formatLaborShort(item.labor);
+                    let estadoCls = 'completa';
+                    let estadoPillTxt = 'Operativa (3/3)';
+                    let pillCls = 'pill-completa';
 
-                        const herrsPersona = op ? asignacionesHerr.filter(a => a.operarioId === op.id) : [];
-                        const herrsTxt = herrsPersona.length ? herrsPersona.map(h => h.herramientaCodigo).join(', ') : 'Sin implementos';
-
-                        if (op && typeof mockRendimiento[op.id] === 'undefined') {
-                            mockRendimiento[op.id] = Math.floor(Math.random() * 51) + 70; // 70 to 120
-                        }
-
-                        let extraModeHtml = '';
-                        if (isRendimientoMode && op) {
-                            const rend = mockRendimiento[op.id];
-                            let barColor = 'var(--safco-red)';
-                            if (rend >= 90 && rend < 100) barColor = '#f59e0b';
-                            else if (rend >= 100) barColor = '#10b981';
-                            const txtDisplay = showRendimientoNumbers ? `${rend} cajas` : '';
-                            extraModeHtml = `
-                                <div style="margin-top: 0.25rem; width: 100%;">
-                                    <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                                        <div style="width: ${Math.min(rend, 100)}%; height: 100%; background: ${barColor};"></div>
-                                    </div>
-                                    <div style="font-size: 0.65rem; font-weight: 700; color: ${barColor}; text-align: right; min-height: 12px;">${txtDisplay}</div>
-                                </div>`;
-                        } else if (isCajasMode && op) {
-                            if (typeof mockCajas[op.id] === 'undefined') {
-                                mockCajas[op.id] = {
-                                    aprobadas: Math.floor(Math.random() * 80) + 60,
-                                    rechazadas: Math.floor(Math.random() * 15)
-                                };
-                            }
-                            const { aprobadas, rechazadas } = mockCajas[op.id];
-                            extraModeHtml = `
-                                <div style="display: flex; gap: 4px; margin-top: 0.25rem;">
-                                    <span style="background: #dcfce7; color: #16a34a; font-size: 0.65rem; font-weight: 800; border-radius: 4px; padding: 1px 5px;">✅ ${aprobadas}</span>
-                                    <span style="background: #fee2e2; color: #dc2626; font-size: 0.65rem; font-weight: 800; border-radius: 4px; padding: 1px 5px;">❌ ${rechazadas}</span>
-                                </div>`;
-                        }
-
-                        slotsHtml += `
-                            <div class="mesa-slot-row">
-                                <div class="slot-persona-info" style="flex: 1;">
-                                    <div class="slot-avatar ${avCls}">${iniciales}</div>
-                                    <div style="flex: 1;">
-                                        <div class="slot-name">${op ? op.nombre : 'Operario'}</div>
-                                        ${(!isRendimientoMode && !isCajasMode) ? `<div style="font-size: 0.68rem; color: var(--safco-teal); font-weight: 600;">🔧 ${herrsTxt}</div>` : ''}
-                                        ${extraModeHtml}
-                                    </div>
-                                </div>
-                                <span class="badge-rol ${badgeRolCls}" style="align-self: flex-start; margin-top: 2px;">${laborTextoCorto}</span>
-                            </div>
-                        `;
+                    if (cantidadTotal === 0) {
+                        estadoCls = 'vacia';
+                        estadoPillTxt = 'Mesa Vacía (0/3)';
+                        pillCls = 'pill-vacia';
+                        cVacias++;
+                    } else if (!tieneSeleccionador) {
+                        estadoCls = 'sin-sel';
+                        estadoPillTxt = 'Sin Seleccionador SEL';
+                        pillCls = 'pill-sin-sel';
+                        cSinSel++;
+                    } else if (cantidadTotal < 3) {
+                        estadoCls = 'incompleta';
+                        estadoPillTxt = `Incompleta (${cantidadTotal}/3)`;
+                        pillCls = 'pill-incompleta';
                     } else {
-                        slotsHtml += `
-                            <div class="mesa-slot-row" style="border-style: dashed; background: transparent;">
-                                <div class="slot-persona-info">
-                                    <div class="slot-avatar av-empty">+</div>
-                                    <span class="slot-name" style="color: var(--safco-text-muted); font-style: italic;">Puesto Libre</span>
+                        cCompletas++;
+                    }
+
+                    if (filtroKPIActual === 'COMPLETAS' && (cantidadTotal !== 3 || !tieneSeleccionador)) return;
+                    if (filtroKPIActual === 'SIN_SEL' && (cantidadTotal === 0 || tieneSeleccionador)) return;
+                    if (filtroKPIActual === 'VACIAS' && cantidadTotal !== 0) return;
+
+                    if (busqueda) {
+                        const coincideMesa = mesa.codigo.toLowerCase().includes(busqueda);
+                        const coincideOp = integrantes.some(item => {
+                            const op = operarios.find(o => o.id === item.opId);
+                            return op && (op.nombre.toLowerCase().includes(busqueda) || op.dni.includes(busqueda));
+                        });
+                        if (!coincideMesa && !coincideOp) return;
+                    }
+
+                    mesasMostradasCount++;
+
+                    let slotsHtml = '';
+                    for (let i = 0; i < 3; i++) {
+                        const item = integrantes[i];
+                        if (item) {
+                            const op = operarios.find(o => o.id === item.opId);
+                            const isSeleccionador = item.labor === 'Seleccionador';
+                            const avCls = isSeleccionador ? 'av-sel' : 'av-emb';
+                            const badgeRolCls = isSeleccionador ? 'b-sel' : 'b-emb';
+                            const iniciales = op ? op.nombre.split(' ').map(n => n[0]).join('').substring(0, 2) : 'OP';
+                            const laborTextoCorto = formatLaborShort(item.labor);
+
+                            const herrsPersona = op ? asignacionesHerr.filter(a => a.operarioId === op.id) : [];
+                            const herrsTxt = herrsPersona.length ? herrsPersona.map(h => h.herramientaCodigo).join(', ') : 'Sin implementos';
+
+                            if (op && typeof mockRendimiento[op.id] === 'undefined') {
+                                mockRendimiento[op.id] = Math.floor(Math.random() * 51) + 70;
+                            }
+
+                            let extraModeHtml = '';
+                            if (isRendimientoMode && op) {
+                                const rend = mockRendimiento[op.id];
+                                let barColor = 'var(--safco-red)';
+                                if (rend >= 90 && rend < 100) barColor = '#f59e0b';
+                                else if (rend >= 100) barColor = '#10b981';
+                                const txtDisplay = showRendimientoNumbers ? `${rend} cajas` : '';
+                                extraModeHtml = `
+                                    <div style="margin-top: 0.25rem; width: 100%;">
+                                        <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                                            <div style="width: ${Math.min(rend, 100)}%; height: 100%; background: ${barColor};"></div>
+                                        </div>
+                                        <div style="font-size: 0.65rem; font-weight: 700; color: ${barColor}; text-align: right; min-height: 12px;">${txtDisplay}</div>
+                                    </div>`;
+                            } else if (isCajasMode && op) {
+                                if (typeof mockCajas[op.id] === 'undefined') {
+                                    mockCajas[op.id] = {
+                                        aprobadas: Math.floor(Math.random() * 80) + 60,
+                                        rechazadas: Math.floor(Math.random() * 15)
+                                    };
+                                }
+                                const { aprobadas, rechazadas } = mockCajas[op.id];
+                                extraModeHtml = `
+                                    <div style="display: flex; gap: 4px; margin-top: 0.25rem;">
+                                        <span style="background: #dcfce7; color: #16a34a; font-size: 0.65rem; font-weight: 800; border-radius: 4px; padding: 1px 5px;">✅ ${aprobadas}</span>
+                                        <span style="background: #fee2e2; color: #dc2626; font-size: 0.65rem; font-weight: 800; border-radius: 4px; padding: 1px 5px;">❌ ${rechazadas}</span>
+                                    </div>`;
+                            }
+
+                            slotsHtml += `
+                                <div class="mesa-slot-row">
+                                    <div class="slot-persona-info">
+                                        <div class="slot-avatar ${avCls}">${iniciales}</div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div class="slot-name">${op ? op.nombre : 'Operario'}</div>
+                                            ${(!isRendimientoMode && !isCajasMode) ? `<div style="font-size: 0.68rem; color: var(--safco-teal); font-weight: 600;">🔧 ${herrsTxt}</div>` : ''}
+                                            ${extraModeHtml}
+                                        </div>
+                                    </div>
+                                    <span class="badge-rol ${badgeRolCls}" style="align-self: flex-start; margin-top: 2px;">${laborTextoCorto}</span>
                                 </div>
-                                <span class="badge-rol" style="background: #e2e8f0; color: #64748b; align-self: flex-start; margin-top: 2px;">SLOT ${i+1}</span>
+                            `;
+                        } else {
+                            slotsHtml += `
+                                <div class="mesa-slot-row" style="border-style: dashed; background: transparent;">
+                                    <div class="slot-persona-info">
+                                        <div class="slot-avatar av-empty">+</div>
+                                        <span class="slot-name" style="color: var(--safco-text-muted); font-style: italic;">Puesto Libre</span>
+                                    </div>
+                                    <span class="badge-rol" style="background: #e2e8f0; color: #64748b; align-self: flex-start; margin-top: 2px;">SLOT ${i+1}</span>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    let botonesAccionHtml = '';
+                    if (!isRendimientoMode && !isCajasMode) {
+                        botonesAccionHtml = `
+                            <div style="display: flex; gap: 0.35rem; margin-top: 0.5rem; justify-content: space-between; align-items: center;">
+                                <button class="btn-safco btn-safco-teal" style="height: 30px; font-size: 0.72rem; padding: 0 0.6rem; flex: 1;" onclick="event.stopPropagation(); abrirModalTrasladoParaMesa('${mesa.codigo}')" title="Trasladar este equipo a otra mesa">
+                                    <i class='bx bx-transfer-alt'></i> Trasladar
+                                </button>
+                                <button class="btn-safco btn-safco-secondary" style="height: 30px; font-size: 0.72rem; padding: 0 0.5rem; color: var(--safco-red);" onclick="event.stopPropagation(); limpiarMesaDirectaConConfirmacion('${mesa.codigo}')" title="Limpiar mesa">
+                                    <i class='bx bx-trash'></i>
+                                </button>
                             </div>
                         `;
                     }
-                }
 
-                let botonesAccionHtml = '';
-                if (!isRendimientoMode && !isCajasMode) {
-                    botonesAccionHtml = `
-                        <div style="display: flex; gap: 0.35rem; margin-top: 0.5rem; justify-content: space-between; align-items: center;">
-                            <button class="btn-safco btn-safco-teal" style="height: 30px; font-size: 0.72rem; padding: 0 0.6rem; flex: 1;" onclick="event.stopPropagation(); abrirModalTrasladoParaMesa('${mesa.codigo}')" title="Trasladar este equipo a otra mesa">
-                                <i class='bx bx-transfer-alt'></i> Trasladar Mesa
-                            </button>
-                            <button class="btn-safco btn-safco-secondary" style="height: 30px; font-size: 0.72rem; padding: 0 0.5rem; color: var(--safco-red);" onclick="event.stopPropagation(); limpiarMesaDirectaConConfirmacion('${mesa.codigo}')" title="Limpiar mesa">
-                                <i class='bx bx-trash'></i>
-                            </button>
+                    const clickFn = isRendimientoMode
+                        ? `abrirModalRendimientoMesa('${mesa.codigo}')`
+                        : isCajasMode
+                            ? `abrirModalCajasMesa('${mesa.codigo}')`
+                            : `abrirModalAsignar('${mesa.codigo}')`;
+
+                    cardsHtml += `
+                        <div class="mesa-card-item ${estadoCls}" onclick="${clickFn}">
+                            <div class="mesa-card-header">
+                                <span class="mesa-code-badge">${mesa.codigo}</span>
+                                <span class="mesa-status-pill ${pillCls}">${estadoPillTxt}</span>
+                            </div>
+                            <div class="mesa-slots-list">
+                                ${slotsHtml}
+                            </div>
+                            ${botonesAccionHtml}
                         </div>
                     `;
+                });
+
+                if (!cardsHtml) {
+                    cardsHtml = `<div style="grid-column: 1 / -1; text-align: center; color: var(--safco-text-muted); font-style: italic; padding: 1.5rem; background: #f8fafc; border-radius: 10px;">Sin mesas que coincidan con los filtros en este riel.</div>`;
                 }
 
-                const clickFn = isRendimientoMode
-                    ? `abrirModalRendimientoMesa('${mesa.codigo}')`
-                    : isCajasMode
-                        ? `abrirModalCajasMesa('${mesa.codigo}')`
-                        : `abrirModalAsignar('${mesa.codigo}')`;
+                const safeRielKey = rielNombre.replace(/\s+/g, '');
+                const isCollapsed = !!estadoColapsoRieles[safeRielKey];
 
-                contenedor.innerHTML += `
-                    <div class="mesa-card-item ${estadoCls}" onclick="${clickFn}">
-                        <div class="mesa-card-header">
-                            <span class="mesa-code-badge">${mesa.codigo}</span>
-                            <span class="mesa-status-pill ${pillCls}">${estadoPillTxt}</span>
+                mainGridHtml += `
+                    <div class="riel-pool-card" id="riel-pool-card-${safeRielKey}">
+                        <div class="riel-pool-header">
+                            <div class="riel-pool-title" onclick="toggleRielPool('${safeRielKey}')" style="cursor: pointer;" title="Hacer clic para ocultar/mostrar mesas de ${rielNombre}">
+                                <i class='bx bx-git-repo-forked'></i> ${rielNombre}
+                                <span class="riel-pool-badge">${mesasMostradasCount} Mesas</span>
+                            </div>
+                            <div style="display: flex; gap: 0.4rem; align-items: center;">
+                                <button class="btn-safco btn-safco-secondary" style="height: 28px; font-size: 0.72rem; padding: 0 0.6rem; border-color: var(--safco-teal); color: var(--safco-teal);" onclick="confirmarRotarSoloRiel('${rielNombre}')" title="Rotar operarios de ${rielNombre}">
+                                    <i class='bx bx-rotate-right'></i> Rotar ${rielNombre}
+                                </button>
+                                <button class="btn-safco btn-safco-secondary" id="btn-toggle-riel-${safeRielKey}" style="height: 28px; font-size: 0.72rem; padding: 0 0.55rem;" onclick="toggleRielPool('${safeRielKey}')" title="Ocultar / Mostrar ${rielNombre}">
+                                    <i class='bx ${isCollapsed ? 'bx-chevron-down' : 'bx-chevron-up'} ico-toggle-riel'></i> <span class="txt-toggle-riel">${isCollapsed ? 'Mostrar' : 'Ocultar'}</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="mesa-slots-list">
-                            ${slotsHtml}
+                        <div class="riel-pool-grid" id="riel-pool-grid-${safeRielKey}" style="display: ${isCollapsed ? 'none' : 'grid'};">
+                            ${cardsHtml}
                         </div>
-                        ${botonesAccionHtml}
                     </div>
                 `;
             });
 
-            document.getElementById('kpi-total-mesas').textContent = mesasFiltradas.length;
+            mainGridHtml += `</div>`;
+            contenedor.innerHTML = mainGridHtml;
+
+            const totalMesasEnLinea = mesasLinea.length;
+            document.getElementById('kpi-total-mesas').textContent = totalMesasEnLinea;
             document.getElementById('kpi-mesas-completas').textContent = cCompletas;
             document.getElementById('kpi-mesas-sinsel').textContent = cSinSel;
             document.getElementById('kpi-mesas-vacias').textContent = cVacias;

@@ -431,7 +431,27 @@ const ProduccionDB = {
 
     limpiarMesa: function(codigoMesa) {
         const asig = this.getAsignacionesMesas();
+        const asist = this.getAsistencia();
+        const integrantes = asig[codigoMesa] || [];
+
+        const now = new Date();
+        const fechaStr = now.toISOString().split('T')[0];
+        const horaStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+        // Registrar salida de asistencia para los operarios de la mesa limpiada
+        integrantes.forEach(item => {
+            const registro = asist.find(a => a.id === item.opId);
+            if (registro && registro.estadoAsistencia !== 'Salida') {
+                registro.estadoAsistencia = 'Salida';
+                registro.horaSalida = horaStr;
+                registro.fechaSalida = fechaStr;
+                registro.motivoSalida = 'Mesa liberada';
+                registro.mesaAsignada = null;
+            }
+        });
+
         asig[codigoMesa] = [];
+        this.saveAsistencia(asist);
         this.saveAsignacionesMesas(asig);
         return asig;
     },
@@ -439,18 +459,41 @@ const ProduccionDB = {
     finalizarProcesoLineaRiel: function(linea, riel) {
         const mesas = this.getMesas();
         const asig = this.getAsignacionesMesas();
+        const asist = this.getAsistencia();
+
+        const now = new Date();
+        const fechaStr = now.toISOString().split('T')[0];
+        const horaStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
         // Guardar snapshot ANTES de limpiar (configuración del día actual → será "día anterior" mañana)
         const snapshot = JSON.parse(localStorage.getItem(STORAGE_KEYS.SNAPSHOT_MESAS) || '{}');
         const mesasSub = mesas.filter(m => m.linea === linea && (riel === 'TODOS' || m.riel === riel));
+
         mesasSub.forEach(m => {
-            if (asig[m.codigo] && asig[m.codigo].length > 0) {
-                snapshot[m.codigo] = [...asig[m.codigo]];
+            const integrantesEnMesa = asig[m.codigo] || [];
+
+            // Registrar salida automática de cada operario que estaba en la mesa
+            integrantesEnMesa.forEach(item => {
+                const registro = asist.find(a => a.id === item.opId);
+                if (registro && registro.estadoAsistencia !== 'Salida') {
+                    registro.estadoAsistencia = 'Salida';
+                    registro.horaSalida = horaStr;
+                    registro.fechaSalida = fechaStr;
+                    registro.motivoSalida = 'Fin de proceso de línea';
+                    registro.mesaAsignada = null;
+                }
+            });
+
+            // Guardar snapshot si la mesa tenía operarios
+            if (integrantesEnMesa.length > 0) {
+                snapshot[m.codigo] = [...integrantesEnMesa];
             }
+
             asig[m.codigo] = [];
         });
-        localStorage.setItem(STORAGE_KEYS.SNAPSHOT_MESAS, JSON.stringify(snapshot));
 
+        localStorage.setItem(STORAGE_KEYS.SNAPSHOT_MESAS, JSON.stringify(snapshot));
+        this.saveAsistencia(asist);
         this.saveAsignacionesMesas(asig);
         return true;
     },
@@ -479,34 +522,46 @@ const ProduccionDB = {
         return restauradas;
     },
 
-    // ROTACIÓN CIRCULAR DE OPERARIOS ENTRE MESAS COMPLETAS DE UNA LÍNEA/RIEL
-    rotarOperariosLinea: function(linea, riel) {
+    // ROTACIÓN CIRCULAR DE OPERARIOS INDEPENDIENTE POR RIEL
+    rotarOperariosPorRieles: function(linea, rielesArray) {
         const mesas = this.getMesas();
         const asig = this.getAsignacionesMesas();
+        let totalRotadas = 0;
 
-        // Obtener mesas completas (exactamente 3 integrantes) ordenadas por código
-        let mesasSub = mesas.filter(m => m.linea === linea && (riel === 'TODOS' || m.riel === riel));
-        mesasSub.sort((a, b) => a.codigo.localeCompare(b.codigo));
+        // Asegurar que si viene un string simple se convierta en array
+        const rielesList = Array.isArray(rielesArray) ? rielesArray : [rielesArray];
 
-        const mesasCompletas = mesasSub.filter(m => {
-            const integrs = asig[m.codigo] || [];
-            return integrs.length === 3;
+        rielesList.forEach(rielNombre => {
+            let mesasSub = mesas.filter(m => m.linea === linea && m.riel === rielNombre);
+            mesasSub.sort((a, b) => a.codigo.localeCompare(b.codigo));
+
+            const mesasConGente = mesasSub.filter(m => {
+                const integrs = asig[m.codigo] || [];
+                return integrs.length > 0;
+            });
+
+            if (mesasConGente.length >= 2) {
+                const grupos = mesasConGente.map(m => [...(asig[m.codigo] || [])]);
+
+                // Rotación circular dentro del mismo riel
+                for (let i = 0; i < mesasConGente.length; i++) {
+                    const destIdx = (i + 1) % mesasConGente.length;
+                    asig[mesasConGente[destIdx].codigo] = grupos[i];
+                }
+                totalRotadas += mesasConGente.length;
+            }
         });
 
-        if (mesasCompletas.length < 2) return 0;
-
-        // Guardar los integrantes en un array paralelo antes de rotar
-        const grupos = mesasCompletas.map(m => [...(asig[m.codigo] || [])]);
-
-        // Rotación circular: la configuración de la mesa N va a la mesa N+1
-        // La última mesa recibe la configuración de la primera (ciclo)
-        for (let i = 0; i < mesasCompletas.length; i++) {
-            const destIdx = (i + 1) % mesasCompletas.length;
-            asig[mesasCompletas[destIdx].codigo] = grupos[i];
-        }
-
         this.saveAsignacionesMesas(asig);
-        return mesasCompletas.length;
+        return totalRotadas;
+    },
+
+    // retrocompatibilidad para llamadas antiguas de 1 solo parámetro
+    rotarOperariosLinea: function(linea, riel) {
+        if (riel && riel !== 'TODOS') {
+            return this.rotarOperariosPorRieles(linea, [riel]);
+        }
+        return this.rotarOperariosPorRieles(linea, ['Riel 1', 'Riel 2']);
     },
 
     // DAR SALIDA A UN OPERARIO CON MOTIVO — lo remueve de la mesa y registra en asistencia

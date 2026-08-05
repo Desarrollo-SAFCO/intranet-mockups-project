@@ -69,7 +69,7 @@
 
                     <div class="filter-item" style="max-width: 160px;">
                         <label for="filter-reporte-estado">Estado Asistencia:</label>
-                        <select id="filter-reporte-estado" class="select-touch" onchange="renderReporteAsistencia()">
+                        <select id="filter-reporte-estado" class="select-touch" onchange="onSelectEstadoChange()">
                             <option value="TODOS">Todos los Estados</option>
                             <option value="En hora">🟢 En hora</option>
                             <option value="Tarde">🟠 Tarde</option>
@@ -83,27 +83,27 @@
                     </div>
                 </div>
 
-                <!-- Tarjetas KPI Resumen Asistencia -->
+                <!-- Tarjetas KPI Resumen Asistencia (Clicables como Filtros) -->
                 <div class="kpi-grid" style="margin-bottom: 0;">
-                    <div class="kpi-card">
+                    <div class="kpi-card clickable active-kpi" id="kpi-card-asist-todas" onclick="filtrarPorKPIAsistencia('TODAS')">
                         <div class="kpi-val ok" id="kpi-total-asist">0</div>
                         <div class="kpi-lbl">Total Registrados</div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card clickable" id="kpi-card-asist-enhora" onclick="filtrarPorKPIAsistencia('EN_HORA')">
                         <div class="kpi-val ok" id="kpi-asist-enhora">0</div>
                         <div class="kpi-lbl">En Hora</div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card clickable" id="kpi-card-asist-tarde" onclick="filtrarPorKPIAsistencia('TARDE')">
                         <div class="kpi-val warn" id="kpi-asist-tarde">0</div>
                         <div class="kpi-lbl">Tarde</div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card clickable" id="kpi-card-asist-enmesa" onclick="filtrarPorKPIAsistencia('EN_MESA')">
                         <div class="kpi-val" id="kpi-operarios-en-mesa" style="color: var(--safco-teal);">0</div>
                         <div class="kpi-lbl">En Mesas Activas</div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card clickable" id="kpi-card-asist-salida" onclick="filtrarPorKPIAsistencia('SALIDA')">
                         <div class="kpi-val bad" id="kpi-asist-salidas">0</div>
-                        <div class="kpi-lbl">Salidas Anticipadas</div>
+                        <div class="kpi-lbl">Salidas Registradas</div>
                     </div>
                 </div>
             </div>
@@ -114,14 +114,16 @@
             <table class="table-safco">
                 <thead>
                     <tr>
-                        <th>DNI</th>
+                        <th style="white-space: nowrap;">DNI</th>
                         <th>NOMBRES Y APELLIDOS</th>
-                        <th>CARGO / ROL</th>
-                        <th>MESA ASIGNADA</th>
-                        <th>FECHA / HORA</th>
-                        <th>HORA SALIDA</th>
+                        <th style="white-space: nowrap;">CARGO / ROL</th>
+                        <th style="white-space: nowrap;">MESA ASIGNADA</th>
+                        <th style="white-space: nowrap;">FECHA INGRESO</th>
+                        <th style="white-space: nowrap;">HORA INGRESO</th>
+                        <th style="white-space: nowrap;">FECHA SALIDA</th>
+                        <th style="white-space: nowrap;">HORA SALIDA</th>
                         <th>MOTIVO SALIDA</th>
-                        <th style="text-align: right;">ESTADO</th>
+                        <th style="text-align: right; white-space: nowrap;">ESTADO</th>
                     </tr>
                 </thead>
                 <tbody id="tbody-reporte-asistencia">
@@ -136,12 +138,13 @@
     <script src="../js/shared.js"></script>
     <script src="js/produccion-data.js"></script>
     <script>
+        let filtroKPIAsistencia = 'TODAS';
+
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
             renderReporteAsistencia();
         });
 
-        // Toggle Modo Tablet Kiosco CSS puro (Apto para Capacitor y Web)
         function toggleTabletKioskMode() {
             let isKiosk = document.body.classList.toggle('standalone-kiosk-mode');
 
@@ -201,10 +204,50 @@
             }
         }
 
+        // Filtro por KPIs Clicables
+        function filtrarPorKPIAsistencia(tipoKPI) {
+            filtroKPIAsistencia = tipoKPI;
+            document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-kpi'));
+
+            const selEstado = document.getElementById('filter-reporte-estado');
+
+            if (tipoKPI === 'TODAS') {
+                document.getElementById('kpi-card-asist-todas').classList.add('active-kpi');
+                if (selEstado) selEstado.value = 'TODOS';
+            } else if (tipoKPI === 'EN_HORA') {
+                document.getElementById('kpi-card-asist-enhora').classList.add('active-kpi');
+                if (selEstado) selEstado.value = 'En hora';
+            } else if (tipoKPI === 'TARDE') {
+                document.getElementById('kpi-card-asist-tarde').classList.add('active-kpi');
+                if (selEstado) selEstado.value = 'Tarde';
+            } else if (tipoKPI === 'EN_MESA') {
+                document.getElementById('kpi-card-asist-enmesa').classList.add('active-kpi');
+            } else if (tipoKPI === 'SALIDA') {
+                document.getElementById('kpi-card-asist-salida').classList.add('active-kpi');
+                if (selEstado) selEstado.value = 'Salida';
+            }
+            renderReporteAsistencia();
+        }
+
+        function onSelectEstadoChange() {
+            const val = document.getElementById('filter-reporte-estado').value;
+            if (val === 'TODOS') filtroKPIAsistencia = 'TODAS';
+            else if (val === 'En hora') filtroKPIAsistencia = 'EN_HORA';
+            else if (val === 'Tarde') filtroKPIAsistencia = 'TARDE';
+            else if (val === 'Salida') filtroKPIAsistencia = 'SALIDA';
+
+            document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-kpi'));
+            if (filtroKPIAsistencia === 'TODAS') document.getElementById('kpi-card-asist-todas').classList.add('active-kpi');
+            if (filtroKPIAsistencia === 'EN_HORA') document.getElementById('kpi-card-asist-enhora').classList.add('active-kpi');
+            if (filtroKPIAsistencia === 'TARDE') document.getElementById('kpi-card-asist-tarde').classList.add('active-kpi');
+            if (filtroKPIAsistencia === 'SALIDA') document.getElementById('kpi-card-asist-salida').classList.add('active-kpi');
+
+            renderReporteAsistencia();
+        }
+
         function renderReporteAsistencia() {
             const fFecha = document.getElementById('filter-reporte-fecha').value;
             const fLinea = document.getElementById('filter-reporte-linea').value;
-            const fEstado = document.getElementById('filter-reporte-estado').value;
             const search = document.getElementById('input-search-asistencia').value.toLowerCase().trim();
 
             const asistencias = ProduccionDB.getAsistencia();
@@ -219,15 +262,22 @@
                 asistFiltrada = asistFiltrada.filter(a => a.lineaAsignada === fLinea);
             }
 
-            if (fEstado !== 'TODOS') {
-                asistFiltrada = asistFiltrada.filter(a => a.estadoAsistencia === fEstado);
+            // Aplicar Filtro KPI / Estado
+            if (filtroKPIAsistencia === 'EN_HORA') {
+                asistFiltrada = asistFiltrada.filter(a => a.estadoAsistencia === 'En hora');
+            } else if (filtroKPIAsistencia === 'TARDE') {
+                asistFiltrada = asistFiltrada.filter(a => a.estadoAsistencia === 'Tarde');
+            } else if (filtroKPIAsistencia === 'SALIDA') {
+                asistFiltrada = asistFiltrada.filter(a => a.estadoAsistencia === 'Salida');
+            } else if (filtroKPIAsistencia === 'EN_MESA') {
+                asistFiltrada = asistFiltrada.filter(a => a.mesaAsignada);
             }
 
             if (search) {
                 asistFiltrada = asistFiltrada.filter(a => a.nombre.toLowerCase().includes(search) || a.dni.includes(search));
             }
 
-            // KPIs
+            // Actualizar número en KPIs
             document.getElementById('kpi-total-asist').textContent = asistencias.length;
             document.getElementById('kpi-asist-enhora').textContent = asistencias.filter(a => a.estadoAsistencia === 'En hora').length;
             document.getElementById('kpi-asist-tarde').textContent = asistencias.filter(a => a.estadoAsistencia === 'Tarde').length;
@@ -238,7 +288,7 @@
             tbody.innerHTML = '';
 
             if (asistFiltrada.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--safco-text-muted); padding: 2rem;">No hay registros de asistencia con los filtros seleccionados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--safco-text-muted); padding: 2rem;">No hay registros de asistencia con los filtros seleccionados.</td></tr>`;
                 return;
             }
 
@@ -254,8 +304,16 @@
                 else if (a.estadoAsistencia === 'Tarde') { estadoPillCls = 'pill-incompleta'; estadoIcon = '🟠'; }
                 else if (a.estadoAsistencia === 'Salida') { estadoPillCls = 'pill-vacia'; estadoIcon = '🔴'; }
 
+                const fechaIngresoTxt = a.fechaRegistro || 'N/A';
+                const horaIngresoTxt = a.horaRegistro || 'N/A';
+
+                const fechaSalidaVal = a.fechaSalida || (a.estadoAsistencia === 'Salida' ? (a.fechaRegistro || 'N/A') : null);
+                const fechaSalidaTxt = fechaSalidaVal
+                    ? `<span style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: #dc2626; font-weight: 600;">${fechaSalidaVal}</span>`
+                    : `<span style="color: #94a3b8; font-style: italic;">—</span>`;
+
                 const horaSalidaTxt = a.horaSalida
-                    ? `<span style="font-family: 'DM Mono', monospace; font-weight: 700; color: #dc2626;">${a.horaSalida}</span>`
+                    ? `<span style="font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 700; color: #dc2626;">${a.horaSalida}</span>`
                     : `<span style="color: #94a3b8; font-style: italic;">—</span>`;
 
                 const motivoSalidaTxt = a.motivoSalida
@@ -263,15 +321,17 @@
                     : `<span style="color: #94a3b8; font-style: italic; font-size: 0.8rem;">—</span>`;
 
                 tbody.innerHTML += `
-                    <tr ${a.estadoAsistencia === 'Salida' ? 'style="background: #fff5f5;"' : ''}>
-                        <td data-label="DNI" style="font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--safco-text-dark);">${a.dni}</td>
+                    <tr>
+                        <td data-label="DNI" style="font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--safco-text-dark); white-space: nowrap;">${a.dni}</td>
                         <td data-label="Nombre" style="font-size: 0.92rem; font-weight: 700; color: var(--safco-teal);">${a.nombre}</td>
-                        <td data-label="Cargo"><span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${a.cargo}</span></td>
-                        <td data-label="Mesa">${mesaTxt}</td>
-                        <td data-label="Fecha/Hora" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-dark);">${a.fechaRegistro || 'N/A'} ${a.horaRegistro || ''}</td>
-                        <td data-label="Hora Salida">${horaSalidaTxt}</td>
-                        <td data-label="Motivo">${motivoSalidaTxt}</td>
-                        <td data-label="Estado" style="text-align: right;">
+                        <td data-label="Cargo" style="white-space: nowrap;"><span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${a.cargo}</span></td>
+                        <td data-label="Mesa" style="white-space: nowrap;">${mesaTxt}</td>
+                        <td data-label="Fecha Ingreso" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-muted); font-weight: 700; white-space: nowrap;">${fechaIngresoTxt}</td>
+                        <td data-label="Hora Ingreso" style="font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--safco-text-muted); font-weight: 700; white-space: nowrap;">${horaIngresoTxt}</td>
+                        <td data-label="Fecha Salida" style="white-space: nowrap;">${fechaSalidaTxt}</td>
+                        <td data-label="Hora Salida" style="white-space: nowrap;">${horaSalidaTxt}</td>
+                        <td data-label="Motivo Salida">${motivoSalidaTxt}</td>
+                        <td data-label="Estado" style="text-align: right; white-space: nowrap;">
                             <span class="mesa-status-pill ${estadoPillCls}">${estadoIcon} ${a.estadoAsistencia}</span>
                         </td>
                     </tr>

@@ -428,18 +428,71 @@ main.content-area {
   100% { background-color: transparent; transform: scale(1); }
 }
 
-/* Grilla de Mesas (Rejilla Responsiva) */
+/* Contenedores Principales por Riel (Riel Pool) */
+.rieles-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.rieles-main-grid.single-riel {
+  grid-template-columns: 1fr;
+}
+
+.riel-pool-card {
+  background: #ffffff;
+  border: 2px solid var(--safco-border, #e2e8f0);
+  border-radius: 14px;
+  padding: 0.85rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.riel-pool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.55rem;
+  border-bottom: 2px dashed var(--safco-border, #e2e8f0);
+}
+
+.riel-pool-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--safco-teal-dark, #003f41);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.riel-pool-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--safco-teal-light, #e0f2fe);
+  color: var(--safco-teal-dark, #0369a1);
+  padding: 0.12rem 0.5rem;
+  border-radius: 12px;
+}
+
+.riel-pool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+  width: 100%;
+}
+
+/* Grilla de Mesas (Legacy fallback) */
 .mesas-grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
-}
-
-@media (max-width: 640px) {
-  .mesas-grid-container {
-    grid-template-columns: 1fr;
-  }
 }
 
 .mesa-card-item {
@@ -495,9 +548,14 @@ main.content-area {
 .mesa-status-pill {
   font-size: 0.7rem;
   font-weight: 700;
-  padding: 0.2rem 0.55rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 20px;
   text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
 }
 
 .pill-completa { background: var(--safco-teal-light); color: var(--safco-teal-dark); font-weight: 700; }
@@ -837,17 +895,39 @@ main.content-area {
 /* Compactación de Tarjetas, Fuentes y Datos en Móvil y Tablet */
 @media (max-width: 900px) {
   .produccion-banner {
-    padding: 0.65rem 0.85rem !important;
-    gap: 0.4rem !important;
-    margin-bottom: 0.75rem !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0.85rem 1rem !important;
+    gap: 0.75rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+  .produccion-banner-title {
+    width: 100% !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
   }
   .produccion-banner-title h1 {
-    font-size: 0.9rem !important;
+    font-size: 1rem !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
   }
   .produccion-banner-title p {
-    font-size: 0.7rem !important;
+    font-size: 0.73rem !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
   }
-  
+  .banner-actions {
+    width: 100% !important;
+    align-items: stretch !important;
+    gap: 0.45rem !important;
+  }
+  .banner-btn-row {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 0.35rem !important;
+  }
+
   /* Filtros y KPIs compactos */
   .collapsible-filter-card {
     padding: 0.65rem 0.75rem !important;
@@ -884,36 +964,54 @@ main.content-area {
     font-size: 0.65rem !important;
   }
 
-  /* Grid de Mesas Compacto para ver más datos */
+  /* Modo Tablet (601px a 1100px): 2 Rieles lado a lado, 1 mesa por riel */
+  .rieles-main-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .riel-pool-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
   .mesas-grid-container {
-    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important;
-    gap: 0.55rem !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
   }
   .mesa-card-item {
-    padding: 0.5rem !important;
+    padding: 0.7rem !important;
     min-height: auto !important;
   }
   .mesa-code-badge {
-    font-size: 0.82rem !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
   }
   .mesa-status-pill {
     font-size: 0.65rem !important;
-    padding: 0.12rem 0.35rem !important;
+    padding: 0.15rem 0.4rem !important;
+    white-space: nowrap !important;
   }
   .slot-persona-info {
-    gap: 0.3rem !important;
+    gap: 0.35rem !important;
+    min-width: 0 !important;
+    flex: 1 !important;
   }
   .slot-avatar {
-    width: 22px !important;
-    height: 22px !important;
-    font-size: 0.65rem !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 0.68rem !important;
+    flex-shrink: 0 !important;
   }
   .slot-name {
-    font-size: 0.75rem !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   .badge-rol {
-    font-size: 0.6rem !important;
-    padding: 0.1rem 0.3rem !important;
+    font-size: 0.62rem !important;
+    padding: 0.12rem 0.35rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
   }
 
   /* Tarjetas de Operario y Herramientas Compactas */
@@ -936,17 +1034,35 @@ main.content-area {
   }
 }
 
-/* Transformación Responsiva: Tablas a Tarjetas en Pantallas Pequeñas/Móviles */
+/* Modo Móvil (<= 600px): 1 Riel por fila y 1 Mesa por fila */
+@media (max-width: 600px) {
+  .rieles-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+  }
+  .riel-pool-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .mesas-grid-container {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Transformación Responsiva: Tablas a List Tile Cards (Sin líneas punteadas) */
 @media (max-width: 768px) {
   .table-safco-container {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    padding: 0 !important;
   }
   
   .table-safco {
     display: block !important;
     width: 100% !important;
+    background: transparent !important;
+    border: none !important;
   }
 
   .table-safco thead {
@@ -961,44 +1077,52 @@ main.content-area {
   .table-safco tbody tr {
     display: block !important;
     background: #ffffff !important;
-    border: 1px solid var(--safco-border) !important;
-    border-radius: 10px !important;
-    padding: 0.75rem 0.85rem !important;
-    margin-bottom: 0.65rem !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
-    border-left: 4px solid var(--safco-teal) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 0.75rem !important;
+    margin-bottom: 0.85rem !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    border-left: 5px solid var(--safco-teal, #004a4c) !important;
   }
 
   .table-safco td {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 0.35rem 0 !important;
-    border-bottom: 1px dashed #e2e8f0 !important;
-    font-size: 0.82rem !important;
+    padding: 0.45rem 0.75rem !important;
+    margin-bottom: 0.35rem !important;
+    background: #f8fafc !important;
+    border-radius: 8px !important;
+    border: none !important; /* SIN LÍNEAS DISCONTINUAS */
+    font-size: 0.83rem !important;
     text-align: right !important;
+    gap: 0.6rem !important;
+    min-height: 34px !important;
   }
 
   .table-safco td:last-child {
-    border-bottom: none !important;
-    padding-top: 0.5rem !important;
-    justify-content: flex-end !important;
+    margin-bottom: 0 !important;
+    background: #f1f5f9 !important;
   }
 
   .table-safco td[data-label]::before {
     content: attr(data-label);
     font-weight: 700;
-    font-size: 0.72rem;
-    color: var(--safco-text-muted);
+    font-size: 0.7rem;
+    color: #475569;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
     text-align: left;
-    margin-right: 0.5rem;
+    flex-shrink: 0;
+    min-width: 95px;
+    max-width: 45%;
   }
 }
 
+@keyframes modalPop {
   from { transform: scale(0.92); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
-
+}
 
 .modal-card-header {
   background: var(--safco-teal);
