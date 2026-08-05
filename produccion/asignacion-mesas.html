@@ -687,11 +687,9 @@
                         <div style="display: flex; flex-direction: column; gap: 0.6rem;">
                             <label style="display: flex; align-items: center; gap: 0.6rem; font-weight: 700; color: #004a4c; cursor: pointer; font-size: 0.95rem;">
                                 <input type="checkbox" id="chk-rotar-r1" ${r1Checked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #004a4c;">
-                                <span>🛤️ Riel 1</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.6rem; font-weight: 700; color: #004a4c; cursor: pointer; font-size: 0.95rem;">
                                 <input type="checkbox" id="chk-rotar-r2" ${r2Checked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #004a4c;">
-                                <span>🛤️ Riel 2</span>
                             </label>
                         </div>
                     </div>`,
@@ -778,12 +776,12 @@
             if (estadoColapsoRieles[rielKey]) {
                 grid.style.display = 'none';
                 if (btn) {
-                    btn.innerHTML = `<i class='bx bx-chevron-down ico-toggle-riel'></i> <span class="txt-toggle-riel">Mostrar</span>`;
+                    btn.innerHTML = `<i class='bx bx-chevron-down ico-toggle-riel'></i> <span class="txt-toggle-riel"></span>`;
                 }
             } else {
                 grid.style.display = 'grid';
                 if (btn) {
-                    btn.innerHTML = `<i class='bx bx-chevron-up ico-toggle-riel'></i> <span class="txt-toggle-riel">Ocultar</span>`;
+                    btn.innerHTML = `<i class='bx bx-chevron-up ico-toggle-riel'></i> <span class="txt-toggle-riel"></span>`;
                 }
             }
         }
@@ -1028,14 +1026,14 @@
                         <div class="riel-pool-header">
                             <div class="riel-pool-title" onclick="toggleRielPool('${safeRielKey}')" style="cursor: pointer;" title="Hacer clic para ocultar/mostrar mesas de ${rielNombre}">
                                 <i class='bx bx-git-repo-forked'></i> ${rielNombre}
-                                <span class="riel-pool-badge">${mesasMostradasCount} Mesas</span>
+                                <span class="riel-pool-badge">${mesasMostradasCount}</span>
                             </div>
                             <div style="display: flex; gap: 0.4rem; align-items: center;">
                                 <button class="btn-safco btn-safco-secondary" style="height: 28px; font-size: 0.72rem; padding: 0 0.6rem; border-color: var(--safco-teal); color: var(--safco-teal);" onclick="confirmarRotarSoloRiel('${rielNombre}')" title="Rotar operarios de ${rielNombre}">
-                                    <i class='bx bx-rotate-right'></i> Rotar ${rielNombre}
+                                    <i class='bx bx-rotate-right'></i> Rotar
                                 </button>
                                 <button class="btn-safco btn-safco-secondary" id="btn-toggle-riel-${safeRielKey}" style="height: 28px; font-size: 0.72rem; padding: 0 0.55rem;" onclick="toggleRielPool('${safeRielKey}')" title="Ocultar / Mostrar ${rielNombre}">
-                                    <i class='bx ${isCollapsed ? 'bx-chevron-down' : 'bx-chevron-up'} ico-toggle-riel'></i> <span class="txt-toggle-riel">${isCollapsed ? 'Mostrar' : 'Ocultar'}</span>
+                                    <i class='bx ${isCollapsed ? 'bx-chevron-down' : 'bx-chevron-up'} ico-toggle-riel'></i> <span class="txt-toggle-riel"></span>
                                 </button>
                             </div>
                         </div>
