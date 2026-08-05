@@ -16,13 +16,78 @@
     
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* SweetAlert2 siempre por encima de modales internos */
+        .swal2-container { z-index: 999999 !important; }
+
+        /* Banner UX mejorado */
+        .banner-actions { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
+        .banner-btn-row { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        .banner-section-sep {
+            width: 100%; height: 1px;
+            background: rgba(255,255,255,0.15);
+            margin: 0.15rem 0;
+        }
+        .banner-row-label {
+            font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: rgba(255,255,255,0.45);
+            white-space: nowrap; padding: 0 2px;
+        }
+
+        /* Botones de Vista (grandes, prominentes) */
+        .btn-vista {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9px;
+            font-size: 0.8rem; font-weight: 700;
+            border: 1.5px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.85);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-vista i { font-size: 1rem; }
+        .btn-vista:hover { background: rgba(255,255,255,0.2); color:#fff; border-color:rgba(255,255,255,0.5); transform: translateY(-1px); }
+        .btn-vista.vista-active { background: rgba(255,255,255,0.95); color: #004a4c; border-color:#fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .btn-vista.vista-purple { background: linear-gradient(135deg, #7c3aed, #5b21b6); border-color: #a78bfa; color:#fff; }
+        .btn-vista.vista-purple.vista-active { background: linear-gradient(135deg, #4c1d95, #3b0764); border-color:#c4b5fd; }
+
+        /* Botón tablet (discreto, esquinero) */
+        .btn-tablet-mode {
+            display: flex; align-items: center; gap: 0.35rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 7px; font-size: 0.71rem; font-weight: 600;
+            border: 1.5px dashed rgba(255,255,255,0.28);
+            background: transparent; color: rgba(255,255,255,0.55);
+            cursor: pointer; transition: all 0.18s;
+        }
+        .btn-tablet-mode:hover { border-style:solid; color:rgba(255,255,255,0.85); background:rgba(255,255,255,0.08); }
+        .btn-tablet-mode.active-kiosk { border-style:solid; background:rgba(255,255,255,0.15); color:#fff; }
+
+        /* Botones de Acción Operativa (pequeños, secundarios) */
+        .btn-op-action {
+            display: flex; align-items: center; gap: 0.35rem;
+            padding: 0.38rem 0.75rem;
+            border-radius: 7px; font-size: 0.74rem; font-weight: 700;
+            border: 1.5px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.78);
+            cursor: pointer; transition: all 0.18s;
+            white-space: nowrap;
+        }
+        .btn-op-action i { font-size: 0.88rem; }
+        .btn-op-action:hover { background:rgba(255,255,255,0.16); color:#fff; border-color:rgba(255,255,255,0.38); }
+        .btn-op-action.op-danger { border-color:rgba(252,165,165,0.35); color:#fca5a5; }
+        .btn-op-action.op-danger:hover { background:rgba(220,38,38,0.22); border-color:#f87171; color:#fecaca; }
+    </style>
 </head>
 <body style="background-color: var(--safco-bg); min-height: 100vh;">
     <main class="content-area" style="padding: 1.5rem; max-width: 1300px; margin: 0 auto;">
         
         <!-- Banner de Cabecera Ejecutiva -->
-        <div class="produccion-banner">
-            <div class="produccion-banner-title">
+        <div class="produccion-banner" style="align-items: flex-start; gap: 1rem;">
+            <div class="produccion-banner-title" style="flex: 1; min-width: 0;">
                 <div class="produccion-banner-icon">
                     <i class='bx bx-grid-alt'></i>
                 </div>
@@ -31,33 +96,76 @@
                     <p>Asignación Directa por Escaneo Láser/QR · Alerta de Mesas sin Seleccionador · Traslado de Equipos</p>
                 </div>
             </div>
-        <div style="display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;">
-                <!-- Fila 1: Vistas + Tablet -->
-                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                    <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header">
-                        <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
+
+            <!-- Zona de controles -->
+            <div class="banner-actions">
+
+                <!-- Fila 1: Cambiar Vista (acciones principales) -->
+                <div class="banner-btn-row">
+                    <span class="banner-row-label"><i class='bx bx-show' style="font-size:0.7rem; vertical-align: middle;"></i> Vista</span>
+
+                    <button class="btn-vista vista-active" id="btn-vista-asig"
+                        onclick="activarVistaAsignacion()"
+                        title="Ver asignación de operarios por mesa">
+                        <i class='bx bx-grid-alt'></i> Asignación
                     </button>
-                    <button class="btn-safco btn-safco-teal" id="btn-rendimiento-mode" onclick="toggleRendimientoMode()" title="Vista de rendimiento por barra de progreso">
-                        <i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento
+
+                    <button class="btn-vista" id="btn-rendimiento-mode"
+                        onclick="toggleRendimientoMode()"
+                        title="Ver barras de rendimiento por operario">
+                        <i class='bx bx-bar-chart-alt-2'></i> Rendimiento
                     </button>
-                    <button class="btn-safco" id="btn-cajas-mode" onclick="toggleCajasMode()" title="Vista de cajas aprobadas y rechazadas por operario" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: none;">
-                        <i class='bx bx-package'></i> Vista Cajas
+
+                    <button class="btn-vista vista-purple" id="btn-cajas-mode"
+                        onclick="toggleCajasMode()"
+                        title="Ver cajas aprobadas y rechazadas por operario">
+                        <i class='bx bx-package'></i> Cajas
                     </button>
+
+                    <!-- Botón ojo (solo en modo rendimiento) -->
+                    <div id="filter-rendimiento-eye" style="display: none;">
+                        <button class="btn-vista" style="padding: 0.5rem 0.6rem; min-width: unset;"
+                            onclick="toggleNumbersRendimiento()" title="Mostrar/ocultar números de rendimiento">
+                            <i id="ico-rendimiento-eye" class='bx bx-show' style="font-size: 1rem;"></i>
+                        </button>
+                    </div>
                 </div>
-                <!-- Fila 2: Acciones de Línea -->
-                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                    <button class="btn-safco btn-safco-secondary" id="btn-config-dia-anterior" onclick="aplicarConfigDiaAnterior()" title="Restaurar la configuración de mesas del día anterior">
-                        <i class='bx bx-time-five'></i> Config. Día Anterior
+
+                <!-- Separador -->
+                <div class="banner-section-sep"></div>
+
+                <!-- Fila 2: Acciones operativas de línea -->
+                <div class="banner-btn-row">
+                    <span class="banner-row-label"><i class='bx bx-cog' style="font-size:0.7rem; vertical-align: middle;"></i> Línea</span>
+
+                    <button class="btn-op-action" id="btn-config-dia-anterior"
+                        onclick="aplicarConfigDiaAnterior()"
+                        title="Restaurar configuración de mesas del día anterior">
+                        <i class='bx bx-time-five'></i> Día Anterior
                     </button>
-                    <button class="btn-safco btn-safco-secondary" id="btn-rotar-operarios" onclick="confirmarRotarOperarios()" title="Rotar operarios entre mesas completas de la línea">
-                        <i class='bx bx-rotate-right'></i> Rotar Operarios
+
+                    <button class="btn-op-action" id="btn-rotar-operarios"
+                        onclick="confirmarRotarOperarios()"
+                        title="Rotar operarios entre mesas completas de la línea">
+                        <i class='bx bx-rotate-right'></i> Rotar
                     </button>
-                    <button class="btn-safco btn-safco-secondary" onclick="finalizarProcesoLinea()" style="color: var(--safco-red);">
-                        <i class='bx bx-eraser'></i> Finalizar Proceso
+
+                    <button class="btn-op-action op-danger"
+                        onclick="finalizarProcesoLinea()"
+                        title="Limpiar y finalizar proceso de todas las mesas de la línea">
+                        <i class='bx bx-stop-circle'></i> Finalizar
+                    </button>
+
+                    <button class="btn-tablet-mode" id="btn-kiosk-mode"
+                        onclick="toggleTabletKioskMode()"
+                        title="Modo Tablet: ocultar menú y ocupar toda la pantalla">
+                        <i class='bx bx-fullscreen'></i>
+                        <span class="txt-kiosk">Tablet</span>
                     </button>
                 </div>
             </div>
         </div>
+
 
         <!-- Panel Colapsable de Filtros y KPIs -->
         <div class="collapsible-filter-card expanded" id="panel-filtros-mesas">
@@ -330,10 +438,10 @@
             if (btn) {
                 if (isKiosk) {
                     btn.classList.add('active-kiosk');
-                    btn.innerHTML = `<i class='bx bx-exit-fullscreen'></i> <span class="txt-kiosk">Restaurar Navegación</span>`;
+                    btn.innerHTML = `<i class='bx bx-exit-fullscreen'></i> <span class="txt-kiosk">Salir</span>`;
                 } else {
                     btn.classList.remove('active-kiosk');
-                    btn.innerHTML = `<i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>`;
+                    btn.innerHTML = `<i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Tablet</span>`;
                 }
             }
         }
@@ -388,56 +496,66 @@
             return 'EMB';
         }
 
-        // --- LÓGICA DE VISTA RENDIMIENTO ---
-        function toggleRendimientoMode() {
-            isRendimientoMode = !isRendimientoMode;
-            if (isRendimientoMode) isCajasMode = false; // mutuamente exclusivos
-
-            const btn = document.getElementById('btn-rendimiento-mode');
-            const btnC = document.getElementById('btn-cajas-mode');
+        // Helper: actualiza cuál botón de vista está activo
+        function _actualizarBotonesVista() {
+            const btnAsig = document.getElementById('btn-vista-asig');
+            const btnRend = document.getElementById('btn-rendimiento-mode');
+            const btnCaj  = document.getElementById('btn-cajas-mode');
             const eyeFilter = document.getElementById('filter-rendimiento-eye');
 
-            if (isRendimientoMode) {
-                btn.classList.remove('btn-safco-teal');
-                btn.classList.add('btn-safco-secondary');
-                btn.innerHTML = `<i class='bx bx-grid-alt'></i> Vista Asignación`;
-                eyeFilter.style.display = 'flex';
-                btnC.style.opacity = '0.5';
-            } else {
-                btn.classList.remove('btn-safco-secondary');
-                btn.classList.add('btn-safco-teal');
-                btn.innerHTML = `<i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento`;
-                eyeFilter.style.display = 'none';
-                showRendimientoNumbers = false;
-                if (hideNumbersTimeout) clearTimeout(hideNumbersTimeout);
-                actualizarIconoOjo();
-                btnC.style.opacity = '1';
+            // Quitar activo de todos
+            [btnAsig, btnRend].forEach(b => { if (b) b.classList.remove('vista-active'); });
+            if (btnCaj) btnCaj.classList.remove('vista-active');
+
+            if (!isRendimientoMode && !isCajasMode) {
+                // Vista Asignación activa
+                if (btnAsig) btnAsig.classList.add('vista-active');
+                if (eyeFilter) eyeFilter.style.display = 'none';
+            } else if (isRendimientoMode) {
+                if (btnRend) btnRend.classList.add('vista-active');
+                if (eyeFilter) eyeFilter.style.display = 'flex';
+            } else if (isCajasMode) {
+                if (btnCaj) btnCaj.classList.add('vista-active');
+                if (eyeFilter) eyeFilter.style.display = 'none';
             }
+        }
+
+        function activarVistaAsignacion() {
+            isRendimientoMode = false;
+            isCajasMode = false;
+            showRendimientoNumbers = false;
+            if (hideNumbersTimeout) clearTimeout(hideNumbersTimeout);
+            actualizarIconoOjo();
+            _actualizarBotonesVista();
+            renderMesas();
+        }
+
+        // --- LÓGICA DE VISTA RENDIMIENTO ---
+        function toggleRendimientoMode() {
+            if (isRendimientoMode) {
+                // Si ya está activo, volver a Asignación
+                activarVistaAsignacion();
+                return;
+            }
+            isRendimientoMode = true;
+            isCajasMode = false;
+            _actualizarBotonesVista();
             renderMesas();
         }
 
         // --- LÓGICA DE VISTA CAJAS ---
         function toggleCajasMode() {
-            isCajasMode = !isCajasMode;
             if (isCajasMode) {
-                isRendimientoMode = false;
-                // Restablecer botón de rendimiento
-                const btnR = document.getElementById('btn-rendimiento-mode');
-                btnR.classList.remove('btn-safco-secondary');
-                btnR.classList.add('btn-safco-teal');
-                btnR.innerHTML = `<i class='bx bx-bar-chart-alt-2'></i> Vista Rendimiento`;
-                document.getElementById('filter-rendimiento-eye').style.display = 'none';
-                showRendimientoNumbers = false;
+                // Si ya está activo, volver a Asignación
+                activarVistaAsignacion();
+                return;
             }
-
-            const btn = document.getElementById('btn-cajas-mode');
-            if (isCajasMode) {
-                btn.style.background = 'linear-gradient(135deg, #4c1d95, #3b0764)';
-                btn.innerHTML = `<i class='bx bx-grid-alt'></i> Vista Asignación`;
-            } else {
-                btn.style.background = 'linear-gradient(135deg, #7c3aed, #6d28d9)';
-                btn.innerHTML = `<i class='bx bx-package'></i> Vista Cajas`;
-            }
+            isCajasMode = true;
+            isRendimientoMode = false;
+            showRendimientoNumbers = false;
+            if (hideNumbersTimeout) clearTimeout(hideNumbersTimeout);
+            actualizarIconoOjo();
+            _actualizarBotonesVista();
             renderMesas();
         }
 
