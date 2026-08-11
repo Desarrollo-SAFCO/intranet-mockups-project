@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Embarque General - SAFCO</title>
+    <!-- Estilos Intranet & Específicos -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/informe-embarque-general.css">
+    <!-- Iconos Boxicons, SweetAlert2 y html2pdf -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="dashboard-layout" style="background-color: transparent;">
+    <main class="content-area" style="padding: 1.8rem; margin:0; border:none; box-shadow:none; border-radius:0;">
+
+        <!-- Banner Ejecutivo Corporativo SAFCO -->
+        <div class="executive-banner">
+            <div class="banner-left">
+                <div class="banner-icon-box">
+                    <i class='bx bx-file-find'></i>
+                </div>
+                <div class="banner-title-text">
+                    <h1>Informe de Embarque General</h1>
+                    <p>Consolidado de inspección de despachos (Calidad, Frío & Seguridad Patrimonial)</p>
+                </div>
+            </div>
+            <button class="btn-primary-safco" id="btnNuevoInforme">
+                <i class='bx bx-plus-circle'></i> Nuevo Informe General
+            </button>
+        </div>
+
+        <!-- Barra de Filtros Avanzada -->
+        <div class="filters-card">
+            <div class="filters-grid">
+                <div class="filter-item">
+                    <label for="filterCampana">Campaña</label>
+                    <select id="filterCampana" class="form-select">
+                        <option value="">TODAS LAS CAMPAÑAS</option>
+                        <option value="UVA-2025">UVA 2025</option>
+                        <option value="UVA-2026">UVA 2026</option>
+                        <option value="ARANDANO-2026">ARÁNDANO 2026</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="filterFechaDesde">Fecha Desde</label>
+                    <input type="date" id="filterFechaDesde" class="form-input">
+                </div>
+                <div class="filter-item">
+                    <label for="filterFechaHasta">Fecha Hasta</label>
+                    <input type="date" id="filterFechaHasta" class="form-input">
+                </div>
+                <div class="filter-item">
+                    <label for="filterCliente">Cliente / Destino</label>
+                    <select id="filterCliente" class="form-select">
+                        <option value="">TODOS LOS CLIENTES</option>
+                        <option value="TALSA S.A">TALSA S.A</option>
+                        <option value="VANGUARD LOGISTICS">VANGUARD LOGISTICS</option>
+                        <option value="DOLE FOOD COMPANY">DOLE FOOD COMPANY</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="filterEstado">Estado General</label>
+                    <select id="filterEstado" class="form-select">
+                        <option value="">TODOS LOS ESTADOS</option>
+                        <option value="Completo">COMPLETO</option>
+                        <option value="En Proceso">EN PROCESO</option>
+                    </select>
+                </div>
+                <div class="filter-item" style="grid-column: span 2;">
+                    <label for="filterSearch">Buscar Contenedor / Embarque / Booking</label>
+                    <div style="position:relative;">
+                        <input type="text" id="filterSearch" class="form-input" placeholder="Ej. HLBU 963821-7, SAF001..." style="padding-left:2.2rem;">
+                        <i class='bx bx-search' style="position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Escritorio Estilo Kendo SAFCO -->
+        <div class="table-container">
+            <table class="table-safco">
+                <thead>
+                    <tr>
+                        <th>N° INFORME</th>
+                        <th>FECHA</th>
+                        <th>EMBARQUE</th>
+                        <th>CONTENEDOR</th>
+                        <th>CLIENTE</th>
+                        <th>VARIEDAD</th>
+                        <th>PARTICIPANTES</th>
+                        <th>AVANCE ÁREAS (CAL | FRÍO | SEG)</th>
+                        <th>ESTADO</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="informesTbody">
+                    <!-- Renderizado dinámico vía JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tarjetas Interactivas para Móvil (Listile Cards) -->
+        <div class="mobile-card-list" id="mobileCardsContainer">
+            <!-- Renderizado dinámico para dispositivos móviles -->
+        </div>
+
+    </main>
+
+    <!-- MODAL DETALLE / EDICIÓN MULTI-ROLES POR ÁREA -->
+    <div class="modal-overlay" id="modalInformeOverlay">
+        <div class="modal-container-xl">
+            <!-- Header Modal -->
+            <div class="modal-top-header">
+                <h2><i class='bx bx-file-find' style="color:#004a4c;"></i> <span id="modalNroInformeText">INFORME DE EMBARQUE</span></h2>
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <span id="modalContenedorText" style="font-size:0.85rem; font-weight:700; color:#64748b;"></span>
+                    <button class="btn-action-trigger" onclick="closeModalInforme()"><i class='bx bx-x' style="font-size:1.5rem;"></i></button>
+                </div>
+            </div>
+
+            <!-- Toolbar de Selección de Área / Rol -->
+            <div class="area-tabs-bar">
+                <button type="button" class="area-tab-btn active" data-tab="all" onclick="switchModalTab('all')">
+                    <i class='bx bx-show'></i> Vista Unificada (Informe Completo)
+                </button>
+                <button type="button" class="area-tab-btn" data-tab="seguridad" onclick="switchModalTab('seguridad')">
+                    <i class='bx bx-shield-quarter'></i> Área Seguridad Patrimonial
+                </button>
+                <button type="button" class="area-tab-btn" data-tab="frio" onclick="switchModalTab('frio')">
+                    <i class='bx bx-cloud-snow'></i> Área Frío y Despacho
+                </button>
+                <button type="button" class="area-tab-btn" data-tab="calidad" onclick="switchModalTab('calidad')">
+                    <i class='bx bx-checkbox-checked'></i> Área Calidad (Pre-Embarque)
+                </button>
+            </div>
+
+            <!-- Cuerpo del Formulario con Scroll -->
+            <div class="modal-scroll-body">
+                
+                <!-- Sección 1: Datos Principales del Embarque -->
+                <div class="form-section-card">
+                    <div class="section-head-title">
+                        <span><i class='bx bx-info-circle' style="color:#004a4c;"></i> Datos Principales del Embarque</span>
+                        <span style="font-size:0.75rem; color:#64748b;">Información General</span>
+                    </div>
+                    <div class="grid-4col">
+                        <div class="filter-item">
+                            <label>N° Embarque</label>
+                            <input type="text" id="editNroEmbarque" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>Contenedor</label>
+                            <input type="text" id="editContenedor" class="form-input" style="font-weight:700;">
+                        </div>
+                        <div class="filter-item">
+                            <label>Booking</label>
+                            <input type="text" id="editBooking" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>Cliente</label>
+                            <input type="text" id="editCliente" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>Productor</label>
+                            <input type="text" id="editProductor" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>Variedad</label>
+                            <input type="text" id="editVariedad" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>Programa</label>
+                            <input type="text" id="editPrograma" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>Fecha Embarque</label>
+                            <input type="date" id="editFechaEmbarque" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>Guías de Remisión</label>
+                            <input type="text" id="editGuias" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>Packing List</label>
+                            <input type="text" id="editPackingList" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 2: Inspección Pre-Embarque (Calidad) -->
+                <div class="form-section-card calidad-section" id="secCalidad">
+                    <div class="section-head-title">
+                        <span><i class='bx bx-checkbox-checked' style="color:#05696d;"></i> Inspección de Pre-Embarque (Calidad)</span>
+                        <span class="area-badge ready">Calidad</span>
+                    </div>
+
+                    <!-- Lista de Paletas Evaluadas (Sin columnas de Estado ni Acciones) -->
+                    <div style="margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                            <span style="font-size:0.8rem; font-weight:800; color:#004a4c; text-transform:uppercase;">
+                                <i class='bx bx-list-check'></i> Lista de Paletas Evaluadas | T° Pulpa Promedio: <span id="calTempPromText" style="color:#05696d;">0.00 °C</span>
+                            </span>
+                            <button type="button" class="btn-secondary-safco" style="padding:0.25rem 0.65rem; font-size:0.75rem;" onclick="agregarPaletaCalidadPrompt()">
+                                <i class='bx bx-plus'></i> Evaluar Nueva Paleta
+                            </button>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table class="pallets-table-safco">
+                                <thead>
+                                    <tr>
+                                        <th>N°</th>
+                                        <th>N° PALLET</th>
+                                        <th>PRODUCTOR</th>
+                                        <th>VARIEDAD</th>
+                                        <th>T° (°C)</th>
+                                        <th>HORA</th>
+                                        <th>CUMPLE</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paletasCalidadTbody">
+                                    <!-- Filas inyectadas dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Evidencias Fotográficas por Tipos (Calidad) -->
+                    <div style="margin-top:1.25rem;">
+                        <div class="photo-category-title" style="margin-bottom:0.5rem;"><i class='bx bx-camera'></i> Registro Fotográfico por Tipos de Evidencia (Calidad)</div>
+                        <div id="containerEvidenciasCalidad"></div>
+                    </div>
+
+                    <div class="filter-item" style="margin-top:0.8rem;">
+                        <label>Observaciones del Inspector de Calidad</label>
+                        <textarea id="calObs" class="form-input" rows="2" placeholder="Observaciones sobre empaque y pulpa de fruta..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Sección 3: Área de Frío y Despacho -->
+                <div class="form-section-card frio-section" id="secFrio">
+                    <div class="section-head-title">
+                        <span><i class='bx bx-cloud-snow' style="color:#0284c7;"></i> Inspección de Frío y Despacho</span>
+                        <span class="area-badge ready" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">Frío y Despacho</span>
+                    </div>
+
+                    <div class="grid-4col" style="margin-bottom:1rem;">
+                        <div class="filter-item">
+                            <label>Precinto SAFCO</label>
+                            <input type="text" id="frioPrecintoSafco" class="form-input" placeholder="SAF-XXXXX">
+                        </div>
+                        <div class="filter-item">
+                            <label>Precinto SENASA</label>
+                            <input type="text" id="frioPrecintoSenasa" class="form-input" placeholder="SEN-XXXXX">
+                        </div>
+                        <div class="filter-item">
+                            <label>Precinto Línea</label>
+                            <input type="text" id="frioPrecintoLinea" class="form-input" placeholder="HLBU-XXXXX">
+                        </div>
+                        <div class="filter-item">
+                            <label>Hora Inicio / Fin Carguío</label>
+                            <div style="display:flex; gap:0.3rem;">
+                                <input type="time" id="frioHoraInicio" class="form-input">
+                                <input type="time" id="frioHoraFin" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mini-tabla de Sensores y Termógrafos -->
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                            <span style="font-size:0.8rem; font-weight:800; color:#0284c7; text-transform:uppercase;">
+                                <i class='bx bx-devices'></i> Dispositivos Instalados (Termógrafos & Sensores SENASA)
+                            </span>
+                            <button type="button" class="btn-secondary-safco" style="padding:0.25rem 0.65rem; font-size:0.75rem;" onclick="agregarDispositivoFrioPrompt()">
+                                <i class='bx bx-plus'></i> Añadir Dispositivo
+                            </button>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table class="participants-table">
+                                <thead>
+                                    <tr>
+                                        <th>DISPOSITIVO / TIPO</th>
+                                        <th>CÓDIGO / N° ID</th>
+                                        <th>UBICACIÓN EN CARGA</th>
+                                        <th>ESTADO</th>
+                                        <th style="text-align:right;">ELIMINAR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dispositivosFrioTbody">
+                                    <!-- Inyectado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Esquema Visual de Distribución de Paletas en Contenedor -->
+                    <div class="container-loading-diagram">
+                        <div class="container-truck-head">
+                            <i class='bx bx-bus'></i> ESQUEMA VISUAL DE DISTRIBUCIÓN DE PALETAS EN CONTENEDOR REEFER (40 FT)
+                        </div>
+                        <div class="container-pallets-grid" id="contenedorEsquemaGrid">
+                            <!-- Visual grid slot items -->
+                        </div>
+                    </div>
+
+                    <!-- Evidencias Fotográficas por Tipos (Frío) -->
+                    <div style="margin-top:1.25rem;">
+                        <div class="photo-category-title" style="margin-bottom:0.5rem;"><i class='bx bx-camera'></i> Registro Fotográfico por Tipos de Evidencia (Frío)</div>
+                        <div id="containerEvidenciasFrio"></div>
+                    </div>
+
+                    <div class="filter-item" style="margin-top:0.8rem;">
+                        <label>Observaciones de Frío y Despacho</label>
+                        <textarea id="frioObs" class="form-input" rows="2" placeholder="Observaciones de carguío y precintos..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Sección 4: Área de Seguridad Patrimonial -->
+                <div class="form-section-card security-section" id="secSeguridad">
+                    <div class="section-head-title">
+                        <span><i class='bx bx-shield-quarter' style="color:#4f46e5;"></i> Inspección de Seguridad Patrimonial</span>
+                        <span class="area-badge ready">Seguridad Patrimonial</span>
+                    </div>
+                    <div class="grid-3col" style="margin-bottom:1rem;">
+                        <div class="filter-item">
+                            <label>Placa Tractor</label>
+                            <input type="text" id="segPlacaTractor" class="form-input" placeholder="Ej. F4R-892">
+                        </div>
+                        <div class="filter-item">
+                            <label>Placa Carreta</label>
+                            <input type="text" id="segPlacaCarreta" class="form-input" placeholder="Ej. B9C-771">
+                        </div>
+                        <div class="filter-item">
+                            <label>Chofer Transportista</label>
+                            <input type="text" id="segChofer" class="form-input" placeholder="Nombre completo">
+                        </div>
+                        <div class="filter-item">
+                            <label>Brevete / Licencia</label>
+                            <input type="text" id="segLicencia" class="form-input">
+                        </div>
+                        <div class="filter-item">
+                            <label>N° SOAT</label>
+                            <input type="text" id="segSoat" class="form-input">
+                        </div>
+                    </div>
+
+                    <!-- Evidencias Fotográficas por Tipos (Seguridad) -->
+                    <div style="margin-top:1rem;">
+                        <div class="photo-category-title" style="margin-bottom:0.5rem;"><i class='bx bx-camera'></i> Registro Fotográfico por Tipos de Evidencia (Seguridad)</div>
+                        <div id="containerEvidenciasSeguridad"></div>
+                    </div>
+
+                    <div class="filter-item" style="margin-top:0.8rem;">
+                        <label>Observaciones de Seguridad Patrimonial</label>
+                        <textarea id="segObs" class="form-input" rows="2" placeholder="Observaciones de seguridad..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Sección 5: Registro de Participantes y Firma Electrónica -->
+                <div class="form-section-card">
+                    <div class="section-head-title">
+                        <span><i class='bx bx-group' style="color:#004a4c;"></i> Participantes del Embarque & Firmas Electrónicas</span>
+                        <button type="button" class="btn-secondary-safco" style="padding:0.3rem 0.75rem; font-size:0.75rem;" onclick="agregarParticipantePrompt()">
+                            <i class='bx bx-user-plus'></i> Añadir Participante
+                        </button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="participants-table">
+                            <thead>
+                                <tr>
+                                    <th>ROL / CARGO</th>
+                                    <th>NOMBRE Y APELLIDOS</th>
+                                    <th>EMPRESA / INSTITUCIÓN</th>
+                                    <th>DOCUMENTO</th>
+                                    <th>FIRMA ELECTRÓNICA</th>
+                                    <th style="text-align:right;">ELIMINAR</th>
+                                </tr>
+                            </thead>
+                            <tbody id="participantesTbody">
+                                <!-- Participantes inyectados dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sección 6: Conclusiones del Informe -->
+                <div class="form-section-card">
+                    <div class="section-head-title">
+                        <span><i class='bx bx-comment-detail' style="color:#004a4c;"></i> Conclusiones del Informe de Embarque</span>
+                        <span style="font-size:0.75rem; color:#64748b;">Predeterminadas & Editables</span>
+                    </div>
+                    <div class="filter-item">
+                        <label>Conclusiones (una por línea):</label>
+                        <textarea id="editConclusiones" class="form-input" rows="4"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer Modal con Acciones -->
+            <div class="modal-bottom-footer">
+                <button type="button" class="btn-secondary-safco" onclick="closeModalInforme()">Cancelar</button>
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="button" class="btn-secondary-safco" style="color:#d30c0c; border-color:#fecaca;" onclick="exportarInformePDF(currentInformeId)">
+                        <i class='bx bxs-file-pdf'></i> Exportar PDF con Firmas
+                    </button>
+                    <button type="button" class="btn-primary-safco" onclick="guardarModalInforme()">
+                        <i class='bx bx-save'></i> Guardar Informe Consolidado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Oculto para Renderizado e Impresión PDF -->
+    <div id="pdfPrintContainer"></div>
+
+    <!-- Scripts -->
+    <script src="../js/shared.js"></script>
+    <script src="js/informe-embarque-general.js"></script>
+</body>
+</html>
