@@ -59,6 +59,7 @@ let informesMock = [
     guias: "T007 - 0000129",
     packingList: "PL-UV-001-A",
     estadoGeneral: "Completo",
+    dictamenGeneral: "Conforme",
     areas: {
       seguridad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-05 08:30", inspector: "Carlos Mendoza" },
       calidad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-05 09:45", inspector: "Marcos Vilca" },
@@ -187,6 +188,7 @@ let informesMock = [
     guias: "T007 - 0000130",
     packingList: "PL-UV-002-A",
     estadoGeneral: "En Proceso",
+    dictamenGeneral: "Conforme",
     areas: {
       seguridad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-06 09:00", inspector: "Carlos Mendoza" },
       calidad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-06 10:15", inspector: "Marcos Vilca" },
@@ -315,6 +317,10 @@ function renderTabla(dataList = activeInformes) {
       ? `<span class="area-badge ready"><i class='bx bx-check-circle'></i> COMPLETO</span>`
       : `<span class="area-badge pending"><i class='bx bx-time-five'></i> EN PROCESO</span>`;
 
+    const resultGeneralBadge = (item.dictamenGeneral || "Conforme") === "Conforme"
+      ? `<span class="area-badge ready" style="background:#dcfce7; color:#15803d; border-color:#86efac;"><i class='bx bx-check-circle'></i> CONFORME</span>`
+      : `<span class="area-badge incomplete" style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;"><i class='bx bx-x-circle'></i> RECHAZADO</span>`;
+
     return `
       <tr>
         <td style="font-weight: 800; color: #d30c0c;"><i class='bx bx-purchase-tag-alt'></i> ${item.instruccionEmbarque}</td>
@@ -329,7 +335,12 @@ function renderTabla(dataList = activeInformes) {
             ${badgeSeg} ${badgeCal} ${badgeFrio}
           </div>
         </td>
-        <td>${statusGeneralBadge}</td>
+        <td>
+          <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:center;">
+            ${statusGeneralBadge}
+            ${resultGeneralBadge}
+          </div>
+        </td>
         <td>
           <div style="display:flex; justify-content:center; gap:0.35rem;">
             <button class="btn-action-trigger" title="Ver / Editar Informe por Áreas" onclick="openEditarInformeModal('${item.id}', 'all')">
@@ -410,10 +421,20 @@ function openEditarInformeModal(id, initialTab = 'all') {
   document.getElementById("editGuias").value = item.guias;
   document.getElementById("editPackingList").value = item.packingList;
 
+  const editDictGen = document.getElementById("editDictamenGeneral");
+  if (editDictGen) {
+    editDictGen.value = item.dictamenGeneral || "Conforme";
+    updateDictamenGeneralColor(editDictGen);
+  }
+
   // Cargar Dictámenes por cada área
-  document.getElementById("segDictamen").value = item.datosSeguridad.dictamen || "Conforme";
-  document.getElementById("calDictamen").value = item.datosCalidad.dictamen || "Conforme";
-  document.getElementById("frioDictamen").value = item.datosFrio.dictamen || "Conforme";
+  const segElem = document.getElementById("segDictamen");
+  const calElem = document.getElementById("calDictamen");
+  const frioElem = document.getElementById("frioDictamen");
+
+  if (segElem) { segElem.value = item.datosSeguridad.dictamen || "Conforme"; updateDictamenColor(segElem); }
+  if (calElem) { calElem.value = item.datosCalidad.dictamen || "Conforme"; updateDictamenColor(calElem); }
+  if (frioElem) { frioElem.value = item.datosFrio.dictamen || "Conforme"; updateDictamenColor(frioElem); }
 
   renderObservacionesSeguridadModal(item);
 
@@ -441,6 +462,123 @@ function openEditarInformeModal(id, initialTab = 'all') {
   switchModalTab(initialTab);
 
   document.getElementById("modalInformeOverlay").classList.add("open");
+}
+
+function updateDictamenColor(elem) {
+  if (!elem) return;
+  if (elem.value === "Rechazado") {
+    elem.style.color = "#d30c0c";
+    elem.style.borderColor = "#fca5a5";
+    elem.style.backgroundColor = "#fef2f2";
+  } else {
+    elem.style.color = "#059669";
+    elem.style.borderColor = "#86efac";
+    elem.style.backgroundColor = "#f0fdf4";
+  }
+}
+
+function updateDictamenGeneralColor(elem) {
+  if (!elem) return;
+  const containerBox = document.getElementById("dictamenGeneralContainerBox");
+  if (elem.value === "Rechazado") {
+    elem.style.color = "#d30c0c";
+    elem.style.borderColor = "#fca5a5";
+    elem.style.backgroundColor = "#fef2f2";
+    if (containerBox) {
+      containerBox.style.background = "#fef2f2";
+      containerBox.style.borderColor = "#fca5a5";
+    }
+  } else {
+    elem.style.color = "#059669";
+    elem.style.borderColor = "#86efac";
+    elem.style.backgroundColor = "#f0fdf4";
+    if (containerBox) {
+      containerBox.style.background = "#f0fdf4";
+      containerBox.style.borderColor = "#86efac";
+    }
+  }
+}
+
+function handleDictamenGeneralChange(val) {
+  const item = activeInformes.find(i => i.id === currentInformeId);
+  if (!item) return;
+
+  item.dictamenGeneral = val;
+
+  const editDictGen = document.getElementById("editDictamenGeneral");
+  if (editDictGen) updateDictamenGeneralColor(editDictGen);
+
+  if (val === "Rechazado") {
+    item.datosSeguridad.dictamen = "Rechazado";
+    item.datosCalidad.dictamen = "Rechazado";
+    item.datosFrio.dictamen = "Rechazado";
+
+    const segSelect = document.getElementById("segDictamen");
+    const calSelect = document.getElementById("calDictamen");
+    const frioSelect = document.getElementById("frioDictamen");
+
+    if (segSelect) { segSelect.value = "Rechazado"; updateDictamenColor(segSelect); }
+    if (calSelect) { calSelect.value = "Rechazado"; updateDictamenColor(calSelect); }
+    if (frioSelect) { frioSelect.value = "Rechazado"; updateDictamenColor(frioSelect); }
+
+    Swal.fire({
+      icon: 'warning',
+      title: 'Informe Final RECHAZADO',
+      text: 'Al cambiar el Resultado Final del Informe a RECHAZADO, se han actualizado en cascada los dictámenes de Seguridad, Calidad y Frío a RECHAZADO.',
+      confirmButtonColor: '#d30c0c'
+    });
+  } else {
+    const segSelect = document.getElementById("segDictamen");
+    const calSelect = document.getElementById("calDictamen");
+    const frioSelect = document.getElementById("frioDictamen");
+
+    if (segSelect) updateDictamenColor(segSelect);
+    if (calSelect) updateDictamenColor(calSelect);
+    if (frioSelect) updateDictamenColor(frioSelect);
+  }
+
+  saveToStorage();
+  renderTabla();
+  renderTarjetasMovil();
+}
+
+function guardarDictamenFinalConConclusiones() {
+  const item = activeInformes.find(i => i.id === currentInformeId);
+  if (!item) return;
+
+  const dictamenVal = document.getElementById("editDictamenGeneral").value;
+  const conclusionCustomVal = document.getElementById("editConclusionCustom").value.trim();
+
+  Swal.fire({
+    title: 'Guardando Dictamen Final y Conclusiones...',
+    text: 'Sincronizando el resultado general del informe con el servidor de SAFCO...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  setTimeout(() => {
+    item.dictamenGeneral = dictamenVal;
+    item.conclusiónCustom = conclusionCustomVal;
+
+    if (dictamenVal === "Rechazado") {
+      item.datosSeguridad.dictamen = "Rechazado";
+      item.datosCalidad.dictamen = "Rechazado";
+      item.datosFrio.dictamen = "Rechazado";
+    }
+
+    saveToStorage();
+    renderTabla();
+    renderTarjetasMovil();
+
+    Swal.fire({
+      icon: 'success',
+      title: '¡Dictamen y Conclusiones Guardados!',
+      text: `El resultado final (${dictamenVal.toUpperCase()}) y las conclusiones del informe han sido confirmados.`,
+      confirmButtonColor: '#004a4c'
+    });
+  }, 1200);
 }
 
 // CONFIRMACIÓN INDIVIDUAL DE REGISTRO POR ÁREA (PETICIÓN BACKEND SIMULADA)
@@ -1012,25 +1150,35 @@ function eliminarParticipante(pId) {
 }
 
 // CONCLUSIONES
-const conclusionesFrecuentesLista = [
-  "La altura de los pallets que conforman la carga siempre está por debajo de la línea límite del contenedor.",
-  "Toda colocación de sensores de frío es realizada exclusivamente por el inspector de SENASA asignado.",
-  "La colocación de precintos de seguridad (SAFCO, SENASA, Línea) se realizó en presencia del chofer y seguridad patrimonial.",
-  "Contenedor reefer inspeccionado en estructura, higiene y sellado hermético en cámara.",
-  "Temperatura de fruta y pulpa verificada en rango conforme para exportación."
-];
+function getConclusionesCatalogo() {
+  if (localStorage.getItem("safco_conclusiones_embarque_v1")) {
+    try {
+      const stored = JSON.parse(localStorage.getItem("safco_conclusiones_embarque_v1"));
+      const activas = stored.filter(c => c.estado === "Activo").sort((a, b) => a.orden - b.orden);
+      if (activas.length > 0) return activas.map(c => c.texto);
+    } catch(e){}
+  }
+  return [
+    "La altura de los pallets que conforman la carga siempre está por debajo de la línea límite del contenedor.",
+    "Toda colocación de sensores de frío es realizada exclusivamente por el inspector de SENASA asignado.",
+    "La colocación de precintos de seguridad (SAFCO, SENASA, Línea) se realizó en presencia del chofer y seguridad patrimonial.",
+    "Contenedor reefer inspeccionado en estructura, higiene y sellado hermético en cámara.",
+    "Temperatura de fruta y pulpa verificada en rango conforme para exportación."
+  ];
+}
 
 function renderConclusionesCheckboxes(item) {
   const container = document.getElementById("conclusionesChecklistContainer");
   if (!container) return;
 
   const seleccionadas = item.conclusionesSeleccionadas || [];
+  const listaDisponibles = getConclusionesCatalogo();
 
-  container.innerHTML = conclusionesFrecuentesLista.map((cText, idx) => {
+  container.innerHTML = listaDisponibles.map((cText, idx) => {
     const isChecked = seleccionadas.includes(cText) ? "checked" : "";
     return `
       <label style="display:flex; align-items:flex-start; gap:0.5rem; font-size:0.82rem; color:#334155; margin-bottom:0.4rem; cursor:pointer;">
-        <input type="checkbox" value="${cText}" ${isChecked} onchange="toggleConclusionCheck('${cText}', this.checked)">
+        <input type="checkbox" value="${cText}" ${isChecked} onchange="toggleConclusionCheck('${cText.replace(/'/g, "\\'")}', this.checked)">
         <span>${cText}</span>
       </label>
     `;
@@ -1099,10 +1247,18 @@ function exportarInformePDF(id) {
       <div class="pdf-section-title">1. INFORMACIÓN GENERAL DEL EMBARQUE (INSTRUCCIÓN: ${item.instruccionEmbarque})</div>
       <table class="pdf-meta-table">
         <tr>
+          <td class="pdf-meta-label">RESULTADO FINAL:</td>
+          <td style="font-weight:800; font-size:0.95rem; color:${(item.dictamenGeneral || 'Conforme') === 'Conforme' ? '#059669' : '#d30c0c'};">
+            ${(item.dictamenGeneral || 'Conforme').toUpperCase()}
+          </td>
           <td class="pdf-meta-label">N° Embarque:</td>
           <td style="font-weight:700;">${item.nroEmbarque}</td>
+        </tr>
+        <tr>
           <td class="pdf-meta-label">Contenedor:</td>
           <td style="font-weight:700;">${item.contenedor}</td>
+          <td class="pdf-meta-label">Booking:</td>
+          <td style="font-weight:700;">${item.booking}</td>
         </tr>
         <tr>
           <td class="pdf-meta-label">Cliente:</td>

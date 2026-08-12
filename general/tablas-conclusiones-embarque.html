@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Conclusiones</title>
+    <!-- Estilos Intranet & Específicos -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/tablas-conclusiones-embarque.css">
+    <!-- Iconos Boxicons y SweetAlert2 -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="dashboard-layout" style="background-color: transparent;">
+    <main class="content-area" style="padding: 1.8rem; margin:0; border:none; box-shadow:none; border-radius:0;">
+
+        <!-- Banner Ejecutivo Corporativo SAFCO -->
+        <div class="executive-banner">
+            <div class="banner-left">
+                <div class="banner-icon-box">
+                    <i class='bx bx-list-check'></i>
+                </div>
+                <div class="banner-title-text">
+                    <h1>Catálogo de Conclusiones de Embarque</h1>
+                    <p>Mantenimiento de Conclusiones Frecuentes por Formato de Informe</p>
+                </div>
+            </div>
+            <button class="btn-primary-safco" onclick="abrirModalNuevaConclusion()">
+                <i class='bx bx-plus-circle'></i> + Nueva Conclusión
+            </button>
+        </div>
+
+        <!-- Barra de Filtros Avanzada -->
+        <div class="filters-card">
+            <div class="filters-grid">
+                <div class="filter-item">
+                    <label for="filterFormato">Formato de Informe</label>
+                    <select id="filterFormato" class="form-select">
+                        <option value="">TODOS LOS FORMATOS</option>
+                        <option value="Informe General de Embarque">Informe General de Embarque</option>
+                        <option value="Inspección de Contenedores">Inspección de Contenedores</option>
+                        <option value="Inspección Frío y Despacho">Inspección Frío y Despacho</option>
+                        <option value="Control de Calidad Pre-Embarque">Control de Calidad Pre-Embarque</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="filterEstado">Estado</label>
+                    <select id="filterEstado" class="form-select">
+                        <option value="">TODOS LOS ESTADOS</option>
+                        <option value="Activo">ACTIVO</option>
+                        <option value="Anulado">ANULADO</option>
+                    </select>
+                </div>
+                <div class="filter-item" style="grid-column: span 2;">
+                    <label for="filterSearch">Buscar Conclusión...</label>
+                    <div style="position:relative;">
+                        <input type="text" id="filterSearch" class="form-input" placeholder="Buscar por texto de conclusión..." style="padding-left:2.2rem;">
+                        <i class='bx bx-search' style="position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Estilo Kendo SAFCO -->
+        <div class="table-container">
+            <table class="table-safco">
+                <thead>
+                    <tr>
+                        <th style="width:260px; text-align:left;">FORMATO</th>
+                        <th>TEXTO DE LA CONCLUSIÓN</th>
+                        <th style="width:120px;">ESTADO</th>
+                        <th style="width:130px;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="conclusionesTbody">
+                    <!-- Filas inyectadas vía JS -->
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <!-- MODAL CREAR / EDITAR CONCLUSIÓN -->
+    <div class="modal-overlay" id="modalConclusionOverlay">
+        <div class="modal-container-md">
+            <div class="modal-top-header">
+                <h2><i class='bx bx-edit-alt' style="color:#004a4c;"></i> <span id="modalConclusionTitle">Nueva Conclusión de Embarque</span></h2>
+                <button class="btn-action-trigger" onclick="cerrarModalConclusion()"><i class='bx bx-x' style="font-size:1.5rem;"></i></button>
+            </div>
+            
+            <div class="modal-scroll-body" style="padding:1.5rem;">
+                <input type="hidden" id="editConclusionId">
+
+                <div class="filter-item" style="margin-bottom:1rem;">
+                    <label style="color:#004a4c; font-weight:700;">Formato de Informe *</label>
+                    <select id="editConclusionFormato" class="form-select" style="font-weight:700;">
+                        <option value="Informe General de Embarque">Informe General de Embarque</option>
+                        <option value="Inspección de Contenedores">Inspección de Contenedores (Seguridad)</option>
+                        <option value="Inspección Frío y Despacho">Inspección Frío y Despacho</option>
+                        <option value="Control de Calidad Pre-Embarque">Control de Calidad Pre-Embarque</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label style="color:#004a4c; font-weight:700;">Texto de la Conclusión *</label>
+                    <textarea id="editConclusionTexto" class="form-input" rows="4" placeholder="Ej. Toda colocación de sensores de frío es realizada exclusivamente por el inspector de SENASA asignado..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-bottom-footer" style="justify-content:space-between;">
+                <button type="button" class="btn-secondary-safco" onclick="cerrarModalConclusion()">Cancelar</button>
+                <button type="button" class="btn-primary-safco" style="background:#004a4c;" onclick="guardarConclusion()">
+                    <i class='bx bx-check-circle'></i> Guardar Conclusión
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/shared.js"></script>
+    <script src="js/tablas-conclusiones-embarque.js"></script>
+</body>
+</html>
