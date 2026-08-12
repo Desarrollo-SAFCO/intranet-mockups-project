@@ -1,6 +1,6 @@
-// Lógica del Informe de Embarque General - SAFCO (Actualizado con Paletas, Firma Electrónica y Diagrama de Carga)
+// Lógica del Informe de Embarque General - SAFCO (Versión 3.5 - Consolidación Automática por Instrucción de Embarque)
 
-// Generador de imágenes SVG base64 para mockups seguros
+// Generador de imágenes SVG base64 para mockups de evidencias
 function createSvgDataUrl(text, bgColor = "#004a4c", textColor = "#ffffff") {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
     <rect width="400" height="300" fill="${bgColor}"/>
@@ -13,20 +13,39 @@ function createSvgDataUrl(text, bgColor = "#004a4c", textColor = "#ffffff") {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-// Generador de Firma Electrónica Cursiva en SVG Base64
-function generateSignatureSvg(name) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80">
-    <path d="M 20 50 Q 40 10, 60 50 T 100 40 T 140 55 T 180 30" fill="none" stroke="#001a40" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M 30 60 Q 80 65, 170 58" fill="none" stroke="#001a40" stroke-width="1.5" stroke-dasharray="4,2"/>
-    <text x="100" y="75" font-family="sans-serif" font-size="9" font-weight="bold" fill="#64748b" text-anchor="middle">Firma Digital - ${name}</text>
+// Generador de Sello Digital DNI-e (PKI RENIEC / FIRMA DIGITAL)
+function generateDnieSignatureSvg(name, doc) {
+  const dateStr = new Date().toLocaleDateString();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="90" viewBox="0 0 220 90">
+    <rect width="220" height="90" fill="#f0f9ff" rx="8" stroke="#0284c7" stroke-width="1.5"/>
+    <rect x="6" y="6" width="208" height="78" fill="none" stroke="#0284c7" stroke-dasharray="3,3" rx="6"/>
+    <text x="15" y="24" font-family="sans-serif" font-size="10" font-weight="bold" fill="#004a4c">🔒 FIRMADO DIGITALMENTE CON DNI-e</text>
+    <text x="15" y="40" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0f172a">Titular: ${name}</text>
+    <text x="15" y="54" font-family="sans-serif" font-size="8" fill="#475569">DNI: ${doc} | Certificado PKI RENIEC</text>
+    <text x="15" y="68" font-family="sans-serif" font-size="8" fill="#0284c7">Validado con Lector Chip | ${dateStr}</text>
+    <circle cx="195" cy="45" r="14" fill="#0284c7"/>
+    <path d="M189 45 L193 49 L201 41" stroke="#ffffff" stroke-width="2.5" fill="none"/>
   </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-// Data Mockup Inicial
+// Directorio Corporativo Base de Participantes Frecuentes
+let directorioParticipantes = [
+  { id: 101, nombre: "Carlos Mendoza", rol: "Seguridad Patrimonial", empresa: "SAFCO S.A.C.", doc: "10982345", brevete: "", correo: "carlos.mendoza@safco.pe" },
+  { id: 102, nombre: "Marcos Vilca", rol: "Inspector Calidad", empresa: "SAFCO S.A.C.", doc: "44892019", brevete: "", correo: "marcos.vilca@safco.pe" },
+  { id: 103, nombre: "Ana Rodríguez", rol: "Supervisor Frío", empresa: "SAFCO S.A.C.", doc: "41903212", brevete: "", correo: "ana.rodriguez@safco.pe" },
+  { id: 104, nombre: "Juan Pérez Rosales", rol: "Chofer Transportista", empresa: "TRANS-AGRO E.I.R.L.", doc: "09876543", brevete: "Q-09876543", correo: "jperez@transagro.com" },
+  { id: 105, nombre: "Ing. Roberto Gutiérrez", rol: "Inspector SENASA", empresa: "SENASA ICA", doc: "25890123", brevete: "", correo: "rgutierrez@senasa.gob.pe" },
+  { id: 106, nombre: "Miguel Ángel Torres", rol: "Agente de Aduanas", empresa: "RANSA COMERCIAL S.A.", doc: "43210987", brevete: "", correo: "mtorres@ransa.com" },
+  { id: 107, nombre: "Patricia Huamán", rol: "Control Operativo", empresa: "TALSA S.A.", doc: "70123456", brevete: "", correo: "phuaman@talsa.com" },
+  { id: 108, nombre: "Jorge Luis Ramos", rol: "Inspector de Empaque", empresa: "SAFCO S.A.C.", doc: "45678912", brevete: "", correo: "jorge.ramos@safco.pe" }
+];
+
+// Data Mockup Inicial (Consolidado de Instrucciones de Embarque Existentes)
 let informesMock = [
   {
     id: "INF-001",
+    instruccionEmbarque: "ASP001",
     nroInforme: "INFORME DE EMBARQUE N° 033.AC-2025",
     nroEmbarque: "SAF001",
     contenedor: "HLBU 963821-7",
@@ -41,34 +60,19 @@ let informesMock = [
     packingList: "PL-UV-001-A",
     estadoGeneral: "Completo",
     areas: {
-      seguridad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-05 08:30", inspector: "CARLOS MENDOZA" },
-      frio: { status: "ready", dictamen: "Conforme", fecha: "2025-01-05 10:15", inspector: "ANA RODRIGUEZ" },
-      calidad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-05 09:45", inspector: "MARCOS VILCA" }
+      seguridad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-05 08:30", inspector: "Carlos Mendoza" },
+      calidad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-05 09:45", inspector: "Marcos Vilca" },
+      frio: { status: "ready", dictamen: "Conforme", fecha: "2025-01-05 10:15", inspector: "Ana Rodríguez" }
     },
     datosSeguridad: {
-      placaTractor: "F4R-892",
-      placaCarreta: "B9C-771",
-      chofer: "JUAN PEREZ ROSALES",
-      licencia: "Q09876543",
-      soat: "SOAT-2025-8819",
-      observaciones: "Unidad limpia, precintos de seguridad colocados en presencia del chofer. Sin novedades."
-    },
-    datosFrio: {
-      paletasCount: 20,
-      precintoSafco: "SAF-99120",
-      precintoSenasa: "SEN-44102",
-      precintoLinea: "HLBU-119283",
-      horaInicio: "08:15",
-      horaFin: "10:00",
-      dispositivos: [
-        { tipo: "1° Termógrafo", codigo: "TERM-881", ubicacion: "Pallet 01 (Puerta)", estado: "Instalado" },
-        { tipo: "2° Termógrafo", codigo: "TERM-882", ubicacion: "Pallet 10 (Centro)", estado: "Instalado" },
-        { tipo: "Sensor SENASA 1", codigo: "SENS-01", ubicacion: "Pallet 04", estado: "Instalado por SENASA" },
-        { tipo: "Sensor SENASA 2", codigo: "SENS-02", ubicacion: "Pallet 16", estado: "Instalado por SENASA" }
-      ],
-      observaciones: "Paletas colocadas respetando la línea límite de carga del contenedor reefer. Sensores colocados por SENASA."
+      dictamen: "Conforme",
+      observaciones: [
+        "Contenedor verificado e higienizado sin olores ni daños en estructura.",
+        "Sellos de seguridad verificados al momento del ingreso a planta."
+      ]
     },
     datosCalidad: {
+      dictamen: "Conforme",
       paletasEvaluadas: [
         { nro: 1, nroPallet: "BBP01260725001C", productor: "BYBLUE PERU", variedad: "AUTUMN CRISP", temp: 0.1, hora: "10:25", cumple: "Conforme" },
         { nro: 2, nroPallet: "BBP01260725002C", productor: "BYBLUE PERU", variedad: "AUTUMN CRISP", temp: 0.2, hora: "10:29", cumple: "Conforme" },
@@ -79,14 +83,52 @@ let informesMock = [
         { nro: 7, nroPallet: "BBP01260724008C", productor: "BYBLUE PERU", variedad: "AUTUMN CRISP", temp: 0.1, hora: "10:37", cumple: "Conforme" },
         { nro: 8, nroPallet: "BBP01260724003C", productor: "BYBLUE PERU", variedad: "AUTUMN CRISP", temp: 0.1, hora: "11:37", cumple: "Conforme" }
       ],
-      observaciones: "Calidad de empaque conforme. Se evaluaron 8 paletas seleccionadas aleatoriamente, obteniendo un promedio de pulpa de 0.14°C."
+      observaciones: "Calidad de empaque conforme. Temperatura de pulpa promedio evaluada de 0.14°C."
+    },
+    datosFrio: {
+      dictamen: "Conforme",
+      precintoSafco: "SAF-99120",
+      precintoSenasa: "SEN-44102",
+      precintoLinea: "HLBU-119283",
+      dispositivos: [
+        { tipo: "1° Termógrafo", codigo: "TERM-881", ubicacion: "Pallet 01" },
+        { tipo: "2° Termógrafo", codigo: "TERM-882", ubicacion: "Pallet 10" },
+        { tipo: "Sensor SENASA 1", codigo: "SENSOR6565", ubicacion: "Pallet 04" },
+        { tipo: "Sensor SENASA 2", codigo: "SENSOR9632", ubicacion: "Pallet 23" }
+      ],
+      esquemaPaletas: [
+        { pos: 2, codigo: "PAL-999", estado: "alert" },
+        { pos: 1, codigo: "ASP1", estado: "ok" },
+        { pos: 4, codigo: "ASP8", estado: "ok", sensor: "SENSOR6565" },
+        { pos: 3, codigo: "ASP3", estado: "ok" },
+        { pos: 6, codigo: "ASP6", estado: "ok" },
+        { pos: 5, codigo: "ASP5", estado: "ok" },
+        { pos: 8, codigo: "ASP8", estado: "ok" },
+        { pos: 7, codigo: "PAL-888", estado: "alert" },
+        { pos: 10, codigo: "ASP12", estado: "ok" },
+        { pos: 9, codigo: "ASP9", estado: "ok" },
+        { pos: 12, codigo: "PAL-777", estado: "alert" },
+        { pos: 11, codigo: "ASP11", estado: "ok" },
+        { pos: 14, codigo: "ASP14", estado: "ok" },
+        { pos: 13, codigo: "ASP13", estado: "ok" },
+        { pos: 16, codigo: "PAL-666", estado: "alert" },
+        { pos: 15, codigo: "ASP15", estado: "ok" },
+        { pos: 18, codigo: "ASP18", estado: "ok" },
+        { pos: 17, codigo: "ASP17", estado: "ok" },
+        { pos: 20, codigo: "ASP20", estado: "ok" },
+        { pos: 19, codigo: "ASP19", estado: "ok" },
+        { pos: 22, codigo: "VACÍO", estado: "empty" },
+        { pos: 21, codigo: "PAL-555", estado: "alert" },
+        { pos: 23, codigo: "ASP2", estado: "ok", sensor: "SENSOR9632" }
+      ],
+      observaciones: "Paletas estibadas en 2 filas respetando límite de altura del contenedor reefer."
     },
     participantes: [
-      { id: 1, rol: "Inspector Calidad", nombre: "Marcos Vilca", empresa: "SAFCO S.A.C.", doc: "44892019", firma: generateSignatureSvg("Marcos Vilca") },
-      { id: 2, rol: "Supervisor Frío", nombre: "Ana Rodríguez", empresa: "SAFCO S.A.C.", doc: "41903212", firma: generateSignatureSvg("Ana Rodríguez") },
-      { id: 3, rol: "Seguridad Patrimonial", nombre: "Carlos Mendoza", empresa: "SAFCO S.A.C.", doc: "10982345", firma: generateSignatureSvg("Carlos Mendoza") },
-      { id: 4, rol: "Chofer Transportista", nombre: "Juan Pérez Rosales", empresa: "TRANS-AGRO E.I.R.L.", doc: "09876543", firma: generateSignatureSvg("Juan Pérez") },
-      { id: 5, rol: "Inspector SENASA", nombre: "Ing. Roberto Gutiérrez", empresa: "SENASA ICA", doc: "25890123", firma: generateSignatureSvg("Roberto Gutiérrez") }
+      { id: 1, rol: "Seguridad Patrimonial", nombre: "Carlos Mendoza", empresa: "SAFCO S.A.C.", doc: "10982345", firma: generateDnieSignatureSvg("Carlos Mendoza", "10982345") },
+      { id: 2, rol: "Inspector Calidad", nombre: "Marcos Vilca", empresa: "SAFCO S.A.C.", doc: "44892019", firma: generateDnieSignatureSvg("Marcos Vilca", "44892019") },
+      { id: 3, rol: "Supervisor Frío", nombre: "Ana Rodríguez", empresa: "SAFCO S.A.C.", doc: "41903212", firma: generateDnieSignatureSvg("Ana Rodríguez", "41903212") },
+      { id: 4, rol: "Chofer Transportista", nombre: "Juan Pérez Rosales", empresa: "TRANS-AGRO E.I.R.L.", doc: "09876543", firma: generateDnieSignatureSvg("Juan Pérez", "09876543") },
+      { id: 5, rol: "Inspector SENASA", nombre: "Ing. Roberto Gutiérrez", empresa: "SENASA ICA", doc: "25890123", firma: generateDnieSignatureSvg("Roberto Gutiérrez", "25890123") }
     ],
     evidencias: {
       seguridad: [
@@ -94,14 +136,7 @@ let informesMock = [
           tipo: "Inspección Estructura e Higiene del Contenedor",
           fotos: [
             { id: "s1", url: createSvgDataUrl("Estructura Contenedor Interior", "#4f46e5"), caption: "Paredes internas limpias" },
-            { id: "s2", url: createSvgDataUrl("Piso T-Floor Contenedor", "#4f46e5"), caption: "Inspección de piso y acople" }
-          ]
-        },
-        {
-          tipo: "Placa y Documentación del Vehículo",
-          fotos: [
-            { id: "s3", url: createSvgDataUrl("Placa Tractor F4R-892", "#4f46e5"), caption: "Tractor F4R-892" },
-            { id: "s4", url: createSvgDataUrl("Placa Carreta B9C-771", "#4f46e5"), caption: "Carreta B9C-771" }
+            { id: "s2", url: createSvgDataUrl("Piso T-Floor Contenedor", "#4f46e5"), caption: "Inspección de piso" }
           ]
         }
       ],
@@ -109,64 +144,101 @@ let informesMock = [
         {
           tipo: "Desarrollo de la Operación de Empaque",
           fotos: [
-            { id: "c1", url: createSvgDataUrl("Empaque Pallet 01", "#05696d"), caption: "Verificación de cajas punnets" },
-            { id: "c2", url: createSvgDataUrl("Empaque Pallet 05", "#05696d"), caption: "Control de estibado de pallets" }
+            { id: "c1", url: createSvgDataUrl("Empaque Pallet 01", "#05696d"), caption: "Cajas punnets inspeccionadas" }
           ]
         },
         {
           tipo: "Inspección de Pulpa y Evaluación de Fruta",
           fotos: [
-            { id: "c3", url: createSvgDataUrl("Medición Temp Pulpa (0.1°C)", "#05696d"), caption: "Medición con termómetro digital" },
-            { id: "c4", url: createSvgDataUrl("Evaluación Apariencia Fruta", "#05696d"), caption: "Baya racimo Autumn Crisp" }
+            { id: "c3", url: createSvgDataUrl("Medición Temp Pulpa (0.1°C)", "#05696d"), caption: "Medición de temperatura pulpa" }
           ]
         }
       ],
       frio: [
         {
-          tipo: "Ubicación de 1° y 2° Termógrafo",
+          tipo: "Ubicación de Termógrafos y Sensores",
           fotos: [
             { id: "f1", url: createSvgDataUrl("Ubicación 1° Termógrafo", "#0284c7"), caption: "1° Termógrafo en Pallet 01" },
-            { id: "f2", url: createSvgDataUrl("Ubicación 2° Termógrafo", "#0284c7"), caption: "2° Termógrafo en Pallet 10" }
-          ]
-        },
-        {
-          tipo: "Colocación de Sensores de Tratamiento (SENASA)",
-          fotos: [
-            { id: "f3", url: createSvgDataUrl("Sensor Senasa 1", "#0284c7"), caption: "Sensor 1 instalado por SENASA" },
-            { id: "f4", url: createSvgDataUrl("Sensor Senasa 2", "#0284c7"), caption: "Sensor 2 instalado por SENASA" }
-          ]
-        },
-        {
-          tipo: "Término de Carguío y Cierre",
-          fotos: [
-            { id: "f5", url: createSvgDataUrl("Término de Carguío", "#0284c7"), caption: "20 Pallets cargados" }
-          ]
-        },
-        {
-          tipo: "Presentación y Colocación de Precintos",
-          fotos: [
-            { id: "f6", url: createSvgDataUrl("Presentación Precintos", "#0284c7"), caption: "Precintos presentados" },
-            { id: "f7", url: createSvgDataUrl("Colocación Precinto SAFCO", "#0284c7"), caption: "Precinto SAFCO-99120 cerrado" }
+            { id: "f3", url: createSvgDataUrl("Sensor Senasa 1", "#0284c7"), caption: "Sensor 1 instalado por SENASA" }
           ]
         }
       ]
     },
-    conclusiones: [
-      "La altura de los pallets que conforman la carga tal cual muestran las imágenes siempre está por debajo de la línea límite que tiene cada Contenedor.",
-      "Adicional a ello toda colocación de sensores es realizada por el mismo inspector de SENASA Asignado para el Despacho. El personal de cámara no interviene en dicha operación.",
-      "Todas las precintas se colocaron en presencia del chofer de la unidad y el supervisor de seguridad patrimonial."
-    ]
+    conclusionesSeleccionadas: [
+      "La altura de los pallets que conforman la carga siempre está por debajo de la línea límite del contenedor.",
+      "Toda colocación de sensores de frío es realizada exclusivamente por el inspector de SENASA asignado.",
+      "La colocación de precintos de seguridad (SAFCO, SENASA, Línea) se realizó en presencia del chofer y seguridad patrimonial."
+    ],
+    conclusiónCustom: ""
+  },
+  {
+    id: "INF-002",
+    instruccionEmbarque: "ASP011",
+    nroInforme: "INFORME DE EMBARQUE N° 034.AC-2025",
+    nroEmbarque: "SAF002",
+    contenedor: "SUDU 778129-0",
+    booking: "SUDU77812901",
+    cliente: "VANGUARD LOGISTICS",
+    productor: "AGRICOLA TAMBO COLORADO S.A.C.",
+    variedad: "SWEET GLOBE",
+    programa: "CLAMSHELL 3.5KG",
+    campana: "UVA-2025",
+    fechaEmbarque: "2025-01-06",
+    guias: "T007 - 0000130",
+    packingList: "PL-UV-002-A",
+    estadoGeneral: "En Proceso",
+    areas: {
+      seguridad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-06 09:00", inspector: "Carlos Mendoza" },
+      calidad: { status: "ready", dictamen: "Conforme", fecha: "2025-01-06 10:15", inspector: "Marcos Vilca" },
+      frio: { status: "pending", dictamen: "Pendiente", fecha: "-", inspector: "Ana Rodríguez" }
+    },
+    datosSeguridad: {
+      dictamen: "Conforme",
+      observaciones: ["Precintos de garita verificados sin observaciones."]
+    },
+    datosCalidad: {
+      dictamen: "Conforme",
+      paletasEvaluadas: [
+        { nro: 1, nroPallet: "BBP01260725003C", productor: "BYBLUE PERU", variedad: "SWEET GLOBE", temp: 0.2, hora: "09:45", cumple: "Conforme" }
+      ],
+      observaciones: "Calidad conforme para empaque SWEET GLOBE."
+    },
+    datosFrio: {
+      dictamen: "Conforme",
+      precintoSafco: "SAF-99121",
+      precintoSenasa: "SEN-44103",
+      precintoLinea: "SUDU-881293",
+      dispositivos: [
+        { tipo: "1° Termógrafo", codigo: "TERM-883", ubicacion: "Pallet 01" }
+      ],
+      esquemaPaletas: [
+        { pos: 1, codigo: "ASP1", estado: "ok" },
+        { pos: 2, codigo: "ASP2", estado: "ok" }
+      ],
+      observaciones: "En proceso de estiba."
+    },
+    participantes: [
+      { id: 1, rol: "Seguridad Patrimonial", nombre: "Carlos Mendoza", empresa: "SAFCO S.A.C.", doc: "10982345", firma: generateDnieSignatureSvg("Carlos Mendoza", "10982345") }
+    ],
+    evidencias: {
+      seguridad: [{ tipo: "Inspección Estructura e Higiene del Contenedor", fotos: [] }],
+      calidad: [{ tipo: "Desarrollo de la Operación de Empaque", fotos: [] }],
+      frio: [{ tipo: "Ubicación de Termógrafos y Sensores", fotos: [] }]
+    },
+    conclusionesSeleccionadas: [],
+    conclusiónCustom: ""
   }
 ];
 
 let activeInformes = [];
 let currentInformeId = null;
 let currentTabArea = "all";
+let dnieSelectedParticipantId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (localStorage.getItem("safco_informes_embarque_v2")) {
+  if (localStorage.getItem("safco_informes_embarque_v3.5")) {
     try {
-      activeInformes = JSON.parse(localStorage.getItem("safco_informes_embarque_v2"));
+      activeInformes = JSON.parse(localStorage.getItem("safco_informes_embarque_v3.5"));
     } catch(e) {
       activeInformes = informesMock;
     }
@@ -181,21 +253,22 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function saveToStorage() {
-  localStorage.setItem("safco_informes_embarque_v2", JSON.stringify(activeInformes));
+  localStorage.setItem("safco_informes_embarque_v3.5", JSON.stringify(activeInformes));
 }
 
 function setupEventListeners() {
   document.getElementById("filterCampana").addEventListener("change", applyFilters);
+  document.getElementById("filterInstruccion").addEventListener("change", applyFilters);
   document.getElementById("filterFechaDesde").addEventListener("change", applyFilters);
   document.getElementById("filterFechaHasta").addEventListener("change", applyFilters);
   document.getElementById("filterCliente").addEventListener("change", applyFilters);
   document.getElementById("filterEstado").addEventListener("change", applyFilters);
   document.getElementById("filterSearch").addEventListener("input", applyFilters);
-  document.getElementById("btnNuevoInforme").addEventListener("click", openNuevoInformeModal);
 }
 
 function applyFilters() {
   const campana = document.getElementById("filterCampana").value;
+  const instruccion = document.getElementById("filterInstruccion").value;
   const fechaDesde = document.getElementById("filterFechaDesde").value;
   const fechaHasta = document.getElementById("filterFechaHasta").value;
   const cliente = document.getElementById("filterCliente").value;
@@ -204,12 +277,14 @@ function applyFilters() {
 
   const filtered = activeInformes.filter(item => {
     if (campana && item.campana !== campana) return false;
+    if (instruccion && item.instruccionEmbarque !== instruccion) return false;
     if (fechaDesde && item.fechaEmbarque < fechaDesde) return false;
     if (fechaHasta && item.fechaEmbarque > fechaHasta) return false;
     if (cliente && item.cliente !== cliente) return false;
     if (estado && item.estadoGeneral !== estado) return false;
     if (search) {
       const matchSearch = item.nroInforme.toLowerCase().includes(search) ||
+                          item.instruccionEmbarque.toLowerCase().includes(search) ||
                           item.nroEmbarque.toLowerCase().includes(search) ||
                           item.contenedor.toLowerCase().includes(search) ||
                           item.booking.toLowerCase().includes(search);
@@ -227,14 +302,14 @@ function renderTabla(dataList = activeInformes) {
   if (!tbody) return;
 
   if (dataList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10" style="padding: 2rem; color: #94a3b8;">No se encontraron informes con los filtros seleccionados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="padding: 2rem; color: #94a3b8;">No se encontraron informes para la Instrucción de Embarque o filtro seleccionado.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = dataList.map(item => {
-    const badgeSeg = getAreaBadgeHtml("Seguridad", item.areas.seguridad.status);
-    const badgeFrio = getAreaBadgeHtml("Frío", item.areas.frio.status);
-    const badgeCal = getAreaBadgeHtml("Calidad", item.areas.calidad.status);
+    const badgeSeg = getAreaBadgeHtml("SEG", item.areas.seguridad.status);
+    const badgeCal = getAreaBadgeHtml("CAL", item.areas.calidad.status);
+    const badgeFrio = getAreaBadgeHtml("FRÍO", item.areas.frio.status);
 
     const statusGeneralBadge = item.estadoGeneral === "Completo" 
       ? `<span class="area-badge ready"><i class='bx bx-check-circle'></i> COMPLETO</span>`
@@ -242,7 +317,7 @@ function renderTabla(dataList = activeInformes) {
 
     return `
       <tr>
-        <td style="font-weight: 700; color: #004a4c;">${item.nroInforme}</td>
+        <td style="font-weight: 800; color: #d30c0c;"><i class='bx bx-purchase-tag-alt'></i> ${item.instruccionEmbarque}</td>
         <td>${item.fechaEmbarque}</td>
         <td style="font-weight:600;">${item.nroEmbarque}</td>
         <td style="font-weight:700; color: #0f172a;">${item.contenedor}</td>
@@ -251,13 +326,13 @@ function renderTabla(dataList = activeInformes) {
         <td>${item.participantes.length} pers.</td>
         <td>
           <div class="area-badges-group">
-            ${badgeCal} ${badgeFrio} ${badgeSeg}
+            ${badgeSeg} ${badgeCal} ${badgeFrio}
           </div>
         </td>
         <td>${statusGeneralBadge}</td>
         <td>
           <div style="display:flex; justify-content:center; gap:0.35rem;">
-            <button class="btn-action-trigger" title="Ver / Editar Informe" onclick="openEditarInformeModal('${item.id}', 'all')">
+            <button class="btn-action-trigger" title="Ver / Editar Informe por Áreas" onclick="openEditarInformeModal('${item.id}', 'all')">
               <i class='bx bx-edit-alt'></i>
             </button>
             <button class="btn-action-trigger" title="Exportar PDF" onclick="exportarInformePDF('${item.id}')" style="color:#d30c0c; border-color:#fecaca;">
@@ -282,7 +357,7 @@ function renderTarjetasMovil(dataList = activeInformes) {
   container.innerHTML = dataList.map(item => `
     <div class="mobile-card" onclick="openEditarInformeModal('${item.id}', 'all')">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-        <span style="font-weight:800; color:#004a4c; font-size:0.9rem;">${item.nroInforme}</span>
+        <span style="font-weight:800; color:#d30c0c; font-size:0.9rem;">IE: ${item.instruccionEmbarque}</span>
         <span class="area-badge ${item.estadoGeneral === 'Completo' ? 'ready' : 'pending'}">${item.estadoGeneral}</span>
       </div>
       <div style="font-size:0.8rem; color:#475569; display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
@@ -293,9 +368,9 @@ function renderTarjetasMovil(dataList = activeInformes) {
       </div>
       <div style="margin-top:0.75rem; pt:0.5rem; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
         <div class="area-badges-group">
+          ${getAreaBadgeHtml("SEG", item.areas.seguridad.status)}
           ${getAreaBadgeHtml("CAL", item.areas.calidad.status)}
           ${getAreaBadgeHtml("FRÍO", item.areas.frio.status)}
-          ${getAreaBadgeHtml("SEG", item.areas.seguridad.status)}
         </div>
         <button class="btn-primary-safco" style="padding:0.3rem 0.75rem; font-size:0.75rem;" onclick="event.stopPropagation(); exportarInformePDF('${item.id}')">
           <i class='bx bxs-file-pdf'></i> PDF
@@ -307,84 +382,11 @@ function renderTarjetasMovil(dataList = activeInformes) {
 
 function getAreaBadgeHtml(label, status) {
   if (status === "ready") {
-    return `<span class="area-badge ready" title="${label}: Completado"><i class='bx bx-check'></i> ${label}</span>`;
+    return `<span class="area-badge ready" title="${label}: Confirmado por Área"><i class='bx bx-check'></i> ${label}</span>`;
   } else if (status === "pending") {
-    return `<span class="area-badge pending" title="${label}: Pendiente"><i class='bx bx-time'></i> ${label}</span>`;
+    return `<span class="area-badge pending" title="${label}: Pendiente de Confirmación"><i class='bx bx-time'></i> ${label}</span>`;
   }
   return `<span class="area-badge incomplete" title="${label}: Incompleto"><i class='bx bx-x'></i> ${label}</span>`;
-}
-
-function openNuevoInformeModal() {
-  const nuevoId = "INF-" + String(activeInformes.length + 1).padStart(3, '0');
-  const nuevoInforme = {
-    id: nuevoId,
-    nroInforme: `INFORME DE EMBARQUE N° 03${activeInformes.length + 5}.AC-2025`,
-    nroEmbarque: `SAF00${activeInformes.length + 1}`,
-    contenedor: "SEGU-902182-0",
-    booking: "BK-991202",
-    cliente: "TALSA S.A",
-    productor: "AGRICOLA TAMBO COLORADO S.A.C.",
-    variedad: "AUTUMN CRISP",
-    programa: "PUNNETS 4KG",
-    campana: "UVA-2025",
-    fechaEmbarque: new Date().toISOString().split('T')[0],
-    guias: "T007 - 0000" + (130 + activeInformes.length),
-    packingList: `PL-UV-00${activeInformes.length + 1}-A`,
-    estadoGeneral: "En Proceso",
-    areas: {
-      seguridad: { status: "ready", dictamen: "Conforme", fecha: new Date().toLocaleDateString(), inspector: "SEGURIDAD PATRIMONIAL" },
-      frio: { status: "pending", dictamen: "Pendiente", fecha: "-", inspector: "AREA FRIO" },
-      calidad: { status: "ready", dictamen: "Conforme", fecha: new Date().toLocaleDateString(), inspector: "AREA CALIDAD" }
-    },
-    datosSeguridad: { placaTractor: "", placaCarreta: "", chofer: "", licencia: "", soat: "", observaciones: "" },
-    datosFrio: {
-      paletasCount: 20,
-      precintoSafco: "",
-      precintoSenasa: "",
-      precintoLinea: "",
-      horaInicio: "",
-      horaFin: "",
-      dispositivos: [
-        { tipo: "1° Termógrafo", codigo: "TERM-901", ubicacion: "Pallet 01", estado: "Instalado" },
-        { tipo: "2° Termógrafo", codigo: "TERM-902", ubicacion: "Pallet 10", estado: "Instalado" }
-      ],
-      observaciones: ""
-    },
-    datosCalidad: {
-      paletasEvaluadas: [
-        { nro: 1, nroPallet: "BBP01260725001C", productor: "AGRICOLA TAMBO COLORADO", variedad: "AUTUMN CRISP", temp: 0.1, hora: "10:25", cumple: "Conforme" },
-        { nro: 2, nroPallet: "BBP01260725002C", productor: "AGRICOLA TAMBO COLORADO", variedad: "AUTUMN CRISP", temp: 0.2, hora: "10:29", cumple: "Conforme" }
-      ],
-      observaciones: ""
-    },
-    participantes: [
-      { id: 1, rol: "Inspector Calidad", nombre: "Inspector Calidad SAFCO", empresa: "SAFCO", doc: "00000000", firma: generateSignatureSvg("Inspector Calidad") }
-    ],
-    evidencias: {
-      seguridad: [
-        { tipo: "Inspección Estructura e Higiene del Contenedor", fotos: [] },
-        { tipo: "Placa y Documentación del Vehículo", fotos: [] }
-      ],
-      calidad: [
-        { tipo: "Desarrollo de la Operación de Empaque", fotos: [] },
-        { tipo: "Inspección de Pulpa y Evaluación de Fruta", fotos: [] }
-      ],
-      frio: [
-        { tipo: "Ubicación de 1° y 2° Termógrafo", fotos: [] },
-        { tipo: "Colocación de Sensores de Tratamiento (SENASA)", fotos: [] },
-        { tipo: "Término de Carguío y Cierre", fotos: [] },
-        { tipo: "Presentación y Colocación de Precintos", fotos: [] }
-      ]
-    },
-    conclusiones: [
-      "La altura de los pallets que conforman la carga tal cual muestran las imágenes siempre está por debajo de la línea límite que tiene cada Contenedor.",
-      "Adicional a ello toda colocación de sensores es realizada por el mismo inspector de SENASA Asignado para el Despacho."
-    ]
-  };
-
-  activeInformes.unshift(nuevoInforme);
-  saveToStorage();
-  openEditarInformeModal(nuevoId, 'all');
 }
 
 function openEditarInformeModal(id, initialTab = 'all') {
@@ -393,9 +395,10 @@ function openEditarInformeModal(id, initialTab = 'all') {
   if (!item) return;
 
   document.getElementById("modalNroInformeText").innerText = item.nroInforme;
-  document.getElementById("modalContenedorText").innerText = `${item.contenedor} | ${item.cliente}`;
+  document.getElementById("modalContenedorText").innerText = `Instrucción: ${item.instruccionEmbarque} | Contenedor: ${item.contenedor}`;
 
   // Cargar valores en formulario principal
+  document.getElementById("editInstruccionEmbarque").value = item.instruccionEmbarque || "";
   document.getElementById("editNroEmbarque").value = item.nroEmbarque;
   document.getElementById("editContenedor").value = item.contenedor;
   document.getElementById("editBooking").value = item.booking;
@@ -407,31 +410,31 @@ function openEditarInformeModal(id, initialTab = 'all') {
   document.getElementById("editGuias").value = item.guias;
   document.getElementById("editPackingList").value = item.packingList;
 
-  // Cargar datos de Seguridad
-  document.getElementById("segPlacaTractor").value = item.datosSeguridad.placaTractor || "";
-  document.getElementById("segPlacaCarreta").value = item.datosSeguridad.placaCarreta || "";
-  document.getElementById("segChofer").value = item.datosSeguridad.chofer || "";
-  document.getElementById("segLicencia").value = item.datosSeguridad.licencia || "";
-  document.getElementById("segSoat").value = item.datosSeguridad.soat || "";
-  document.getElementById("segObs").value = item.datosSeguridad.observaciones || "";
+  // Cargar Dictámenes por cada área
+  document.getElementById("segDictamen").value = item.datosSeguridad.dictamen || "Conforme";
+  document.getElementById("calDictamen").value = item.datosCalidad.dictamen || "Conforme";
+  document.getElementById("frioDictamen").value = item.datosFrio.dictamen || "Conforme";
+
+  renderObservacionesSeguridadModal(item);
 
   // Cargar datos de Frío
   document.getElementById("frioPrecintoSafco").value = item.datosFrio.precintoSafco || "";
   document.getElementById("frioPrecintoSenasa").value = item.datosFrio.precintoSenasa || "";
   document.getElementById("frioPrecintoLinea").value = item.datosFrio.precintoLinea || "";
-  document.getElementById("frioHoraInicio").value = item.datosFrio.horaInicio || "";
-  document.getElementById("frioHoraFin").value = item.datosFrio.horaFin || "";
   document.getElementById("frioObs").value = item.datosFrio.observaciones || "";
 
   // Cargar Calidad Observaciones
   document.getElementById("calObs").value = item.datosCalidad.observaciones || "";
 
-  // Cargar Conclusiones
-  document.getElementById("editConclusiones").value = item.conclusiones.join("\n");
+  // Cargar Cajas de Confirmación por Área
+  renderValidacionCheckboxesModal(item);
+
+  // Cargar Conclusiones Checkbox
+  renderConclusionesCheckboxes(item);
 
   renderPaletasCalidadModal(item);
   renderDispositivosFrioModal(item);
-  renderEsquemaCargaContenedor(item);
+  renderEsquemaCargaContenedorExacto(item);
   renderEvidenciasPorTiposModal(item);
   renderParticipantesModal(item);
 
@@ -440,6 +443,117 @@ function openEditarInformeModal(id, initialTab = 'all') {
   document.getElementById("modalInformeOverlay").classList.add("open");
 }
 
+// CONFIRMACIÓN INDIVIDUAL DE REGISTRO POR ÁREA (PETICIÓN BACKEND SIMULADA)
+function renderValidacionCheckboxesModal(item) {
+  setupSingleAreaValidationBox(item, "seguridad", "segValidationBox", "segValidationIcon", "segValidationTitle", "segValidationMeta", "segValidationActionBtn", "Carlos Mendoza", "Seguridad Patrimonial", "#4f46e5");
+  setupSingleAreaValidationBox(item, "calidad", "calValidationBox", "calValidationIcon", "calValidationTitle", "calValidationMeta", "calValidationActionBtn", "Marcos Vilca", "Calidad (Pre-Embarque)", "#05696d");
+  setupSingleAreaValidationBox(item, "frio", "frioValidationBox", "frioValidationIcon", "frioValidationTitle", "frioValidationMeta", "frioValidationActionBtn", "Ana Rodríguez", "Frío y Despacho", "#0284c7");
+}
+
+function setupSingleAreaValidationBox(item, areaKey, boxId, iconId, titleId, metaId, actionBtnId, defaultInspector, areaLabel, areaColor) {
+  const box = document.getElementById(boxId);
+  const icon = document.getElementById(iconId);
+  const title = document.getElementById(titleId);
+  const meta = document.getElementById(metaId);
+  const actionBtnContainer = document.getElementById(actionBtnId);
+
+  if (!box || !title || !meta || !actionBtnContainer) return;
+
+  const isReady = item.areas[areaKey] && item.areas[areaKey].status === "ready";
+
+  if (isReady) {
+    box.classList.remove("pending-box");
+    icon.innerHTML = `<i class='bx bx-check-circle' style="color:#059669;"></i>`;
+    title.innerText = `Registro de ${areaLabel}: CONFIRMADO Y GUARDADO`;
+    title.style.color = "#059669";
+    const insp = item.areas[areaKey].inspector || defaultInspector;
+    const fecha = item.areas[areaKey].fecha || new Date().toLocaleDateString();
+    meta.innerHTML = `✓ Confirmado por <strong>${insp}</strong> (${fecha})`;
+
+    actionBtnContainer.innerHTML = `
+      <button type="button" class="btn-secondary-safco" style="font-size:0.78rem; padding:0.4rem 0.85rem;" onclick="reabrirAreaBackend('${areaKey}')">
+        <i class='bx bx-lock-open-alt'></i> Reabrir para Modificar
+      </button>
+    `;
+  } else {
+    box.classList.add("pending-box");
+    icon.innerHTML = `<i class='bx bx-time-five' style="color:#d97706;"></i>`;
+    title.innerText = `Registro de ${areaLabel}: PENDIENTE`;
+    title.style.color = "#b45309";
+    meta.innerHTML = `Aún no se ha enviado la confirmación del área.`;
+
+    actionBtnContainer.innerHTML = `
+      <button type="button" class="btn-primary-safco" style="background:${areaColor}; font-size:0.8rem; padding:0.5rem 1rem;" onclick="confirmarAreaBackend('${areaKey}')">
+        <i class='bx bx-check-circle'></i> Confirmar y Guardar Registro de ${areaLabel.split(" ")[0]}
+      </button>
+    `;
+  }
+}
+
+function confirmarAreaBackend(areaKey) {
+  const item = activeInformes.find(i => i.id === currentInformeId);
+  if (!item) return;
+
+  let inspectorName = "CARLOS MENDOZA";
+  if (areaKey === "calidad") inspectorName = "MARCOS VILCA";
+  else if (areaKey === "frio") inspectorName = "ANA RODRÍGUEZ";
+
+  Swal.fire({
+    title: `Guardando Registro de ${areaKey.toUpperCase()}...`,
+    text: 'Sincronizando datos e imágenes con el servidor de SAFCO...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  setTimeout(() => {
+    item.areas[areaKey].status = "ready";
+    item.areas[areaKey].fecha = new Date().toLocaleString();
+    item.areas[areaKey].inspector = inspectorName;
+
+    // Evaluar si las 3 áreas han confirmado
+    if (item.areas.seguridad.status === "ready" && item.areas.calidad.status === "ready" && item.areas.frio.status === "ready") {
+      item.estadoGeneral = "Completo";
+    } else {
+      item.estadoGeneral = "En Proceso";
+    }
+
+    saveToStorage();
+    renderValidacionCheckboxesModal(item);
+    renderTabla();
+    renderTarjetasMovil();
+
+    Swal.fire({
+      icon: 'success',
+      title: '¡Registro Confirmado!',
+      text: `Los datos del área de ${areaKey.toUpperCase()} han sido guardados correctamente en el servidor.`,
+      confirmButtonColor: '#004a4c'
+    });
+  }, 1200);
+}
+
+function reabrirAreaBackend(areaKey) {
+  const item = activeInformes.find(i => i.id === currentInformeId);
+  if (!item) return;
+
+  item.areas[areaKey].status = "pending";
+  item.estadoGeneral = "En Proceso";
+
+  saveToStorage();
+  renderValidacionCheckboxesModal(item);
+  renderTabla();
+  renderTarjetasMovil();
+
+  Swal.fire({
+    icon: 'info',
+    title: 'Registro Reabierto',
+    text: `El área de ${areaKey.toUpperCase()} se encuentra en modo edición. Recuerde volver a confirmar al finalizar.`,
+    confirmButtonColor: '#004a4c'
+  });
+}
+
+// OCULTAMIENTO REAL DE SECCIONES POR ÁREA
 function switchModalTab(tabArea) {
   currentTabArea = tabArea;
 
@@ -448,29 +562,81 @@ function switchModalTab(tabArea) {
   if (activeBtn) activeBtn.classList.add("active");
 
   const secSeguridad = document.getElementById("secSeguridad");
-  const secFrio = document.getElementById("secFrio");
   const secCalidad = document.getElementById("secCalidad");
+  const secFrio = document.getElementById("secFrio");
 
   if (tabArea === "all") {
     secSeguridad.style.display = "block";
-    secFrio.style.display = "block";
     secCalidad.style.display = "block";
+    secFrio.style.display = "block";
   } else if (tabArea === "seguridad") {
     secSeguridad.style.display = "block";
+    secCalidad.style.display = "none";
     secFrio.style.display = "none";
-    secCalidad.style.display = "none";
-  } else if (tabArea === "frio") {
-    secSeguridad.style.display = "none";
-    secFrio.style.display = "block";
-    secCalidad.style.display = "none";
   } else if (tabArea === "calidad") {
     secSeguridad.style.display = "none";
-    secFrio.style.display = "none";
     secCalidad.style.display = "block";
+    secFrio.style.display = "none";
+  } else if (tabArea === "frio") {
+    secSeguridad.style.display = "none";
+    secCalidad.style.display = "none";
+    secFrio.style.display = "block";
   }
 }
 
-// 1. RENDER PALETAS CALIDAD PRE-EMBARQUE
+// 1. SEGURIDAD
+function renderObservacionesSeguridadModal(item) {
+  const container = document.getElementById("segObsListContainer");
+  if (!container) return;
+
+  const obsList = item.datosSeguridad.observaciones || [];
+  if (obsList.length === 0) {
+    container.innerHTML = `<div style="font-size:0.8rem; color:#94a3b8; font-style:italic;">No hay observaciones registradas.</div>`;
+    return;
+  }
+
+  container.innerHTML = obsList.map((obs, idx) => `
+    <div style="display:flex; gap:0.5rem; margin-bottom:0.4rem;">
+      <input type="text" class="form-input" value="${obs}" onchange="actualizarObsSeguridad(${idx}, this.value)">
+      <button type="button" class="btn-action-trigger" style="color:#e11d48;" onclick="eliminarObsSeguridad(${idx})">
+        <i class='bx bx-trash'></i>
+      </button>
+    </div>
+  `).join("");
+}
+
+function agregarObsSeguridadPrompt() {
+  const item = activeInformes.find(i => i.id === currentInformeId);
+  if (!item) return;
+
+  const obs = prompt("Ingrese observación de Seguridad Patrimonial:", "Inspección de puerta y sello aprobados sin anomalías.");
+  if (!obs) return;
+
+  if (!item.datosSeguridad.observaciones) item.datosSeguridad.observaciones = [];
+  item.datosSeguridad.observaciones.push(obs);
+
+  saveToStorage();
+  renderObservacionesSeguridadModal(item);
+}
+
+function actualizarObsSeguridad(idx, val) {
+  const item = activeInformes.find(i => i.id === currentInformeId);
+  if (!item) return;
+
+  item.datosSeguridad.observaciones[idx] = val;
+  saveToStorage();
+}
+
+function eliminarObsSeguridad(idx) {
+  const item = activeInformes.find(i => i.id === currentInformeId);
+  if (!item) return;
+
+  item.datosSeguridad.observaciones.splice(idx, 1);
+  saveToStorage();
+  renderObservacionesSeguridadModal(item);
+}
+
+// 2. PRE-EMBARQUE CALIDAD
 function renderPaletasCalidadModal(item) {
   const tbody = document.getElementById("paletasCalidadTbody");
   const spanProm = document.getElementById("calTempPromText");
@@ -478,7 +644,6 @@ function renderPaletasCalidadModal(item) {
 
   const paletas = item.datosCalidad.paletasEvaluadas || [];
   
-  // Calcular Promedio de Pulpa
   let suma = 0;
   paletas.forEach(p => suma += parseFloat(p.temp || 0));
   const prom = paletas.length > 0 ? (suma / paletas.length).toFixed(2) : "0.00";
@@ -497,123 +662,55 @@ function renderPaletasCalidadModal(item) {
   `).join("");
 }
 
-function agregarPaletaCalidadPrompt() {
-  const item = activeInformes.find(i => i.id === currentInformeId);
-  if (!item) return;
-
-  const paletas = item.datosCalidad.paletasEvaluadas || [];
-  const nroPallet = prompt("N° de Pallet:", `BBP0126072400${paletas.length + 1}C`);
-  if (!nroPallet) return;
-
-  const tempStr = prompt("Temperatura de Pulpa (°C):", "0.2");
-  if (!tempStr) return;
-
-  const hora = prompt("Hora de Medición:", "11:45");
-
-  paletas.push({
-    nro: paletas.length + 1,
-    nroPallet: nroPallet,
-    productor: item.productor || "BYBLUE PERU",
-    variedad: item.variedad || "AUTUMN CRISP",
-    temp: parseFloat(tempStr),
-    hora: hora || "12:00",
-    cumple: "Conforme"
-  });
-
-  item.datosCalidad.paletasEvaluadas = paletas;
-  saveToStorage();
-  renderPaletasCalidadModal(item);
-}
-
-// 3. RENDER DISPOSITIVOS Y DIAGRAMA DE CONTENEDOR (FRÍO)
+// 3. FRÍO: DISPOSITIVOS
 function renderDispositivosFrioModal(item) {
   const tbody = document.getElementById("dispositivosFrioTbody");
   if (!tbody) return;
 
   const disp = item.datosFrio.dispositivos || [];
-  tbody.innerHTML = disp.map((d, index) => `
+  tbody.innerHTML = disp.map(d => `
     <tr>
       <td><strong>${d.tipo}</strong></td>
       <td style="font-weight:700; color:#0284c7;">${d.codigo}</td>
       <td>${d.ubicacion}</td>
-      <td><span class="area-badge ready">${d.estado}</span></td>
-      <td style="text-align:right;">
-        <button type="button" class="btn-action-trigger" style="width:24px; height:24px; color:#e11d48;" onclick="eliminarDispositivoFrio(${index})">
-          <i class='bx bx-trash'></i>
-        </button>
-      </td>
     </tr>
   `).join("");
 }
 
-function agregarDispositivoFrioPrompt() {
-  const item = activeInformes.find(i => i.id === currentInformeId);
-  if (!item) return;
-
-  const tipo = prompt("Tipo de Dispositivo (ej. 1° Termógrafo, Sensor SENASA 1):", "Sensor SENASA");
-  if (!tipo) return;
-
-  const codigo = prompt("Código / N° ID del Dispositivo:", "SENS-03");
-  if (!codigo) return;
-
-  const ubicacion = prompt("Ubicación en Contenedor (ej. Pallet 08):", "Pallet 08");
-
-  if (!item.datosFrio.dispositivos) item.datosFrio.dispositivos = [];
-  item.datosFrio.dispositivos.push({
-    tipo: tipo,
-    codigo: codigo,
-    ubicacion: ubicacion || "Pallet Central",
-    estado: "Instalado"
-  });
-
-  saveToStorage();
-  renderDispositivosFrioModal(item);
-  renderEsquemaCargaContenedor(item);
-}
-
-function eliminarDispositivoFrio(index) {
-  const item = activeInformes.find(i => i.id === currentInformeId);
-  if (!item) return;
-
-  item.datosFrio.dispositivos.splice(index, 1);
-  saveToStorage();
-  renderDispositivosFrioModal(item);
-  renderEsquemaCargaContenedor(item);
-}
-
-function renderEsquemaCargaContenedor(item) {
-  const container = document.getElementById("contenedorEsquemaGrid");
+function renderEsquemaCargaContenedorExacto(item) {
+  const container = document.getElementById("contenedorEsquemaGridExact");
   if (!container) return;
 
-  const disp = item.datosFrio.dispositivos || [];
+  const paletas = item.datosFrio.esquemaPaletas || [];
   let html = "";
 
-  for (let i = 1; i <= 20; i++) {
-    const pStr = "Pallet " + String(i).padStart(2, '0');
-    let hasTermografo = disp.some(d => d.ubicacion.includes(String(i)) || d.ubicacion.includes(pStr));
-    let hasSensor = disp.some(d => d.tipo.toLowerCase().includes("sensor") && (d.ubicacion.includes(String(i)) || d.ubicacion.includes(pStr)));
+  paletas.forEach(p => {
+    let cardClass = "reefer-pallet-card";
+    if (p.estado === "ok") cardClass += " status-ok";
+    else if (p.estado === "alert") cardClass += " status-alert";
+    else if (p.estado === "empty") cardClass += " status-empty";
 
-    let slotClass = "pallet-slot";
-    let iconLabel = "";
-    if (hasSensor) {
-      slotClass += " has-sensor";
-      iconLabel = "<br>📡 Sensor";
-    } else if (hasTermografo) {
-      slotClass += " has-termografo";
-      iconLabel = "<br>🌡️ Termógr.";
-    }
+    if (p.pos === 23) cardClass += " reefer-pallet-23";
 
-    html += `<div class="${slotClass}">P-${String(i).padStart(2, '0')}${iconLabel}</div>`;
-  }
+    let sensorBadge = p.sensor ? `<div class="reefer-sensor-pill">📡 ${p.sensor}</div>` : "";
+
+    html += `
+      <div class="${cardClass}">
+        <span class="reefer-pallet-number">${p.pos}</span>
+        <span class="reefer-pallet-code">${p.codigo}</span>
+        ${sensorBadge}
+      </div>
+    `;
+  });
 
   container.innerHTML = html;
 }
 
-// 2. RENDER EVIDENCIAS POR TIPOS (Multiple photos per type)
+// EVIDENCIAS POR TIPOS
 function renderEvidenciasPorTiposModal(item) {
   renderSeccionEvidenciaTipos("containerEvidenciasSeguridad", item.evidencias.seguridad, "seguridad");
-  renderSeccionEvidenciaTipos("containerEvidenciasFrio", item.evidencias.frio, "frio");
   renderSeccionEvidenciaTipos("containerEvidenciasCalidad", item.evidencias.calidad, "calidad");
+  renderSeccionEvidenciaTipos("containerEvidenciasFrio", item.evidencias.frio, "frio");
 }
 
 function renderSeccionEvidenciaTipos(containerId, listaTipos, areaKey) {
@@ -671,7 +768,6 @@ function subirFotoEnTipo(input, areaKey, typeIndex) {
     };
 
     item.evidencias[areaKey][typeIndex].fotos.push(nuevaFoto);
-    item.areas[areaKey].status = "ready";
     saveToStorage();
     renderEvidenciasPorTiposModal(item);
   };
@@ -688,7 +784,7 @@ function eliminarFotoDeTipo(areaKey, typeIndex, fotoId) {
   renderEvidenciasPorTiposModal(item);
 }
 
-// 4. PARTICIPANTES & FIRMAS ELECTRÓNICAS
+// PARTICIPANTES Y FIRMA ELECTRÓNICA DNI-e
 function renderParticipantesModal(item) {
   const tbody = document.getElementById("participantesTbody");
   if (!tbody) return;
@@ -701,8 +797,8 @@ function renderParticipantesModal(item) {
       <td>${p.doc}</td>
       <td>
         ${p.firma ? 
-          `<div class="signature-badge signed" onclick="firmarParticipanteModal(${p.id})"><img src="${p.firma}" class="signature-img-sm"> <i class='bx bx-check-double'></i> Firmado</div>` : 
-          `<button type="button" class="signature-badge unsigned" onclick="firmarParticipanteModal(${p.id})"><i class='bx bx-pen'></i> Registrar Firma</button>`
+          `<div class="signature-badge signed" onclick="abrirModalDnieReader(${p.id})"><img src="${p.firma}" class="signature-img-sm"> <i class='bx bx-check-double'></i> Firmado DNI-e</div>` : 
+          `<button type="button" class="signature-badge unsigned" onclick="abrirModalDnieReader(${p.id})"><i class='bx bx-chip'></i> Firmar con DNI-e</button>`
         }
       </td>
       <td style="text-align:right;">
@@ -714,51 +810,196 @@ function renderParticipantesModal(item) {
   `).join("");
 }
 
-function firmarParticipanteModal(pId) {
+// MODAL SELECCIONADOR DE PARTICIPANTES
+function openBuscarParticipanteModal() {
+  document.getElementById("searchParticipanteInput").value = "";
+  mostrarListaBuscadorParticipantes();
+  renderDirectorioParticipantesModal();
+  document.getElementById("modalBuscarParticipanteOverlay").classList.add("open");
+}
+
+function cerrarModalBuscarParticipante() {
+  document.getElementById("modalBuscarParticipanteOverlay").classList.remove("open");
+}
+
+function mostrarListaBuscadorParticipantes() {
+  document.getElementById("viewListaBuscadorParticipantes").style.display = "block";
+  document.getElementById("viewFormularioNuevoParticipante").style.display = "none";
+}
+
+function mostrarFormularioNuevoParticipante() {
+  document.getElementById("viewListaBuscadorParticipantes").style.display = "none";
+  document.getElementById("viewFormularioNuevoParticipante").style.display = "block";
+  
+  // Limpiar campos del sub-formulario
+  document.getElementById("newPartNombre").value = "";
+  document.getElementById("newPartDoc").value = "";
+  document.getElementById("newPartRol").value = "";
+  document.getElementById("newPartEmpresa").value = "SAFCO S.A.C.";
+  document.getElementById("newPartBrevete").value = "";
+  document.getElementById("newPartCorreo").value = "";
+}
+
+function renderDirectorioParticipantesModal(query = "") {
+  const container = document.getElementById("directorioParticipantesListContainer");
+  if (!container) return;
+
+  const search = query.toLowerCase().trim();
+
+  const filtered = directorioParticipantes.filter(p => {
+    if (!search) return true;
+    return p.nombre.toLowerCase().includes(search) ||
+           p.doc.toLowerCase().includes(search) ||
+           p.rol.toLowerCase().includes(search) ||
+           p.empresa.toLowerCase().includes(search);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:2rem 1rem; color:#94a3b8;">
+        <i class='bx bx-user-x' style="font-size:2.5rem; margin-bottom:0.5rem; color:#cbd5e1;"></i>
+        <div style="font-weight:700; font-size:0.9rem;">No se encontraron participantes en el directorio.</div>
+        <p style="font-size:0.78rem; margin-top:0.3rem;">Utilice el botón inferior para registrar un nuevo participante.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(p => `
+    <div class="directory-participant-card">
+      <div style="display:flex; align-items:center; gap:0.85rem;">
+        <div class="participant-avatar-icon">
+          ${p.nombre.charAt(0)}
+        </div>
+        <div>
+          <div style="font-weight:800; color:#0f172a; font-size:0.88rem;">${p.nombre}</div>
+          <div style="font-size:0.75rem; color:#004a4c; font-weight:700;">${p.rol} <span style="color:#64748b; font-weight:400;">(${p.empresa})</span></div>
+          <div style="font-size:0.7rem; color:#64748b;">DNI: <strong>${p.doc}</strong> ${p.brevete ? '| Lic: ' + p.brevete : ''}</div>
+        </div>
+      </div>
+      <button type="button" class="btn-primary-safco" style="padding:0.35rem 0.75rem; font-size:0.75rem; background:#004a4c;" onclick="seleccionarParticipanteDelDirectorio(${p.id})">
+        <i class='bx bx-plus'></i> Seleccionar
+      </button>
+    </div>
+  `).join("");
+}
+
+function seleccionarParticipanteDelDirectorio(pId) {
+  const pData = directorioParticipantes.find(p => p.id === pId);
+  if (!pData) return;
+
+  const item = activeInformes.find(i => i.id === currentInformeId);
+  if (!item) return;
+
+  const existe = item.participantes.find(p => p.doc === pData.doc && p.rol === pData.rol);
+  if (existe) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Participante Ya Registrado',
+      text: `${pData.nombre} (${pData.rol}) ya forma parte de los participantes de este embarque.`,
+      confirmButtonColor: '#004a4c'
+    });
+    return;
+  }
+
+  const nuevoPart = {
+    id: Date.now(),
+    rol: pData.rol,
+    nombre: pData.nombre,
+    empresa: pData.empresa,
+    doc: pData.doc,
+    firma: generateDnieSignatureSvg(pData.nombre, pData.doc)
+  };
+
+  item.participantes.push(nuevoPart);
+  saveToStorage();
+  renderParticipantesModal(item);
+  cerrarModalBuscarParticipante();
+
+  Swal.fire({
+    icon: 'success',
+    title: 'Participante Añadido',
+    text: `${pData.nombre} ha sido agregado al informe.`,
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000
+  });
+}
+
+function guardarNuevoParticipanteDirectorio() {
+  const nombre = document.getElementById("newPartNombre").value.trim();
+  const doc = document.getElementById("newPartDoc").value.trim();
+  const rol = document.getElementById("newPartRol").value.trim();
+  const empresa = document.getElementById("newPartEmpresa").value.trim();
+  const brevete = document.getElementById("newPartBrevete").value.trim();
+  const correo = document.getElementById("newPartCorreo").value.trim();
+
+  if (!nombre || !doc || !rol) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Campos Incompletos',
+      text: 'Por favor complete Nombres, DNI y Rol del participante.',
+      confirmButtonColor: '#004a4c'
+    });
+    return;
+  }
+
+  const nuevoEnDirectorio = {
+    id: Date.now(),
+    nombre: nombre,
+    doc: doc,
+    rol: rol,
+    empresa: empresa || "SAFCO S.A.C.",
+    brevete: brevete || "",
+    correo: correo || ""
+  };
+
+  directorioParticipantes.unshift(nuevoEnDirectorio);
+  seleccionarParticipanteDelDirectorio(nuevoEnDirectorio.id);
+}
+
+function abrirModalDnieReader(pId) {
+  dnieSelectedParticipantId = pId;
   const item = activeInformes.find(i => i.id === currentInformeId);
   if (!item) return;
 
   const part = item.participantes.find(p => p.id === pId);
   if (!part) return;
 
-  // Simular la captura/generación de Firma Electrónica
-  part.firma = generateSignatureSvg(part.nombre);
-  saveToStorage();
-  renderParticipantesModal(item);
+  document.getElementById("dnieNombreText").innerText = part.nombre;
+  document.getElementById("dnieDocText").innerText = part.doc;
+  document.getElementById("dnieRolText").innerText = part.rol;
 
-  Swal.fire({
-    icon: 'success',
-    title: 'Firma Registrada',
-    text: `Se ha registrado la firma electrónica digital para ${part.nombre} (${part.rol}).`,
-    confirmButtonColor: '#004a4c'
-  });
+  document.getElementById("dnieStepInitial").style.display = "block";
+  document.getElementById("dnieStepReading").style.display = "none";
+  document.getElementById("dnieStepSuccess").style.display = "none";
+
+  document.getElementById("modalDnieOverlay").classList.add("open");
 }
 
-function agregarParticipantePrompt() {
-  const item = activeInformes.find(i => i.id === currentInformeId);
-  if (!item) return;
+function simularLecturaChipDnie() {
+  document.getElementById("dnieStepInitial").style.display = "none";
+  document.getElementById("dnieStepReading").style.display = "block";
 
-  const rol = prompt("Ingrese el Rol (ej. Inspector SENASA, Chofer, Recibidor):", "Inspector SENASA");
-  if (!rol) return;
+  setTimeout(() => {
+    const item = activeInformes.find(i => i.id === currentInformeId);
+    if (!item) return;
 
-  const nombre = prompt("Nombre completo del participante:", "Ing. Carlos Varela");
-  if (!nombre) return;
+    const part = item.participantes.find(p => p.id === dnieSelectedParticipantId);
+    if (part) {
+      part.firma = generateDnieSignatureSvg(part.nombre, part.doc);
+      saveToStorage();
+      renderParticipantesModal(item);
+    }
 
-  const empresa = prompt("Empresa / Institución:", "SENASA ICA");
-  const doc = prompt("Documento DNI / Registro:", "21980341");
+    document.getElementById("dnieStepReading").style.display = "none";
+    document.getElementById("dnieStepSuccess").style.display = "block";
+  }, 1800);
+}
 
-  const nuevoPart = {
-    id: Date.now(),
-    rol: rol,
-    nombre: nombre,
-    empresa: empresa || "-",
-    doc: doc || "-",
-    firma: generateSignatureSvg(nombre)
-  };
-
-  item.participantes.push(nuevoPart);
-  saveToStorage();
-  renderParticipantesModal(item);
+function cerrarModalDnie() {
+  document.getElementById("modalDnieOverlay").classList.remove("open");
 }
 
 function eliminarParticipante(pId) {
@@ -770,58 +1011,47 @@ function eliminarParticipante(pId) {
   renderParticipantesModal(item);
 }
 
-function guardarModalInforme() {
+// CONCLUSIONES
+const conclusionesFrecuentesLista = [
+  "La altura de los pallets que conforman la carga siempre está por debajo de la línea límite del contenedor.",
+  "Toda colocación de sensores de frío es realizada exclusivamente por el inspector de SENASA asignado.",
+  "La colocación de precintos de seguridad (SAFCO, SENASA, Línea) se realizó en presencia del chofer y seguridad patrimonial.",
+  "Contenedor reefer inspeccionado en estructura, higiene y sellado hermético en cámara.",
+  "Temperatura de fruta y pulpa verificada en rango conforme para exportación."
+];
+
+function renderConclusionesCheckboxes(item) {
+  const container = document.getElementById("conclusionesChecklistContainer");
+  if (!container) return;
+
+  const seleccionadas = item.conclusionesSeleccionadas || [];
+
+  container.innerHTML = conclusionesFrecuentesLista.map((cText, idx) => {
+    const isChecked = seleccionadas.includes(cText) ? "checked" : "";
+    return `
+      <label style="display:flex; align-items:flex-start; gap:0.5rem; font-size:0.82rem; color:#334155; margin-bottom:0.4rem; cursor:pointer;">
+        <input type="checkbox" value="${cText}" ${isChecked} onchange="toggleConclusionCheck('${cText}', this.checked)">
+        <span>${cText}</span>
+      </label>
+    `;
+  }).join("");
+
+  document.getElementById("editConclusionCustom").value = item.conclusiónCustom || "";
+}
+
+function toggleConclusionCheck(cText, isChecked) {
   const item = activeInformes.find(i => i.id === currentInformeId);
   if (!item) return;
 
-  // Guardar Header
-  item.nroEmbarque = document.getElementById("editNroEmbarque").value;
-  item.contenedor = document.getElementById("editContenedor").value;
-  item.booking = document.getElementById("editBooking").value;
-  item.cliente = document.getElementById("editCliente").value;
-  item.productor = document.getElementById("editProductor").value;
-  item.variedad = document.getElementById("editVariedad").value;
-  item.programa = document.getElementById("editPrograma").value;
-  item.fechaEmbarque = document.getElementById("editFechaEmbarque").value;
-  item.guias = document.getElementById("editGuias").value;
-  item.packingList = document.getElementById("editPackingList").value;
+  if (!item.conclusionesSeleccionadas) item.conclusionesSeleccionadas = [];
 
-  // Guardar Seguridad
-  item.datosSeguridad.placaTractor = document.getElementById("segPlacaTractor").value;
-  item.datosSeguridad.placaCarreta = document.getElementById("segPlacaCarreta").value;
-  item.datosSeguridad.chofer = document.getElementById("segChofer").value;
-  item.datosSeguridad.licencia = document.getElementById("segLicencia").value;
-  item.datosSeguridad.soat = document.getElementById("segSoat").value;
-  item.datosSeguridad.observaciones = document.getElementById("segObs").value;
-
-  // Guardar Frío
-  item.datosFrio.precintoSafco = document.getElementById("frioPrecintoSafco").value;
-  item.datosFrio.precintoSenasa = document.getElementById("frioPrecintoSenasa").value;
-  item.datosFrio.precintoLinea = document.getElementById("frioPrecintoLinea").value;
-  item.datosFrio.horaInicio = document.getElementById("frioHoraInicio").value;
-  item.datosFrio.horaFin = document.getElementById("frioHoraFin").value;
-  item.datosFrio.observaciones = document.getElementById("frioObs").value;
-
-  // Guardar Calidad
-  item.datosCalidad.observaciones = document.getElementById("calObs").value;
-
-  // Guardar Conclusiones
-  const lineas = document.getElementById("editConclusiones").value.split("\n").filter(l => l.trim().length > 0);
-  item.conclusiones = lineas;
-
-  item.estadoGeneral = "Completo";
+  if (isChecked) {
+    if (!item.conclusionesSeleccionadas.includes(cText)) item.conclusionesSeleccionadas.push(cText);
+  } else {
+    item.conclusionesSeleccionadas = item.conclusionesSeleccionadas.filter(c => c !== cText);
+  }
 
   saveToStorage();
-  closeModalInforme();
-  renderTabla();
-  renderTarjetasMovil();
-
-  Swal.fire({
-    icon: 'success',
-    title: 'Informe Guardado',
-    text: 'Se han consolidado los datos del informe de embarque.',
-    confirmButtonColor: '#004a4c'
-  });
 }
 
 function closeModalInforme() {
@@ -836,11 +1066,13 @@ function exportarInformePDF(id) {
   const pdfContainer = document.getElementById("pdfPrintContainer");
   if (!pdfContainer) return;
 
-  // Calcular T° Promedio de Paletas de Calidad
   const paletasCal = item.datosCalidad.paletasEvaluadas || [];
   let sumaT = 0;
   paletasCal.forEach(p => sumaT += parseFloat(p.temp || 0));
   const tempPromCal = paletasCal.length > 0 ? (sumaT / paletasCal.length).toFixed(2) : "0.00";
+
+  const concList = [...(item.conclusionesSeleccionadas || [])];
+  if (item.conclusiónCustom) concList.push(item.conclusiónCustom);
 
   pdfContainer.innerHTML = `
     <div class="pdf-document">
@@ -853,18 +1085,18 @@ function exportarInformePDF(id) {
           <td class="pdf-title-box" style="width: 50%;">
             <h1>AGRICOLA SAFCO S.A.C.</h1>
             <p style="font-size: 1.05rem; font-weight: 800; color: #004a4c; margin-top: 4px;">INFORME DE EMBARQUE GENERAL</p>
-            <p>${item.nroInforme}</p>
+            <p style="font-weight:700; color:#d30c0c;">Instrucción: ${item.instruccionEmbarque}</p>
           </td>
           <td style="width: 25%; font-size: 0.75rem; text-align: right;">
             <strong>Código:</strong> INF-EMB-01<br>
-            <strong>Versión:</strong> 02<br>
+            <strong>Versión:</strong> 03<br>
             <strong>Fecha:</strong> ${item.fechaEmbarque}
           </td>
         </tr>
       </table>
 
       <!-- Datos Principales -->
-      <div class="pdf-section-title">1. INFORMACIÓN GENERAL DEL EMBARQUE</div>
+      <div class="pdf-section-title">1. INFORMACIÓN GENERAL DEL EMBARQUE (INSTRUCCIÓN: ${item.instruccionEmbarque})</div>
       <table class="pdf-meta-table">
         <tr>
           <td class="pdf-meta-label">N° Embarque:</td>
@@ -898,10 +1130,35 @@ function exportarInformePDF(id) {
         </tr>
       </table>
 
-      <!-- Inspección Pre-Embarque (Calidad) - Lista de Paletas -->
-      <div class="pdf-section-title">2. INSPECCIÓN DE PRE-EMBARQUE (CALIDAD)</div>
+      <!-- 1. INSPECCIÓN DE SEGURIDAD PATRIMONIAL -->
+      <div class="pdf-section-title">2. INSPECCIÓN DE SEGURIDAD PATRIMONIAL</div>
+      <table class="pdf-meta-table">
+        <tr>
+          <td class="pdf-meta-label">Dictamen Final:</td>
+          <td style="font-weight:700; color:#059669;">${item.datosSeguridad.dictamen || 'Conforme'}</td>
+          <td class="pdf-meta-label">Estado Validación:</td>
+          <td>${item.areas.seguridad.status === 'ready' ? '✓ CONFIRMADO Y GUARDADO' : 'PENDIENTE'}</td>
+        </tr>
+      </table>
+      <p style="font-size:0.75rem; color:#475569; margin-bottom:0.5rem;">
+        <strong>Observaciones de Seguridad:</strong>
+        <ul style="margin:0.2rem 0 0 1rem; padding:0;">
+          ${(item.datosSeguridad.observaciones || []).map(o => `<li>${o}</li>`).join("")}
+        </ul>
+      </p>
+
+      <!-- 2. INSPECCIÓN DE PRE-EMBARQUE (CALIDAD) -->
+      <div class="pdf-section-title">3. INSPECCIÓN DE PRE-EMBARQUE (CALIDAD)</div>
+      <table class="pdf-meta-table">
+        <tr>
+          <td class="pdf-meta-label">Dictamen Final:</td>
+          <td style="font-weight:700; color:#059669;">${item.datosCalidad.dictamen || 'Conforme'}</td>
+          <td class="pdf-meta-label">T° Pulpa Promedio:</td>
+          <td style="font-weight:700; color:#004a4c;">${tempPromCal} °C</td>
+        </tr>
+      </table>
       <p style="font-size:0.78rem; font-weight:700; color:#004a4c; margin-bottom:0.4rem;">
-        Evaluación de Paletas y Control de Temperatura (T° Promedio Evaluado: <strong>${tempPromCal} °C</strong>):
+        Evaluación de Paletas Evaluadas (${paletasCal.length} paletas):
       </p>
       <table class="pdf-meta-table" style="font-size:0.75rem;">
         <tr style="background:#004a4c; color:white; font-weight:700; text-align:center;">
@@ -927,57 +1184,53 @@ function exportarInformePDF(id) {
       </table>
       <p style="font-size:0.75rem; color:#475569; margin-top:0.3rem;"><strong>Observaciones Calidad:</strong> ${item.datosCalidad.observaciones || 'Conforme.'}</p>
 
-      <!-- Inspección de Frío y Despacho -->
-      <div class="pdf-section-title">3. INSPECCIÓN DE FRÍO Y DESPACHO</div>
+      <!-- 3. INSPECCIÓN DE FRÍO Y DESPACHO -->
+      <div class="pdf-section-title">4. INSPECCIÓN DE FRÍO Y DESPACHO</div>
       <table class="pdf-meta-table">
         <tr>
-          <td class="pdf-meta-label">Hora Inicio:</td>
-          <td>${item.datosFrio.horaInicio || '08:15'}</td>
-          <td class="pdf-meta-label">Hora Fin:</td>
-          <td>${item.datosFrio.horaFin || '10:00'}</td>
-        </tr>
-        <tr>
+          <td class="pdf-meta-label">Dictamen Final:</td>
+          <td style="font-weight:700; color:#059669;">${item.datosFrio.dictamen || 'Conforme'}</td>
           <td class="pdf-meta-label">Precinto SAFCO:</td>
           <td>${item.datosFrio.precintoSafco || 'SAF-99120'}</td>
+        </tr>
+        <tr>
           <td class="pdf-meta-label">Precinto SENASA:</td>
-          <td>${item.datosFrio.precintoSenasa || 'SEN-44102'}</td>
+          <td>${item.datosFrio.precintoSenasa || 'SEN-44103'}</td>
+          <td class="pdf-meta-label">Precinto Línea:</td>
+          <td>${item.datosFrio.precintoLinea || 'HLBU-119283'}</td>
         </tr>
       </table>
 
-      <p style="font-size:0.78rem; font-weight:700; color:#004a4c; margin-top:0.4rem; margin-bottom:0.3rem;">Ubicación de Sensores y Termógrafos:</p>
+      <p style="font-size:0.78rem; font-weight:700; color:#004a4c; margin-top:0.4rem; margin-bottom:0.3rem;">Dispositivos Instalados (Termógrafos y Sensores SENASA):</p>
       <table class="pdf-meta-table" style="font-size:0.75rem;">
         <tr style="background:#f1f5f9; font-weight:700;">
           <td>DISPOSITIVO / TIPO</td>
           <td>CÓDIGO / ID</td>
           <td>UBICACIÓN EN CONTENEDOR</td>
-          <td>ESTADO</td>
         </tr>
         ${(item.datosFrio.dispositivos || []).map(d => `
           <tr>
             <td><strong>${d.tipo}</strong></td>
             <td>${d.codigo}</td>
             <td>${d.ubicacion}</td>
-            <td>${d.estado}</td>
           </tr>
         `).join("")}
       </table>
 
-      <!-- Inspección de Seguridad Patrimonial -->
-      <div class="pdf-section-title">4. INSPECCIÓN DE SEGURIDAD PATRIMONIAL</div>
-      <table class="pdf-meta-table">
-        <tr>
-          <td class="pdf-meta-label">Tractor / Carreta:</td>
-          <td>${item.datosSeguridad.placaTractor || '-'} / ${item.datosSeguridad.placaCarreta || '-'}</td>
-          <td class="pdf-meta-label">Chofer:</td>
-          <td>${item.datosSeguridad.chofer || '-'} (Lic: ${item.datosSeguridad.licencia || '-'})</td>
-        </tr>
-        <tr>
-          <td class="pdf-meta-label">SOAT Vehicular:</td>
-          <td>${item.datosSeguridad.soat || '-'}</td>
-          <td class="pdf-meta-label">Dictamen:</td>
-          <td style="font-weight:700; color:#059669;">Conforme</td>
-        </tr>
-      </table>
+      <!-- ESQUEMA VISUAL DEL CONTENEDOR DENTRO DEL PDF -->
+      <div style="font-size:0.78rem; font-weight:800; color:#004a4c; margin-top:0.6rem; margin-bottom:0.4rem;">DISPOSICIÓN VISUAL DE PALETAS EN CONTENEDOR:</div>
+      <div class="reefer-container-wrapper" style="margin:0 auto 1.25rem auto;">
+        <div class="reefer-container-title">FONDO DEL CONTENEDOR</div>
+        <div class="reefer-grid-pairs">
+          ${(item.datosFrio.esquemaPaletas || []).map(p => `
+            <div class="reefer-pallet-card ${p.estado === 'ok' ? 'status-ok' : (p.estado === 'alert' ? 'status-alert' : 'status-empty')} ${p.pos === 23 ? 'reefer-pallet-23' : ''}">
+              <span class="reefer-pallet-number">${p.pos}</span>
+              <span class="reefer-pallet-code">${p.codigo}</span>
+              ${p.sensor ? `<div class="reefer-sensor-pill">📡 ${p.sensor}</div>` : ''}
+            </div>
+          `).join("")}
+        </div>
+      </div>
 
       <!-- Galería de Evidencias Fotográficas -->
       <div class="pdf-section-title">5. REGISTRO FOTOGRÁFICO DE EVIDENCIAS POR CATEGORÍA</div>
@@ -986,11 +1239,11 @@ function exportarInformePDF(id) {
       <!-- Conclusiones -->
       <div class="pdf-section-title">6. CONCLUSIONES DEL INFORME</div>
       <ul style="font-size:0.8rem; line-height:1.6; color:#334155; padding-left:1.2rem;">
-        ${item.conclusiones.map(c => `<li>${c}</li>`).join("")}
+        ${concList.map(c => `<li>${c}</li>`).join("")}
       </ul>
 
-      <!-- Firmas Electrónicas por Participante -->
-      <div class="pdf-section-title">7. FIRMAS ELECTRÓNICAS DE PARTICIPANTES</div>
+      <!-- Firmas Electrónicas con DNI-e por Participante -->
+      <div class="pdf-section-title">7. FIRMAS DIGITALES CON DNI ELECTRÓNICO (PKI RENIEC)</div>
       <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; text-align: center; font-size: 0.75rem;">
         ${item.participantes.map(p => `
           <div>
@@ -1009,7 +1262,7 @@ function exportarInformePDF(id) {
   if (typeof html2pdf !== 'undefined') {
     const opt = {
       margin:       [0.4, 0.4, 0.4, 0.4],
-      filename:     `Informe_Embarque_${item.nroEmbarque}_${item.contenedor}.pdf`,
+      filename:     `Informe_Embarque_${item.instruccionEmbarque}_${item.contenedor}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }

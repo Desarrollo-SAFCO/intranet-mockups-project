@@ -23,12 +23,9 @@
                 </div>
                 <div class="banner-title-text">
                     <h1>Informe de Embarque General</h1>
-                    <p>Consolidado de inspección de despachos (Calidad, Frío & Seguridad Patrimonial)</p>
+                    <p>Agrupado por Instrucción de Embarque (Consolidado: Seguridad, Calidad & Frío y Despacho)</p>
                 </div>
             </div>
-            <button class="btn-primary-safco" id="btnNuevoInforme">
-                <i class='bx bx-plus-circle'></i> Nuevo Informe General
-            </button>
         </div>
 
         <!-- Barra de Filtros Avanzada -->
@@ -41,6 +38,15 @@
                         <option value="UVA-2025">UVA 2025</option>
                         <option value="UVA-2026">UVA 2026</option>
                         <option value="ARANDANO-2026">ARÁNDANO 2026</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="filterInstruccion">Instrucción de Embarque (Eje)</label>
+                    <select id="filterInstruccion" class="form-select">
+                        <option value="">TODAS LAS INSTRUCCIONES</option>
+                        <option value="ASP001">ASP001</option>
+                        <option value="ASP011">ASP011</option>
+                        <option value="ASP012">ASP012</option>
                     </select>
                 </div>
                 <div class="filter-item">
@@ -69,28 +75,28 @@
                     </select>
                 </div>
                 <div class="filter-item" style="grid-column: span 2;">
-                    <label for="filterSearch">Buscar Contenedor / Embarque / Booking</label>
+                    <label for="filterSearch">Buscar N° Instrucción / Contenedor / Booking</label>
                     <div style="position:relative;">
-                        <input type="text" id="filterSearch" class="form-input" placeholder="Ej. HLBU 963821-7, SAF001..." style="padding-left:2.2rem;">
+                        <input type="text" id="filterSearch" class="form-input" placeholder="Ej. ASP001, HLBU 963821-7..." style="padding-left:2.2rem;">
                         <i class='bx bx-search' style="position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tabla Escritorio Estilo Kendo SAFCO -->
+        <!-- Tabla Escritorio Estilo Kendo SAFCO (Orden: SEG | CAL | FRÍO) -->
         <div class="table-container">
             <table class="table-safco">
                 <thead>
                     <tr>
-                        <th>N° INFORME</th>
+                        <th>INSTRUCCIÓN EMBARQUE</th>
                         <th>FECHA</th>
                         <th>EMBARQUE</th>
                         <th>CONTENEDOR</th>
                         <th>CLIENTE</th>
                         <th>VARIEDAD</th>
                         <th>PARTICIPANTES</th>
-                        <th>AVANCE ÁREAS (CAL | FRÍO | SEG)</th>
+                        <th>AVANCE ÁREAS (SEG | CAL | FRÍO)</th>
                         <th>ESTADO</th>
                         <th>ACCIONES</th>
                     </tr>
@@ -126,13 +132,13 @@
                     <i class='bx bx-show'></i> Vista Unificada (Informe Completo)
                 </button>
                 <button type="button" class="area-tab-btn" data-tab="seguridad" onclick="switchModalTab('seguridad')">
-                    <i class='bx bx-shield-quarter'></i> Área Seguridad Patrimonial
-                </button>
-                <button type="button" class="area-tab-btn" data-tab="frio" onclick="switchModalTab('frio')">
-                    <i class='bx bx-cloud-snow'></i> Área Frío y Despacho
+                    <i class='bx bx-shield-quarter'></i> 1. Área Seguridad Patrimonial
                 </button>
                 <button type="button" class="area-tab-btn" data-tab="calidad" onclick="switchModalTab('calidad')">
-                    <i class='bx bx-checkbox-checked'></i> Área Calidad (Pre-Embarque)
+                    <i class='bx bx-checkbox-checked'></i> 2. Área Calidad (Pre-Embarque)
+                </button>
+                <button type="button" class="area-tab-btn" data-tab="frio" onclick="switchModalTab('frio')">
+                    <i class='bx bx-cloud-snow'></i> 3. Área Frío y Despacho
                 </button>
             </div>
 
@@ -142,10 +148,14 @@
                 <!-- Sección 1: Datos Principales del Embarque -->
                 <div class="form-section-card">
                     <div class="section-head-title">
-                        <span><i class='bx bx-info-circle' style="color:#004a4c;"></i> Datos Principales del Embarque</span>
-                        <span style="font-size:0.75rem; color:#64748b;">Información General</span>
+                        <span><i class='bx bx-info-circle' style="color:#004a4c;"></i> Datos Principales (Instrucción de Embarque)</span>
+                        <span style="font-size:0.75rem; color:#64748b;">Eje Principal del Registro</span>
                     </div>
                     <div class="grid-4col">
+                        <div class="filter-item">
+                            <label style="color:#d30c0c;">Instrucción de Embarque *</label>
+                            <input type="text" id="editInstruccionEmbarque" class="form-input" style="font-weight:800; color:#d30c0c; background:#fef2f2;">
+                        </div>
                         <div class="filter-item">
                             <label>N° Embarque</label>
                             <input type="text" id="editNroEmbarque" class="form-input">
@@ -189,22 +199,78 @@
                     </div>
                 </div>
 
-                <!-- Sección 2: Inspección Pre-Embarque (Calidad) -->
+                <!-- SECCIÓN 2: ÁREA DE SEGURIDAD PATRIMONIAL -->
+                <div class="form-section-card security-section" id="secSeguridad">
+                    <div class="section-head-title">
+                        <span><i class='bx bx-shield-quarter' style="color:#4f46e5;"></i> 1. Inspección de Seguridad Patrimonial</span>
+                        <span class="area-badge ready">Seguridad Patrimonial</span>
+                    </div>
+
+                    <div class="grid-2col" style="margin-bottom:1rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                        <div class="filter-item">
+                            <label>Dictamen Final de Seguridad Patrimonial</label>
+                            <select id="segDictamen" class="form-select" style="font-weight:700; color:#059669;">
+                                <option value="Conforme">CONFORME</option>
+                                <option value="Rechazado">RECHAZADO</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; align-items:flex-end;">
+                            <button type="button" class="btn-secondary-safco" style="width:100%;" onclick="agregarObsSeguridadPrompt()">
+                                <i class='bx bx-plus-circle'></i> + Añadir Observación de Seguridad
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Observaciones Múltiples -->
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:0.3rem;">Observaciones de Seguridad (Múltiples):</label>
+                        <div id="segObsListContainer"></div>
+                    </div>
+
+                    <!-- Evidencias Fotográficas por Tipos (Seguridad) -->
+                    <div style="margin-top:1rem;">
+                        <div class="photo-category-title" style="margin-bottom:0.5rem;"><i class='bx bx-camera'></i> Registro Fotográfico por Tipos de Evidencia (Seguridad)</div>
+                        <div id="containerEvidenciasSeguridad"></div>
+                    </div>
+
+                    <!-- Caja de Confirmación y Guardado por Área con Petición Backend Simulada -->
+                    <div class="area-validation-box" id="segValidationBox">
+                        <div style="display:flex; align-items:center; gap:0.75rem;">
+                            <div id="segValidationIcon" style="font-size:1.5rem; color:#d97706;"><i class='bx bx-time-five'></i></div>
+                            <div>
+                                <div class="validation-title" id="segValidationTitle">Registro de Seguridad Patrimonial</div>
+                                <div id="segValidationMeta" class="validation-meta-text">Aún no se ha enviado la confirmación del área.</div>
+                            </div>
+                        </div>
+                        <div id="segValidationActionBtn">
+                            <button type="button" class="btn-primary-safco" style="background:#4f46e5;" onclick="confirmarAreaBackend('seguridad')">
+                                <i class='bx bx-check-circle'></i> Confirmar y Guardar Registro de Seguridad
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: INSPECCIÓN PRE-EMBARQUE (CALIDAD) -->
                 <div class="form-section-card calidad-section" id="secCalidad">
                     <div class="section-head-title">
-                        <span><i class='bx bx-checkbox-checked' style="color:#05696d;"></i> Inspección de Pre-Embarque (Calidad)</span>
+                        <span><i class='bx bx-checkbox-checked' style="color:#05696d;"></i> 2. Inspección de Pre-Embarque (Calidad)</span>
                         <span class="area-badge ready">Calidad</span>
                     </div>
 
-                    <!-- Lista de Paletas Evaluadas (Sin columnas de Estado ni Acciones) -->
+                    <div class="filter-item" style="margin-bottom:1rem; max-width:300px;">
+                        <label>Dictamen Final de Calidad</label>
+                        <select id="calDictamen" class="form-select" style="font-weight:700; color:#059669;">
+                            <option value="Conforme">CONFORME</option>
+                            <option value="Rechazado">RECHAZADO</option>
+                        </select>
+                    </div>
+
+                    <!-- Lista de Paletas Evaluadas -->
                     <div style="margin-bottom:1rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                        <div style="margin-bottom:0.5rem;">
                             <span style="font-size:0.8rem; font-weight:800; color:#004a4c; text-transform:uppercase;">
-                                <i class='bx bx-list-check'></i> Lista de Paletas Evaluadas | T° Pulpa Promedio: <span id="calTempPromText" style="color:#05696d;">0.00 °C</span>
+                                <i class='bx bx-list-check'></i> Lista de Paletas Evaluadas | T° Pulpa Promedio: <span id="calTempPromText" style="color:#05696d; font-size:0.9rem;">0.00 °C</span>
                             </span>
-                            <button type="button" class="btn-secondary-safco" style="padding:0.25rem 0.65rem; font-size:0.75rem;" onclick="agregarPaletaCalidadPrompt()">
-                                <i class='bx bx-plus'></i> Evaluar Nueva Paleta
-                            </button>
                         </div>
                         <div style="overflow-x:auto;">
                             <table class="pallets-table-safco">
@@ -236,16 +302,39 @@
                         <label>Observaciones del Inspector de Calidad</label>
                         <textarea id="calObs" class="form-input" rows="2" placeholder="Observaciones sobre empaque y pulpa de fruta..."></textarea>
                     </div>
+
+                    <!-- Caja de Confirmación y Guardado por Área con Petición Backend Simulada -->
+                    <div class="area-validation-box" id="calValidationBox">
+                        <div style="display:flex; align-items:center; gap:0.75rem;">
+                            <div id="calValidationIcon" style="font-size:1.5rem; color:#d97706;"><i class='bx bx-time-five'></i></div>
+                            <div>
+                                <div class="validation-title" id="calValidationTitle">Registro de Calidad (Pre-Embarque)</div>
+                                <div id="calValidationMeta" class="validation-meta-text">Aún no se ha enviado la confirmación del área.</div>
+                            </div>
+                        </div>
+                        <div id="calValidationActionBtn">
+                            <button type="button" class="btn-primary-safco" style="background:#05696d;" onclick="confirmarAreaBackend('calidad')">
+                                <i class='bx bx-check-circle'></i> Confirmar y Guardar Registro de Calidad
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Sección 3: Área de Frío y Despacho -->
+                <!-- SECCIÓN 4: ÁREA DE FRÍO Y DESPACHO -->
                 <div class="form-section-card frio-section" id="secFrio">
                     <div class="section-head-title">
-                        <span><i class='bx bx-cloud-snow' style="color:#0284c7;"></i> Inspección de Frío y Despacho</span>
+                        <span><i class='bx bx-cloud-snow' style="color:#0284c7;"></i> 3. Inspección de Frío y Despacho</span>
                         <span class="area-badge ready" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">Frío y Despacho</span>
                     </div>
 
                     <div class="grid-4col" style="margin-bottom:1rem;">
+                        <div class="filter-item">
+                            <label>Dictamen Final de Frío</label>
+                            <select id="frioDictamen" class="form-select" style="font-weight:700; color:#059669;">
+                                <option value="Conforme">CONFORME</option>
+                                <option value="Rechazado">RECHAZADO</option>
+                            </select>
+                        </div>
                         <div class="filter-item">
                             <label>Precinto SAFCO</label>
                             <input type="text" id="frioPrecintoSafco" class="form-input" placeholder="SAF-XXXXX">
@@ -258,24 +347,14 @@
                             <label>Precinto Línea</label>
                             <input type="text" id="frioPrecintoLinea" class="form-input" placeholder="HLBU-XXXXX">
                         </div>
-                        <div class="filter-item">
-                            <label>Hora Inicio / Fin Carguío</label>
-                            <div style="display:flex; gap:0.3rem;">
-                                <input type="time" id="frioHoraInicio" class="form-input">
-                                <input type="time" id="frioHoraFin" class="form-input">
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Mini-tabla de Sensores y Termógrafos -->
                     <div style="margin-bottom:1.25rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                        <div style="margin-bottom:0.5rem;">
                             <span style="font-size:0.8rem; font-weight:800; color:#0284c7; text-transform:uppercase;">
                                 <i class='bx bx-devices'></i> Dispositivos Instalados (Termógrafos & Sensores SENASA)
                             </span>
-                            <button type="button" class="btn-secondary-safco" style="padding:0.25rem 0.65rem; font-size:0.75rem;" onclick="agregarDispositivoFrioPrompt()">
-                                <i class='bx bx-plus'></i> Añadir Dispositivo
-                            </button>
                         </div>
                         <div style="overflow-x:auto;">
                             <table class="participants-table">
@@ -283,9 +362,7 @@
                                     <tr>
                                         <th>DISPOSITIVO / TIPO</th>
                                         <th>CÓDIGO / N° ID</th>
-                                        <th>UBICACIÓN EN CARGA</th>
-                                        <th>ESTADO</th>
-                                        <th style="text-align:right;">ELIMINAR</th>
+                                        <th>UBICACIÓN EN CONTENEDOR</th>
                                     </tr>
                                 </thead>
                                 <tbody id="dispositivosFrioTbody">
@@ -295,13 +372,13 @@
                         </div>
                     </div>
 
-                    <!-- Esquema Visual de Distribución de Paletas en Contenedor -->
-                    <div class="container-loading-diagram">
-                        <div class="container-truck-head">
-                            <i class='bx bx-bus'></i> ESQUEMA VISUAL DE DISTRIBUCIÓN DE PALETAS EN CONTENEDOR REEFER (40 FT)
-                        </div>
-                        <div class="container-pallets-grid" id="contenedorEsquemaGrid">
-                            <!-- Visual grid slot items -->
+                    <!-- ESQUEMA VISUAL DEL CONTENEDOR REEFER -->
+                    <div style="margin-top:1rem; margin-bottom:1.5rem;">
+                        <div class="reefer-container-wrapper">
+                            <div class="reefer-container-title">FONDO DEL CONTENEDOR</div>
+                            <div class="reefer-grid-pairs" id="contenedorEsquemaGridExact">
+                                <!-- Plantilla de paletas 1 a 23 con visual idéntica a imagen -->
+                            </div>
                         </div>
                     </div>
 
@@ -315,54 +392,29 @@
                         <label>Observaciones de Frío y Despacho</label>
                         <textarea id="frioObs" class="form-input" rows="2" placeholder="Observaciones de carguío y precintos..."></textarea>
                     </div>
-                </div>
 
-                <!-- Sección 4: Área de Seguridad Patrimonial -->
-                <div class="form-section-card security-section" id="secSeguridad">
-                    <div class="section-head-title">
-                        <span><i class='bx bx-shield-quarter' style="color:#4f46e5;"></i> Inspección de Seguridad Patrimonial</span>
-                        <span class="area-badge ready">Seguridad Patrimonial</span>
-                    </div>
-                    <div class="grid-3col" style="margin-bottom:1rem;">
-                        <div class="filter-item">
-                            <label>Placa Tractor</label>
-                            <input type="text" id="segPlacaTractor" class="form-input" placeholder="Ej. F4R-892">
+                    <!-- Caja de Confirmación y Guardado por Área con Petición Backend Simulada -->
+                    <div class="area-validation-box" id="frioValidationBox">
+                        <div style="display:flex; align-items:center; gap:0.75rem;">
+                            <div id="frioValidationIcon" style="font-size:1.5rem; color:#d97706;"><i class='bx bx-time-five'></i></div>
+                            <div>
+                                <div class="validation-title" id="frioValidationTitle">Registro de Frío y Despacho</div>
+                                <div id="frioValidationMeta" class="validation-meta-text">Aún no se ha enviado la confirmación del área.</div>
+                            </div>
                         </div>
-                        <div class="filter-item">
-                            <label>Placa Carreta</label>
-                            <input type="text" id="segPlacaCarreta" class="form-input" placeholder="Ej. B9C-771">
+                        <div id="frioValidationActionBtn">
+                            <button type="button" class="btn-primary-safco" style="background:#0284c7;" onclick="confirmarAreaBackend('frio')">
+                                <i class='bx bx-check-circle'></i> Confirmar y Guardar Registro de Frío
+                            </button>
                         </div>
-                        <div class="filter-item">
-                            <label>Chofer Transportista</label>
-                            <input type="text" id="segChofer" class="form-input" placeholder="Nombre completo">
-                        </div>
-                        <div class="filter-item">
-                            <label>Brevete / Licencia</label>
-                            <input type="text" id="segLicencia" class="form-input">
-                        </div>
-                        <div class="filter-item">
-                            <label>N° SOAT</label>
-                            <input type="text" id="segSoat" class="form-input">
-                        </div>
-                    </div>
-
-                    <!-- Evidencias Fotográficas por Tipos (Seguridad) -->
-                    <div style="margin-top:1rem;">
-                        <div class="photo-category-title" style="margin-bottom:0.5rem;"><i class='bx bx-camera'></i> Registro Fotográfico por Tipos de Evidencia (Seguridad)</div>
-                        <div id="containerEvidenciasSeguridad"></div>
-                    </div>
-
-                    <div class="filter-item" style="margin-top:0.8rem;">
-                        <label>Observaciones de Seguridad Patrimonial</label>
-                        <textarea id="segObs" class="form-input" rows="2" placeholder="Observaciones de seguridad..."></textarea>
                     </div>
                 </div>
 
-                <!-- Sección 5: Registro de Participantes y Firma Electrónica -->
+                <!-- Sección 5: Registro de Participantes y Firma Electrónica con DNI-e -->
                 <div class="form-section-card">
                     <div class="section-head-title">
-                        <span><i class='bx bx-group' style="color:#004a4c;"></i> Participantes del Embarque & Firmas Electrónicas</span>
-                        <button type="button" class="btn-secondary-safco" style="padding:0.3rem 0.75rem; font-size:0.75rem;" onclick="agregarParticipantePrompt()">
+                        <span><i class='bx bx-group' style="color:#004a4c;"></i> Participantes del Embarque & Firma Digital DNI-e</span>
+                        <button type="button" class="btn-secondary-safco" style="padding:0.3rem 0.75rem; font-size:0.75rem; color:#004a4c; border-color:#004a4c;" onclick="openBuscarParticipanteModal()">
                             <i class='bx bx-user-plus'></i> Añadir Participante
                         </button>
                     </div>
@@ -374,7 +426,7 @@
                                     <th>NOMBRE Y APELLIDOS</th>
                                     <th>EMPRESA / INSTITUCIÓN</th>
                                     <th>DOCUMENTO</th>
-                                    <th>FIRMA ELECTRÓNICA</th>
+                                    <th>FIRMA DNI-e (SMART CARD)</th>
                                     <th style="text-align:right;">ELIMINAR</th>
                                 </tr>
                             </thead>
@@ -389,11 +441,17 @@
                 <div class="form-section-card">
                     <div class="section-head-title">
                         <span><i class='bx bx-comment-detail' style="color:#004a4c;"></i> Conclusiones del Informe de Embarque</span>
-                        <span style="font-size:0.75rem; color:#64748b;">Predeterminadas & Editables</span>
+                        <span style="font-size:0.75rem; color:#64748b;">Selección de Opciones Frecuentes</span>
                     </div>
+                    
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:0.4rem;">Marque las Conclusiones que aplican a este Embarque:</label>
+                        <div id="conclusionesChecklistContainer" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.85rem;"></div>
+                    </div>
+
                     <div class="filter-item">
-                        <label>Conclusiones (una por línea):</label>
-                        <textarea id="editConclusiones" class="form-input" rows="4"></textarea>
+                        <label>Conclusión Adicional / Personalizada (Opcional):</label>
+                        <input type="text" id="editConclusionCustom" class="form-input" placeholder="Escriba alguna observación final adicional...">
                     </div>
                 </div>
 
@@ -401,15 +459,154 @@
 
             <!-- Footer Modal con Acciones -->
             <div class="modal-bottom-footer">
-                <button type="button" class="btn-secondary-safco" onclick="closeModalInforme()">Cancelar</button>
-                <div style="display:flex; gap:0.5rem;">
-                    <button type="button" class="btn-secondary-safco" style="color:#d30c0c; border-color:#fecaca;" onclick="exportarInformePDF(currentInformeId)">
-                        <i class='bx bxs-file-pdf'></i> Exportar PDF con Firmas
-                    </button>
-                    <button type="button" class="btn-primary-safco" onclick="guardarModalInforme()">
-                        <i class='bx bx-save'></i> Guardar Informe Consolidado
+                <button type="button" class="btn-secondary-safco" onclick="closeModalInforme()">Cerrar</button>
+                <button type="button" class="btn-primary-safco" style="background:#004a4c;" onclick="exportarInformePDF(currentInformeId)">
+                    <i class='bx bxs-file-pdf'></i> Exportar PDF Consolidado con Firmas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SELECCIONADOR DE PARTICIPANTES -->
+    <div class="modal-overlay" id="modalBuscarParticipanteOverlay" style="z-index: 1800;">
+        <div class="modal-container-md">
+            <!-- Header Modal -->
+            <div class="modal-top-header">
+                <h2><i class='bx bx-user-check' style="color:#004a4c;"></i> Seleccionar / Registrar Participante</h2>
+                <button class="btn-action-trigger" onclick="cerrarModalBuscarParticipante()"><i class='bx bx-x' style="font-size:1.5rem;"></i></button>
+            </div>
+
+            <!-- VISTA 1: BUSCADOR EN TIEMPO REAL & LISTA DE DIRECTORIO CORPORATIVO -->
+            <div id="viewListaBuscadorParticipantes" style="display:block; display:flex; flex-direction:column; height:100%; overflow:hidden;">
+                <div style="padding: 1.2rem; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                    <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:0.4rem;">
+                        Buscar en Directorio Corporativo de Personal & Clientes:
+                    </label>
+                    <div style="position:relative;">
+                        <input type="text" id="searchParticipanteInput" class="form-input" placeholder="Buscar por Nombre, DNI, Rol o Empresa..." oninput="renderDirectorioParticipantesModal(this.value)" style="padding-left:2.3rem;">
+                        <i class='bx bx-search' style="position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:1.1rem;"></i>
+                    </div>
+                </div>
+
+                <div class="modal-scroll-body" style="padding:1rem;">
+                    <div id="directorioParticipantesListContainer">
+                        <!-- Tarjetas de Participantes inyectadas dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="modal-bottom-footer" style="justify-content:space-between;">
+                    <button type="button" class="btn-secondary-safco" onclick="cerrarModalBuscarParticipante()">Cancelar</button>
+                    <button type="button" class="btn-primary-safco" style="background:#004a4c;" onclick="mostrarFormularioNuevoParticipante()">
+                        <i class='bx bx-user-plus'></i> + Crear Nuevo Participante
                     </button>
                 </div>
+            </div>
+
+            <!-- VISTA 2: FORMULARIO DE REGISTRO DE NUEVO PARTICIPANTE -->
+            <div id="viewFormularioNuevoParticipante" style="display:none; display:flex; flex-direction:column; height:100%; overflow:hidden;">
+                <div style="padding:1rem 1.2rem; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.9rem; font-weight:800; color:#004a4c;"><i class='bx bx-user-plus'></i> Registrar Nuevo Participante de Embarque</span>
+                    <button type="button" class="btn-secondary-safco" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="mostrarListaBuscadorParticipantes()">
+                        <i class='bx bx-arrow-back'></i> Volver al Directorio
+                    </button>
+                </div>
+
+                <div class="modal-scroll-body" style="padding:1.25rem;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:0.85rem;">
+                        <div class="filter-item" style="grid-column:span 2;">
+                            <label>Nombres y Apellidos *</label>
+                            <input type="text" id="newPartNombre" class="form-input" placeholder="Ej. Roberto Carlos Valenzuela">
+                        </div>
+                        <div class="filter-item">
+                            <label>N° Documento DNI / CE *</label>
+                            <input type="text" id="newPartDoc" class="form-input" placeholder="Ej. 45892019">
+                        </div>
+                        <div class="filter-item">
+                            <label>Rol / Cargo en Embarque *</label>
+                            <select id="newPartRol" class="form-select">
+                                <option value="">SELECCIONE UN ROL</option>
+                                <option value="Inspector SENASA">Inspector SENASA</option>
+                                <option value="Seguridad Patrimonial">Seguridad Patrimonial</option>
+                                <option value="Inspector Calidad">Inspector Calidad</option>
+                                <option value="Supervisor Frío">Supervisor Frío</option>
+                                <option value="Chofer Transportista">Chofer Transportista</option>
+                                <option value="Agente de Aduanas">Agente de Aduanas</option>
+                                <option value="Recibidor / Cliente">Recibidor / Cliente</option>
+                                <option value="Jefe de Operaciones">Jefe de Operaciones</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>Empresa / Institución *</label>
+                            <input type="text" id="newPartEmpresa" class="form-input" value="SAFCO S.A.C." placeholder="Ej. SENASA ICA, TRANS-AGRO, TALSA...">
+                        </div>
+                        <div class="filter-item">
+                            <label>N° Licencia Conducir / Brevete</label>
+                            <input type="text" id="newPartBrevete" class="form-input" placeholder="Ej. Q-45892019 (Obligatorio Chofer)">
+                        </div>
+                        <div class="filter-item" style="grid-column:span 2;">
+                            <label>Correo Electrónico Corporativo</label>
+                            <input type="email" id="newPartCorreo" class="form-input" placeholder="ejemplo@empresa.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-bottom-footer" style="justify-content:space-between;">
+                    <button type="button" class="btn-secondary-safco" onclick="mostrarListaBuscadorParticipantes()">Cancelar</button>
+                    <button type="button" class="btn-primary-safco" style="background:#059669;" onclick="guardarNuevoParticipanteDirectorio()">
+                        <i class='bx bx-check-circle'></i> Guardar y Seleccionar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL SIMULADOR LECTOR SMART CARD DNI-e -->
+    <div class="modal-overlay" id="modalDnieOverlay" style="z-index: 2000;">
+        <div class="dnie-reader-card">
+            <div class="dnie-chip-icon">
+                <i class='bx bx-chip'></i>
+            </div>
+            <h3 style="font-size:1.2rem; font-weight:800; color:#0f172a; margin-bottom:0.3rem;">Firma Digital con DNI Electrónico (DNI-e)</h3>
+            <p style="font-size:0.8rem; color:#64748b; margin-bottom:1.2rem;">Lector de Tarjeta Inteligente USB | PKI RENIEC / SAFCO</p>
+
+            <div style="background:#f1f5f9; border-radius:10px; padding:0.85rem; text-align:left; font-size:0.8rem; margin-bottom:1.2rem;">
+                <div><strong>Participante:</strong> <span id="dnieNombreText"></span></div>
+                <div><strong>Documento DNI:</strong> <span id="dnieDocText" style="font-family:monospace;"></span></div>
+                <div><strong>Cargo / Rol:</strong> <span id="dnieRolText"></span></div>
+            </div>
+
+            <div id="dnieStepInitial">
+                <p style="font-size:0.82rem; color:#475569; margin-bottom:1.2rem;">
+                    Inserte la tarjeta <strong>DNI-e</strong> en el lector externo conectado al equipo y presione el botón para validar el chip.
+                </p>
+                <div style="display:flex; justify-content:center; gap:0.75rem;">
+                    <button type="button" class="btn-secondary-safco" onclick="cerrarModalDnie()">Cancelar</button>
+                    <button type="button" class="btn-primary-safco" style="background:#0284c7;" onclick="simularLecturaChipDnie()">
+                        <i class='bx bx-credit-card-front'></i> Leer Chip DNI-e & Validar
+                    </button>
+                </div>
+            </div>
+
+            <div id="dnieStepReading" style="display:none; padding:1rem 0;">
+                <div style="font-size:2rem; color:#0284c7; margin-bottom:0.5rem;">
+                    <i class='bx bx-loader-alt bx-spin'></i>
+                </div>
+                <div style="font-weight:700; font-size:0.9rem; color:#004a4c;">Leyendo Certificado Digital desde DNI-e...</div>
+                <div style="font-size:0.75rem; color:#64748b; margin-top:0.3rem;">Verificando firma con servicio PKI RENIEC / SAFCO Auth</div>
+            </div>
+
+            <div id="dnieStepSuccess" style="display:none; padding:0.5rem 0;">
+                <div style="font-size:2.5rem; color:#059669; margin-bottom:0.4rem;">
+                    <i class='bx bx-check-circle'></i>
+                </div>
+                <div style="font-weight:800; font-size:1rem; color:#059669; margin-bottom:0.3rem;">¡Firma Digital Verificada con Éxito!</div>
+                <p style="font-size:0.75rem; color:#475569; margin-bottom:1.2rem;">
+                    Se ha estampado el sello de Firma Electrónica con DNI-e en el informe.
+                </p>
+                <button type="button" class="btn-primary-safco" style="background:#059669;" onclick="cerrarModalDnie()">
+                    Aceptar y Cerrar
+                </button>
             </div>
         </div>
     </div>
