@@ -304,7 +304,7 @@ function renderTabla(dataList = activeInformes) {
   if (!tbody) return;
 
   if (dataList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10" style="padding: 2rem; color: #94a3b8;">No se encontraron informes para la Instrucción de Embarque o filtro seleccionado.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="padding: 2rem; color: #94a3b8;">No se encontraron informes para la Instrucción de Embarque o filtro seleccionado.</td></tr>`;
     return;
   }
 
@@ -335,12 +335,8 @@ function renderTabla(dataList = activeInformes) {
             ${badgeSeg} ${badgeCal} ${badgeFrio}
           </div>
         </td>
-        <td>
-          <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:center;">
-            ${statusGeneralBadge}
-            ${resultGeneralBadge}
-          </div>
-        </td>
+        <td>${statusGeneralBadge}</td>
+        <td>${resultGeneralBadge}</td>
         <td>
           <div style="display:flex; justify-content:center; gap:0.35rem;">
             <button class="btn-action-trigger" title="Ver / Editar Informe por Áreas" onclick="openEditarInformeModal('${item.id}', 'all')">
@@ -365,11 +361,23 @@ function renderTarjetasMovil(dataList = activeInformes) {
     return;
   }
 
-  container.innerHTML = dataList.map(item => `
+  container.innerHTML = dataList.map(item => {
+    const statusGeneralBadge = item.estadoGeneral === "Completo" 
+      ? `<span class="area-badge ready"><i class='bx bx-check-circle'></i> COMPLETO</span>`
+      : `<span class="area-badge pending"><i class='bx bx-time-five'></i> EN PROCESO</span>`;
+
+    const resultGeneralBadge = (item.dictamenGeneral || "Conforme") === "Conforme"
+      ? `<span class="area-badge ready" style="background:#dcfce7; color:#15803d; border-color:#86efac;"><i class='bx bx-check-circle'></i> CONFORME</span>`
+      : `<span class="area-badge incomplete" style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;"><i class='bx bx-x-circle'></i> RECHAZADO</span>`;
+
+    return `
     <div class="mobile-card" onclick="openEditarInformeModal('${item.id}', 'all')">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.35rem;">
         <span style="font-weight:800; color:#d30c0c; font-size:0.9rem;">IE: ${item.instruccionEmbarque}</span>
-        <span class="area-badge ${item.estadoGeneral === 'Completo' ? 'ready' : 'pending'}">${item.estadoGeneral}</span>
+        <div style="display:flex; gap:0.35rem;">
+          ${statusGeneralBadge}
+          ${resultGeneralBadge}
+        </div>
       </div>
       <div style="font-size:0.8rem; color:#475569; display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
         <div><strong>Contenedor:</strong> ${item.contenedor}</div>
@@ -388,7 +396,8 @@ function renderTarjetasMovil(dataList = activeInformes) {
         </button>
       </div>
     </div>
-  `).join("");
+  `;
+  }).join("");
 }
 
 function getAreaBadgeHtml(label, status) {

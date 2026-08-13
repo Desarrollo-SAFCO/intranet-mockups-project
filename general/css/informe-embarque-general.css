@@ -12,12 +12,14 @@
   --bg-subtle: #f8fafc;
 }
 
-body {
+body,
+body.dashboard-layout {
   background-color: transparent;
-  font-family: 'Open Sans', sans-serif;
   color: #334155;
   margin: 0;
   padding: 1.8rem;
+  overflow-x: auto;   /* Permite scroll horizontal dentro del iframe */
+  height: auto;       /* Cancela height: 100vh del dashboard-layout global */
 }
 
 /* Header Ejecutivo Banner */
@@ -136,6 +138,28 @@ body {
   border-color: var(--safco-teal);
   background-color: white;
   box-shadow: 0 0 0 3px rgba(0, 74, 76, 0.1);
+}
+
+/* Tabla con Overflow-X Habilitado para Resposivo */
+.table-container {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.table-safco {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table-safco th, .table-safco td {
+  white-space: nowrap;
 }
 
 /* Badges Tri-Área en Tabla */
