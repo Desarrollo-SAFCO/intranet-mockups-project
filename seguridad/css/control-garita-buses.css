@@ -1,0 +1,397 @@
+/* ==========================================================================
+   SAFCO - App Móvil / Tablet para Garita de Seguridad (Control de Buses)
+   ========================================================================== */
+
+:root {
+  --safco-teal: #004a4c;
+  --safco-teal-dark: #003335;
+  --safco-teal-light: #067275;
+  --safco-red: #d80000;
+  --safco-red-hover: #b50000;
+  --safco-green: #10b981;
+  --safco-amber: #f59e0b;
+  --bg-app: #f1f5f9;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+  --shadow-tablet: 0 20px 30px -10px rgba(0, 0, 0, 0.35), 0 0 0 10px #1e293b;
+}
+
+body.garita-body {
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0b132b;
+  min-height: 100vh;
+  margin: 0;
+  padding: 1.5rem 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  color: var(--text-main);
+}
+
+/* Marco Tablet / Móvil de Garita */
+.garita-device-wrapper {
+  width: 100%;
+  max-width: 540px; /* Tamaño ideal Tablet / Smartphone Kiosco */
+  background-color: var(--bg-app);
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: var(--shadow-tablet);
+  display: flex;
+  flex-direction: column;
+  min-height: 840px;
+}
+
+/* Header Móvil de Garita */
+.garita-app-header {
+  background: linear-gradient(135deg, #00383a 0%, var(--safco-teal) 100%);
+  color: #ffffff;
+  padding: 1.25rem 1.25rem 1rem 1.25rem;
+}
+
+.officer-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.5rem 0.85rem;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.officer-info-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.officer-icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--safco-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.officer-text h3 {
+  font-size: 0.95rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.officer-text p {
+  font-size: 0.72rem;
+  margin: 1px 0 0 0;
+  opacity: 0.85;
+}
+
+/* Switch Tabs Ingreso vs Salida */
+.garita-flow-tabs {
+  display: flex;
+  background: #e2e8f0;
+  padding: 4px;
+  border-radius: 12px;
+  margin: 0.75rem 1.25rem;
+  gap: 4px;
+}
+
+.garita-tab-btn {
+  flex: 1;
+  padding: 0.65rem 0.5rem;
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.garita-tab-btn.active {
+  background: var(--card-bg);
+  color: var(--safco-teal);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Contenido Central de Garita */
+.garita-app-content {
+  padding: 0 1.25rem 1.5rem 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Selector de Unidad en Garita */
+.bus-selector-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.bus-selector-card label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.bus-select-control {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  background: #f8fafc;
+  outline: none;
+  cursor: pointer;
+}
+
+.bus-select-control:focus {
+  border-color: var(--safco-teal);
+  box-shadow: 0 0 0 3px rgba(0, 74, 76, 0.15);
+}
+
+/* Resumen del Bus Seleccionado */
+.bus-summary-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 1.15rem;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.bus-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.bus-plate-pill {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: 800;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 8px;
+  letter-spacing: 1px;
+}
+
+.badge-bus-status {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.badge-bus-status.en-camino { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+.badge-bus-status.en-garita { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.badge-bus-status.aprobado { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.badge-bus-status.esperando-salida { background: #fae8ff; color: #86198f; border: 1px solid #f0abfc; }
+
+.bus-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  background: #f8fafc;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-light);
+}
+
+.info-field-item label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  display: block;
+}
+
+.info-field-item span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Panel de Comparación Numérica / Conteo */
+.conteo-validation-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.conteo-box-item {
+  border-radius: 14px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  border: 1.5px solid var(--border-light);
+}
+
+.conteo-box-item.chofer {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.conteo-box-item.garita {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.conteo-box-item label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.conteo-big-display {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--safco-teal);
+  line-height: 1;
+}
+
+.input-conteo-touch {
+  width: 90px;
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  padding: 2px;
+  border: 2px solid #ca8a04;
+  border-radius: 10px;
+  color: #854d0e;
+  outline: none;
+  background: #ffffff;
+}
+
+.input-conteo-touch:focus {
+  box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.2);
+}
+
+/* Bloque de Alerta de Validación Cruzada */
+.lock-warning-banner {
+  background: #eff6ff;
+  border: 1.5px dashed #93c5fd;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  color: #1e40af;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.lock-warning-banner i {
+  font-size: 1.8rem;
+  color: #3b82f6;
+}
+
+/* Campo de Observaciones */
+.obs-input-card {
+  margin-bottom: 1rem;
+}
+
+.obs-input-card label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.obs-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+}
+
+.obs-textarea:focus {
+  border-color: var(--safco-teal);
+}
+
+/* Botón de Confirmación Principal */
+.btn-garita-confirm {
+  width: 100%;
+  padding: 0.95rem;
+  background: var(--safco-teal);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(0, 74, 76, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-garita-confirm:hover:not(:disabled) {
+  background: var(--safco-teal-dark);
+  transform: translateY(-1px);
+}
+
+.btn-garita-confirm:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+/* Feedback de Éxito / Ya Validado */
+.garita-validated-success-card {
+  background: #dcfce7;
+  border: 1.5px solid #86efac;
+  border-radius: 14px;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.garita-validated-success-card h4 {
+  color: #15803d;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+}
+
+.garita-validated-success-card p {
+  color: #166534;
+  font-size: 0.82rem;
+  margin: 0;
+}

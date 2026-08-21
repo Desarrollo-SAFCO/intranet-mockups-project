@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Chofer - Control de Transporte SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/chofer-app.css">
+    <!-- Iconos Boxicons y SweetAlert2 -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="chofer-body">
+
+    <!-- Dispositivo Móvil Mockup -->
+    <div class="mobile-device-wrapper">
+        
+        <!-- Header Móvil Chofer -->
+        <header class="mobile-app-header">
+            <div class="driver-profile-pill">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <div class="driver-avatar-circle">
+                        <i class='bx bx-user'></i>
+                    </div>
+                    <div class="driver-info">
+                        <h3 id="driverName">Carlos Mendoza Vega</h3>
+                        <p id="driverVehicleInfo">AYB-745 • Trans-Pacífico • Cap. 45</p>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px;">
+                    <span style="font-size:0.75rem; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:12px; font-weight:700;">CHÓFER</span>
+                </div>
+            </div>
+
+            <!-- Selector de Servicio Programado -->
+            <div class="trip-selector-box">
+                <label for="selectedTrip"><i class='bx bx-git-branch'></i> Servicio Asignado:</label>
+                <select id="selectedTrip" class="trip-select">
+                    <!-- Dinámico vía JS -->
+                </select>
+            </div>
+        </header>
+
+        <!-- Tabs: Ingreso (Ida) vs Retorno (Vuelta) -->
+        <div class="trip-tabs-container">
+            <button class="trip-tab-btn active" data-tab="ingreso" onclick="switchTripTab('ingreso')">
+                <i class='bx bx-log-in-circle'></i> 1. Ingreso a Planta
+            </button>
+            <button class="trip-tab-btn" data-tab="retorno" onclick="switchTripTab('retorno')">
+                <i class='bx bx-log-out-circle'></i> 2. Retorno (Salida)
+            </button>
+        </div>
+
+        <!-- Contenido Central Dinámico -->
+        <main class="mobile-app-content">
+
+            <!-- Tarjeta KPI de Ocupación y Estado -->
+            <div class="status-kpi-card">
+                <div class="status-badge-row">
+                    <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted);" id="routeNameHeader">Ruta 1 - Cono Norte</span>
+                    <span id="generalStatusBadge" class="badge-status programado">PROGRAMADO</span>
+                </div>
+
+                <div class="passenger-counter-display">
+                    <div>
+                        <span class="counter-number" id="currentPassengerCount">0</span>
+                        <span class="counter-label" id="maxCapacityDisplay">/ 45 asientos</span>
+                    </div>
+                    <span style="font-size:0.8rem; font-weight:700; color:var(--safco-teal);"><i class='bx bx-group'></i> Abordados</span>
+                </div>
+
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="capacityProgressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Simulador de Escaneo de Fotocheck / Lector -->
+            <div class="scanner-container-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                    <span style="font-size:0.8rem; font-weight:700; color:var(--safco-teal);" id="tripSectionTitle">
+                        1. Abordaje de Ingreso (Ida a Planta)
+                    </span>
+                    <i class='bx bx-barcode-reader' style="font-size:1.2rem; color:var(--safco-teal);"></i>
+                </div>
+
+                <!-- Visor Láser de Escaneo -->
+                <div class="scanner-viewport">
+                    <div class="scanner-laser-line"></div>
+                    <i class='bx bx-qr-scan'></i>
+                    <span>Visor de Escáner de Fotocheck Activo</span>
+                </div>
+
+                <!-- Entrada Manual por DNI -->
+                <form class="input-dni-group" onsubmit="handleManualDniSubmit(event)">
+                    <input type="text" id="manualDniInput" class="input-dni" placeholder="DNI o Fotocheck (ej. 72341101)" maxlength="15">
+                    <button type="submit" class="btn-scan">
+                        <i class='bx bx-check'></i> Registrar
+                    </button>
+                </form>
+
+                <!-- Botones de Escaneo Rápido de Prueba (Demos) -->
+                <div class="quick-scan-demo-row">
+                    <span class="quick-scan-title">Simulación rápida de escaneo:</span>
+                    <div class="quick-scan-buttons">
+                        <button type="button" class="btn-quick success" onclick="demoScanCorrectRoute()">
+                            <span>🟢 Pasajero de la Ruta</span>
+                            <small style="color:var(--text-muted); font-size:0.65rem;">Ruta correcta (OK)</small>
+                        </button>
+                        <button type="button" class="btn-quick warning" onclick="demoScanOtherRoute()">
+                            <span>🟡 Pasajero de Otra Ruta</span>
+                            <small style="color:var(--text-muted); font-size:0.65rem;">Alerta Ámbar (Permitir)</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Pasajeros a Bordo -->
+            <div class="passenger-list-card">
+                <div class="passenger-list-header">
+                    <h4><i class='bx bx-list-check'></i> Pasajeros en este Viaje</h4>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">En orden de subida</span>
+                </div>
+
+                <div id="emptyPassengersMsg" style="text-align:center; padding:1.5rem 0.5rem; color:var(--text-muted); font-size:0.8rem;">
+                    <i class='bx bx-user-x' style="font-size:2rem; opacity:0.4; display:block; margin-bottom:4px;"></i>
+                    No hay pasajeros registrados aún.<br>Escanee un fotocheck o inicie el recorrido.
+                </div>
+
+                <div class="passenger-items-container" id="passengerListContainer">
+                    <!-- Dinámico vía JS -->
+                </div>
+            </div>
+
+            <!-- Botones de Acción de Flujo -->
+            <div class="bottom-actions-container" id="tripActionContainer">
+                <!-- Dinámico vía JS -->
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts de Datos y Lógica -->
+    <script src="../js/mock-transportes-data.js"></script>
+    <script src="js/chofer-app.js"></script>
+</body>
+</html>

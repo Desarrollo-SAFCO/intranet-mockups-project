@@ -84,6 +84,16 @@ function applyRolePermissions() {
         }
     });
 
+    // Validar ítems de integración exclusiva para el usuario 'admin'
+    const adminOnlyItems = document.querySelectorAll('[data-admin-only="true"]');
+    adminOnlyItems.forEach(item => {
+        if (user === 'admin') {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
     // Ajustar página inicial del Iframe según el rol
     const iframe = document.querySelector(".content-iframe");
     if (iframe) {

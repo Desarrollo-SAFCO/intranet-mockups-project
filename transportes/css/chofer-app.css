@@ -1,0 +1,530 @@
+/* ==========================================================================
+   SAFCO - App Móvil para Conductor / Chofer de Transporte de Personal
+   ========================================================================== */
+
+:root {
+  --safco-teal: #004a4c;
+  --safco-teal-dark: #003335;
+  --safco-teal-light: #067275;
+  --safco-red: #d80000;
+  --safco-red-hover: #b50000;
+  --safco-green: #10b981;
+  --safco-amber: #f59e0b;
+  --safco-amber-bg: #fef3c7;
+  --safco-red-bg: #fee2e2;
+  --safco-green-bg: #e6f0f0;
+  --bg-app: #f1f5f9;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+body.chofer-body {
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0f172a;
+  min-height: 100vh;
+  margin: 0;
+  padding: 1.5rem 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  color: var(--text-main);
+}
+
+/* Marco Smartphone / Mobile Frame */
+.mobile-device-wrapper {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--bg-app);
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 10px #1e293b;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 860px;
+}
+
+/* Header Móvil */
+.mobile-app-header {
+  background: linear-gradient(135deg, var(--safco-teal) 0%, var(--safco-teal-light) 100%);
+  color: #ffffff;
+  padding: 1.25rem 1rem 1rem 1rem;
+  position: relative;
+}
+
+.driver-profile-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.5rem 0.75rem;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.driver-avatar-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: var(--safco-teal);
+  font-weight: bold;
+  border: 2px solid #ffffff;
+}
+
+.driver-info h3 {
+  font-size: 0.95rem;
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.driver-info p {
+  font-size: 0.75rem;
+  margin: 2px 0 0 0;
+  opacity: 0.88;
+}
+
+.trip-selector-box {
+  margin-top: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+}
+
+.trip-selector-box label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #cbd5e1;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.trip-select {
+  width: 100%;
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.trip-select option {
+  background: #003335;
+  color: white;
+}
+
+/* Tabs de Modo (Ida / Retorno) */
+.trip-tabs-container {
+  display: flex;
+  background: #e2e8f0;
+  padding: 4px;
+  border-radius: 12px;
+  margin: 0.75rem 1rem;
+  gap: 4px;
+}
+
+.trip-tab-btn {
+  flex: 1;
+  padding: 0.6rem;
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.trip-tab-btn.active {
+  background: var(--card-bg);
+  color: var(--safco-teal);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Contenido Principal de la App */
+.mobile-app-content {
+  padding: 0 1rem 1.5rem 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Tarjeta de Estado y Contadores */
+.status-kpi-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
+}
+
+.status-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.badge-status {
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.badge-status.programado { background: #e2e8f0; color: #475569; }
+.badge-status.en-ruta { background: #dbeafe; color: #1d4ed8; }
+.badge-status.llegada { background: #fef3c7; color: #b45309; }
+.badge-status.aprobado { background: #dcfce7; color: #15803d; }
+.badge-status.retorno { background: #fae8ff; color: #86198f; }
+
+.passenger-counter-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.counter-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--safco-teal);
+  line-height: 1;
+}
+
+.counter-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, var(--safco-teal));
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Simulador de Escáner Fotocheck / Lector */
+.scanner-container-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
+}
+
+.scanner-viewport {
+  width: 100%;
+  height: 140px;
+  background: #0f172a;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  border: 2px dashed #38bdf8;
+  margin-bottom: 0.75rem;
+}
+
+.scanner-laser-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #ef4444;
+  box-shadow: 0 0 12px 3px #ef4444;
+  animation: laserScan 2s infinite ease-in-out alternate;
+}
+
+@keyframes laserScan {
+  0% { top: 10%; }
+  100% { top: 85%; }
+}
+
+.scanner-viewport i {
+  font-size: 2.5rem;
+  opacity: 0.6;
+  margin-bottom: 4px;
+}
+
+.scanner-viewport span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.input-dni-group {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.input-dni {
+  flex: 1;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.input-dni:focus {
+  border-color: var(--safco-teal);
+  box-shadow: 0 0 0 3px rgba(0, 74, 76, 0.15);
+}
+
+.btn-scan {
+  background: var(--safco-teal);
+  color: white;
+  border: none;
+  padding: 0 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-scan:hover {
+  background: var(--safco-teal-dark);
+}
+
+/* Botones de Escaneo Rápido de Muestra */
+.quick-scan-demo-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-scan-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quick-scan-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.btn-quick {
+  padding: 0.5rem 0.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: #f8fafc;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.15s ease;
+}
+
+.btn-quick:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.btn-quick.success {
+  border-left: 4px solid #10b981;
+}
+
+.btn-quick.warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.btn-quick.danger {
+  border-left: 4px solid #ef4444;
+}
+
+/* Lista de Pasajeros Registrados */
+.passenger-list-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
+  flex: 1;
+}
+
+.passenger-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.passenger-list-header h4 {
+  font-size: 0.85rem;
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.passenger-items-container {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.passenger-item-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  font-size: 0.78rem;
+  position: relative;
+}
+
+.passenger-item-pill.warn-route {
+  background: #fffbeb;
+  border-color: #fde68a;
+  border-left: 4px solid #f59e0b;
+}
+
+.passenger-item-pill.danger-route {
+  background: #fef2f2;
+  border-color: #fecaca;
+  border-left: 4px solid #ef4444;
+}
+
+.passenger-item-pill.ok-route {
+  border-left: 4px solid #10b981;
+}
+
+.passenger-mini-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.passenger-details-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.passenger-name-text {
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.passenger-sub-info {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.badge-flag {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.badge-flag.warn { background: #fef3c7; color: #b45309; }
+.badge-flag.danger { background: #fee2e2; color: #b91c1c; }
+.badge-flag.ok { background: #dcfce7; color: #15803d; }
+
+/* Botones de Acción de Flujo */
+.bottom-actions-container {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-primary-action {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--safco-red);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(216, 0, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-primary-action:hover {
+  background: var(--safco-red-hover);
+  transform: translateY(-1px);
+}
+
+.btn-secondary-action {
+  width: 100%;
+  padding: 0.75rem;
+  background: #ffffff;
+  color: var(--safco-teal);
+  border: 1px solid var(--safco-teal);
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-secondary-action:hover {
+  background: #f0fdfa;
+}

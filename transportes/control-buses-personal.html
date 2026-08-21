@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Transporte de Personal (Buses) - SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/control-buses.css">
+    <!-- Iconos Boxicons y SweetAlert2 -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="transportes-layout">
+
+    <!-- Cabecera de Página -->
+    <header class="header-top-row">
+        <div style="display:flex; align-items:center; gap: 1rem;">
+            <h1 class="page-main-title">
+                <i class='bx bx-bus-school'></i> Control de Transporte de Personal
+            </h1>
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">(Buses y Rutas de Planta)</span>
+        </div>
+
+        <div class="header-actions-group">
+            <button class="btn btn-secondary" onclick="resetMockDemoData()" title="Restablecer Datos de Demostración">
+                <i class='bx bx-reset'></i> Reset Datos Demo
+            </button>
+            <button class="btn btn-primary" onclick="abrirModalNuevaProgramacion()" style="background-color: var(--safco-red); color: white;">
+                <i class='bx bx-plus-circle'></i> Programar Nuevo Bus
+            </button>
+        </div>
+    </header>
+
+    <!-- Barra de Accesos Rápidos a Simuladores Interconectados -->
+    <div class="quick-simulator-bar">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <i class='bx bx-broadcast' style="color:var(--safco-teal); font-size:1.3rem;"></i>
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-main);">
+                Entorno de Simulación Integrado (3 Roles Conectados en Tiempo Real):
+            </span>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+            <a href="chofer-transporte-app.html" target="_blank" class="simulator-link-btn chofer">
+                <i class='bx bx-mobile-alt'></i> 📱 Abrir App Conductor / Chofer
+            </a>
+            <a href="../seguridad/control-garita-buses.html" target="_blank" class="simulator-link-btn garita">
+                <i class='bx bx-shield-quarter'></i> 🛡️ Abrir Panel Garita Seguridad
+            </a>
+        </div>
+    </div>
+
+    <!-- KPIs del Módulo -->
+    <section class="transportes-kpi-grid">
+        <div class="kpi-box">
+            <div class="kpi-icon teal">
+                <i class='bx bx-bus'></i>
+            </div>
+            <div class="kpi-details">
+                <h4 id="kpiTotalServicios">0</h4>
+                <span>Servicios Programados</span>
+            </div>
+        </div>
+
+        <div class="kpi-box">
+            <div class="kpi-icon green">
+                <i class='bx bx-buildings'></i>
+            </div>
+            <div class="kpi-details">
+                <h4 id="kpiBusesEnPlanta">0</h4>
+                <span>Buses Ingresados en Planta</span>
+            </div>
+        </div>
+
+        <div class="kpi-box">
+            <div class="kpi-icon blue">
+                <i class='bx bx-group'></i>
+            </div>
+            <div class="kpi-details">
+                <h4 id="kpiTotalPasajeros">0 Ida / 0 Ret.</h4>
+                <span>Pasajeros Transportados</span>
+            </div>
+        </div>
+
+        <div class="kpi-box">
+            <div class="kpi-icon amber">
+                <i class='bx bx-error-alt'></i>
+            </div>
+            <div class="kpi-details">
+                <h4 id="kpiIncidenciasRuta">0</h4>
+                <span>Alertas / Desvíos de Ruta</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filtros de Búsqueda -->
+    <section class="filters-panel">
+        <div class="filter-item">
+            <label for="filtroFecha">Fecha del Servicio:</label>
+            <input type="date" id="filtroFecha" class="filter-control" onchange="aplicarFiltros()">
+        </div>
+
+        <div class="filter-item">
+            <label for="filtroTurno">Turno:</label>
+            <select id="filtroTurno" class="filter-control" onchange="aplicarFiltros()">
+                <option value="">TODOS LOS TURNOS</option>
+                <option value="Mañana (06:00 - 15:00)">Mañana (06:00 - 15:00)</option>
+                <option value="Tarde (14:00 - 23:00)">Tarde (14:00 - 23:00)</option>
+                <option value="Noche (22:00 - 06:00)">Noche (22:00 - 06:00)</option>
+            </select>
+        </div>
+
+        <div class="filter-item">
+            <label for="filtroEstado">Estado General:</label>
+            <select id="filtroEstado" class="filter-control" onchange="aplicarFiltros()">
+                <option value="">TODOS LOS ESTADOS</option>
+                <option value="PROGRAMADO">PROGRAMADO</option>
+                <option value="EN_RUTA_IDA">EN RUTA (IDA)</option>
+                <option value="LLEGADA_PLANTA">EN GARITA (IDA)</option>
+                <option value="INGRESADO_GARITA">EN PLANTA (INGRESADO)</option>
+                <option value="EN_RUTA_RETORNO">EN RETORNO</option>
+                <option value="FINALIZADO">FINALIZADO</option>
+            </select>
+        </div>
+
+        <div class="filter-item" style="flex:1; min-width:200px;">
+            <label for="filtroBusqueda">Buscar por Ruta, Placa o Conductor:</label>
+            <input type="text" id="filtroBusqueda" class="filter-control" placeholder="Ej. Cono Norte, AYB-745, Carlos Mendoza..." oninput="aplicarFiltros()">
+        </div>
+
+        <div style="display:flex; align-items:flex-end; gap:6px; margin-top:auto;">
+            <button class="btn btn-secondary" onclick="limpiarFiltros()" style="height:36px; padding:0 12px;">
+                <i class='bx bx-refresh'></i> Limpiar
+            </button>
+        </div>
+    </section>
+
+    <!-- Tabla Principal SAFCO -->
+    <main class="table-container-safco">
+        <table class="table-safco-transportes">
+            <thead>
+                <tr>
+                    <th>ID Servicio</th>
+                    <th>Turno / Fecha</th>
+                    <th>Ruta y Capacidad</th>
+                    <th>Vehículo</th>
+                    <th>Conductor / Empresa</th>
+                    <th>Viaje de Ingreso (Ida)</th>
+                    <th>Viaje de Retorno (Salida)</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="programacionesTbody">
+                <!-- Dinámico vía JS -->
+            </tbody>
+        </table>
+    </main>
+
+    <!-- MODAL: Programar Nuevo Servicio -->
+    <div class="modal-overlay" id="modalProgramacion">
+        <div class="modal-content-box" style="max-width: 650px;">
+            <div class="modal-header-teal">
+                <h3><i class='bx bx-calendar-plus'></i> Programar Servicio de Transporte</h3>
+                <button class="btn-close-modal" onclick="cerrarModalProgramacion()">&times;</button>
+            </div>
+            
+            <form onsubmit="guardarNuevaProgramacion(event)">
+                <div class="modal-body-pad">
+                    <div class="form-grid-2" style="margin-bottom: 1rem;">
+                        <div class="filter-item">
+                            <label for="progFechaInput">Fecha del Servicio:</label>
+                            <input type="date" id="progFechaInput" class="filter-control" required value="2026-08-21">
+                        </div>
+
+                        <div class="filter-item">
+                            <label for="progTurnoSelect">Turno Operativo:</label>
+                            <select id="progTurnoSelect" class="filter-control" required>
+                                <option value="Mañana (06:00 - 15:00)">Mañana (06:00 - 15:00)</option>
+                                <option value="Tarde (14:00 - 23:00)">Tarde (14:00 - 23:00)</option>
+                                <option value="Noche (22:00 - 06:00)">Noche (22:00 - 06:00)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-item" style="margin-bottom: 1rem;">
+                        <label for="progRutaSelect">Ruta Asignada:</label>
+                        <select id="progRutaSelect" class="filter-control" required>
+                            <!-- Dinámico vía JS -->
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="margin-bottom: 1rem;">
+                        <label for="progVehiculoSelect">Vehículo y Conductor:</label>
+                        <select id="progVehiculoSelect" class="filter-control" required>
+                            <!-- Dinámico vía JS -->
+                        </select>
+                    </div>
+
+                    <div style="background:#f1f5f9; padding:0.75rem; border-radius:10px; font-size:0.8rem; color:var(--text-muted);">
+                        <i class='bx bx-info-circle' style="color:var(--safco-teal);"></i> Al guardar la programación, la unidad quedará disponible automáticamente en la <b>App del Conductor</b> para el registro de subida por fotocheck y en el <b>Panel de Garita</b>.
+                    </div>
+                </div>
+
+                <div class="modal-footer-pad">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalProgramacion()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--safco-teal); color: white;">
+                        <i class='bx bx-save'></i> Guardar Programación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Detalle de Pasajeros y Verificación de Garita -->
+    <div class="modal-overlay" id="modalDetallePasajeros">
+        <div class="modal-content-box" style="max-width: 850px;">
+            <div class="modal-header-teal">
+                <div>
+                    <h3 id="detalleModalTitle"><i class='bx bx-id-card'></i> Detalle de Pasajeros</h3>
+                    <p id="detalleModalSubtitle" style="margin:2px 0 0 0; font-size:0.8rem; opacity:0.88;">-</p>
+                </div>
+                <button class="btn-close-modal" onclick="cerrarModalDetallePasajeros()">&times;</button>
+            </div>
+
+            <div class="modal-body-pad">
+                
+                <!-- Selector de Tramo (Ida vs Retorno) -->
+                <div style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">
+                    <button class="btn btn-secondary modal-tab-btn active" data-tab="ingreso" onclick="switchDetalleModalTab('ingreso')">
+                        <i class='bx bx-log-in-circle'></i> Pasajeros de Ingreso (Ida)
+                    </button>
+                    <button class="btn btn-secondary modal-tab-btn" data-tab="retorno" onclick="switchDetalleModalTab('retorno')">
+                        <i class='bx bx-log-out-circle'></i> Pasajeros de Retorno (Salida)
+                    </button>
+                </div>
+
+                <!-- Resumen de Inspección Garita -->
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; background:#f8fafc; border:1px solid var(--border-color); border-radius:12px; padding:0.85rem; margin-bottom:1rem;">
+                    <div>
+                        <span style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; display:block;">Reporte Chofer</span>
+                        <strong id="detalleResumenChofer" style="font-size:1.1rem; color:var(--safco-teal);">-</strong>
+                    </div>
+                    <div>
+                        <span style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; display:block;">Conteo Real Garita</span>
+                        <strong id="detalleResumenGarita" style="font-size:1.1rem; color:#15803d;">-</strong>
+                    </div>
+                    <div>
+                        <span style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; display:block;">Oficial Inspector</span>
+                        <span id="detalleResumenOficial" style="font-size:0.9rem; font-weight:600; color:var(--text-main);">-</span>
+                    </div>
+                </div>
+
+                <!-- Tabla de Colaboradores -->
+                <div style="max-height: 280px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 10px;">
+                    <table class="table-safco-transportes" style="font-size: 0.8rem;">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>DNI</th>
+                                <th>Colaborador</th>
+                                <th>Área</th>
+                                <th>Hora Abordaje</th>
+                                <th>Estado de Ruta / Ingreso</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detallePasajerosTbody">
+                            <!-- Dinámico vía JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer-pad">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalDetallePasajeros()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Datos y Lógica -->
+    <script src="../js/mock-transportes-data.js"></script>
+    <script src="js/control-buses.js"></script>
+</body>
+</html>

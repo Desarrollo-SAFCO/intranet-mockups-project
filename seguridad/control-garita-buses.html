@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Garita - Control de Acceso Buses SAFCO</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/control-garita-buses.css">
+    <!-- Iconos Boxicons y SweetAlert2 -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="garita-body">
+
+    <!-- Dispositivo Tablet / Móvil Garita Mockup -->
+    <div class="garita-device-wrapper">
+        
+        <!-- Header Móvil de Garita -->
+        <header class="garita-app-header">
+            <div class="officer-badge-row">
+                <div class="officer-info-box">
+                    <div class="officer-icon-circle">
+                        <i class='bx bx-shield-quarter'></i>
+                    </div>
+                    <div class="officer-text">
+                        <h3>Of. Roberto Sánchez</h3>
+                        <p>Seguridad • Garita Principal de Planta</p>
+                    </div>
+                </div>
+                <div>
+                    <span style="font-size:0.75rem; background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px; font-weight:800; letter-spacing:0.5px;">GARITA</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Switch de Flujo: Ingreso vs Salida -->
+        <div class="garita-flow-tabs">
+            <button class="garita-tab-btn active" data-mode="ingreso" onclick="setGaritaMode('ingreso')">
+                <i class='bx bx-log-in-circle'></i> 1. Control Ingreso (Ida)
+            </button>
+            <button class="garita-tab-btn" data-mode="salida" onclick="setGaritaMode('salida')">
+                <i class='bx bx-log-out-circle'></i> 2. Control Salida (Retorno)
+            </button>
+        </div>
+
+        <!-- Contenido Central de la App Garita -->
+        <main class="garita-app-content">
+
+            <!-- Selector de Unidad que llega/sale de Garita -->
+            <div class="bus-selector-card">
+                <label for="selectedBusSelect"><i class='bx bx-bus'></i> Seleccionar Unidad en Garita:</label>
+                <select id="selectedBusSelect" class="bus-select-control">
+                    <!-- Dinámico vía JS -->
+                </select>
+            </div>
+
+            <!-- Panel de Resumen y Validación Física -->
+            <div id="garitaBusContent">
+                <!-- Dinámico vía JS -->
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts de Datos y Lógica -->
+    <script src="../js/mock-transportes-data.js"></script>
+    <script src="js/control-garita-buses.js"></script>
+</body>
+</html>

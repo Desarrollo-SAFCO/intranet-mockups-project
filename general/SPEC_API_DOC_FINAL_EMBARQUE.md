@@ -1,6 +1,6 @@
-# Especificación Técnica de APIs para Frontend: Documento General de Embarque y Documentos Finales
+# Especificación Técnica de APIs para Frontend: Documento General de Embarque y Documentos Finales V2
 
-Especificación técnica de integración HTTP y contratos de datos para los módulos de **Documento General de Embarque**, **Inspección Pre-Embarque (Calidad)**, **Inspección de Embarque en Frío (Frío)**, **Inspección de Ingreso de Contenedor (Seguridad Patrimonial)** y **Catálogo de Campañas**.
+Especificación técnica de integración HTTP y contratos de datos actualizada para los módulos de **Documento General de Embarque**, **Conclusiones de Informe Final**, **Inspección Pre-Embarque (Calidad)**, **Inspección de Embarque en Frío (Frío)**, **Inspección de Ingreso de Contenedor (Seguridad Patrimonial)** y **Catálogo de Campañas**.
 
 ---
 
@@ -11,11 +11,11 @@ Aplica a los módulos de Producción, Calidad, Frío y Seguridad Patrimonial:
 
 ```typescript
 {
-  "codigo": string,       // Código de estado ("200" en éxito)
-  "mensaje": string,      // Mensaje descriptivo de la operación
-  "data": T,              // Payload con la entidad, listado o página
+  "codigo": string,       // Código de estado ("200" en éxito, "0" en error)
+  "respuesta": string,    // Mensaje descriptivo de la operación o código de error
+  "data": T,              // Payload con la entidad, listado o página (null en caso de error)
   "cantidad": number,     // Cantidad de elementos devueltos
-  "error": string | null  // Detalle del error en caso de fallo (null en éxito)
+  "error": string | null  // Detalle técnico del error en caso de fallo (null en éxito)
 }
 ```
 
@@ -48,19 +48,19 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
 ### 2.1 Listado de Informe General de Embarque
 - **Método**: `GET`
 - **Ruta**: `/produccion/documento-general-embarque/listado`
-- **Descripción**: Ejecuta el SP `PRODUCCION.listado_informe_embarque_general` y devuelve el listado consolidado y paginado de embarques, incluyendo los vínculos y estados de las 3 inspecciones asociadas.
+- **Descripción**: Ejecuta el SP `PRODUCCION.listado_informe_embarque_general` y devuelve el listado consolidado y paginado de embarques, incluyendo la instrucción de embarque como objeto completo y las 3 inspecciones asociadas.
 - **Cabeceras**: `Authorization: Bearer <token>`, `Accept: application/json`
 
 #### Parámetros Query
 | Parámetro | Tipo | Requerido | Default | Descripción | Ejemplo |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `campana` | `string` | **Sí** | - | Código de campaña activa | `"UV26"` |
-| `idInstruccionEmbarque` | `integer` | No | - | ID de la instrucción de embarque | `1054` |
-| `fechaDesde` | `string` | No | - | Fecha inicio (`YYYY-MM-DD`) | `"2026-01-01"` |
-| `fechaHasta` | `string` | No | - | Fecha fin (`YYYY-MM-DD`) | `"2026-02-28"` |
+| `idInstruccionEmbarque` | `integer` | No | - | ID de la instrucción de embarque | `815` |
+| `fechaDesde` | `string` | No | - | Fecha inicio (`YYYY-MM-DD`) | `"2025-11-01"` |
+| `fechaHasta` | `string` | No | - | Fecha fin (`YYYY-MM-DD`) | `"2025-11-30"` |
 | `idClienteFinal` | `integer` | No | - | ID de la entidad cliente final | `42` |
-| `estadoGeneral` | `string` | No | - | Estado del embarque | `"EMBARCADO"` |
-| `buscador` | `string` | No | - | Filtro rápido (Instrucción / Contenedor / Booking) | `"MSKU1234567"` |
+| `estadoGeneral` | `string` | No | - | Estado del embarque | `"2"` |
+| `buscador` | `string` | No | - | Filtro rápido (Instrucción / Contenedor / Booking) | `"MEDU9638447"` |
 | `pagina` | `integer` | No | `0` | Número de página (0-indexed) | `0` |
 | `size` | `integer` | No | `10` | Tamaño de página | `10` |
 
@@ -72,42 +72,48 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
   "data": {
     "content": [
       {
-        "variedades": "RED GLOBE, SWEET GLOBE",
-        "instruccionEmbarque": "IE-2026-0045",
-        "fecha": "2026-02-14",
-        "contenedor": "MSKU9876543",
-        "cliente": "GLOBAL FRUITS CORP",
+        "variedades": "AUTUMN CRISP",
+        "instruccionEmbarque": {
+          "idInstruccionEmbarque": 815,
+          "fechaEmicion": "2025-11-20 00:00:00",
+          "fechaCarga": "2025-11-21 00:00:00",
+          "nroOrden": "ORD-2025-0815",
+          "observaciones": "Sin observaciones",
+          "poNr": "PO-9921",
+          "embarqueDirecto": "SI",
+          "comision": "0",
+          "anexado": "NO",
+          "idFecha": "2025",
+          "estadoPedido": true,
+          "estado": "1"
+        },
+        "fecha": "2025-11-21",
+        "contenedor": "MEDU9638447",
+        "cliente": "Sociedad Comercial El Espino Ltda",
         "InspeccionIngresoContenedor": {
-          "idInspeccionIngresoContenedor": 150,
+          "idInspeccionIngresoContenedor": 1,
           "campana": "UV26",
-          "conEmbarque": "1",
-          "estadoProceso": "TERMINADO",
+          "conEmbarque": "SI",
+          "estadoProceso": "APROBADO",
           "estado": "1"
         },
-        "InspeccionPreEmbarque": {
-          "idInspeccionPreEmbarque": 320,
-          "packingList": "PL-8890",
-          "nroContenedor": "MSKU9876543",
-          "fecha": "2026-02-14",
-          "observacion": "Sin observaciones de empaque",
-          "estado": "1"
-        },
+        "InspeccionPreEmbarque": null,
         "InspeccionEmbarqueFrio": {
-          "idInspeccionEmbarqueFrio": 410,
+          "idInspeccionEmbarqueFrio": 6,
           "campana": "UV26",
-          "fecha": "2026-02-14",
-          "refContenedor": "MSKU9876543",
-          "packinglistRef": "PL-8890",
-          "observacion": "Temperatura óptima de despacho",
+          "fecha": "2025-11-21",
+          "refContenedor": "MEDU9638447",
+          "packinglistRef": "PL-815",
+          "observacion": "Conforme",
           "estado": "1"
         },
         "resultadoCalidad": {
-          "idResultadoCalidad": 1,
-          "descCorta": "APTO",
-          "descEstadoCalidad": "Aprobado para Embarque",
+          "idResultadoCalidad": 30094,
+          "descCorta": "APROBADO",
+          "descEstadoCalidad": "Aprobado para Exportación",
           "estado": "1"
         },
-        "estado": "1"
+        "estado": "2"
       }
     ],
     "pageable": {
@@ -143,7 +149,7 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
 #### Parámetros Path
 | Parámetro | Tipo | Requerido | Descripción | Ejemplo |
 | :--- | :--- | :--- | :--- | :--- |
-| `idInstruccionEmbarque` | `integer` | **Sí** | ID de la instrucción de embarque | `1054` |
+| `idInstruccionEmbarque` | `integer` | **Sí** | ID de la instrucción de embarque | `815` |
 
 #### Respuesta Exitosa (HTTP 200)
 ```json
@@ -153,15 +159,15 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
   "data": [
     {
       "variedades": "AUTUMN CRISP",
-      "instruccionEmbarque": "IE-2026-0045",
-      "contenedor": "MSKU9876543",
+      "instruccionEmbarque": "ORD-2025-0815",
+      "contenedor": "MEDU9638447",
       "booking": "BKG-992102",
-      "clienteFinal": "VANGUARD DIRECT LLC",
+      "clienteFinal": "Sociedad Comercial El Espino Ltda",
       "productor": "AGROINDUSTRIA SAFCO PERU S.A.",
       "programas": "USA PREMIUM PROGRAM",
-      "fechaEmbarque": "2026-02-14",
+      "fechaEmbarque": "2025-11-21",
       "guiaRemision": "T001-0004921",
-      "packingListDoc": "PL-8890"
+      "packingListDoc": "PL-815"
     }
   ],
   "cantidad": 1,
@@ -188,20 +194,18 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
   "mensaje": "Listado de instrucciones de embarque por campaña obtenido correctamente.",
   "data": [
     {
-      "instruccionEmbarque": {
-        "idInstruccionEmbarque": 1054,
-        "fechaEmicion": "2026-02-10",
-        "fechaCarga": "2026-02-14",
-        "nroOrden": "ORD-2026-1002",
-        "observaciones": "Cadena de frío continua",
-        "poNr": "PO-9941",
-        "embarqueDirecto": "1",
-        "comision": "0",
-        "anexado": "1",
-        "idFecha": "UV26",
-        "estadoPedido": true,
-        "estado": "1"
-      }
+      "idInstruccionEmbarque": 815,
+      "fechaEmicion": "2025-11-20 00:00:00",
+      "fechaCarga": "2025-11-21 00:00:00",
+      "nroOrden": "ORD-2025-0815",
+      "observaciones": "Sin observaciones",
+      "poNr": "PO-9921",
+      "embarqueDirecto": "SI",
+      "comision": "0",
+      "anexado": "NO",
+      "idFecha": "2025",
+      "estadoPedido": true,
+      "estado": "1"
     }
   ],
   "cantidad": 1,
@@ -228,17 +232,15 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
   "mensaje": "Listado de clientes finales por campaña obtenido correctamente.",
   "data": [
     {
-      "entidad": {
-        "idEntidad": 42,
-        "razonSocial": "VANGUARD DIRECT LLC",
-        "direccion": "Bakersfield, CA, USA",
-        "contacto": "John Doe",
-        "email": "import@vanguarddirect.com",
-        "telefono": "+1 661 555 0199",
-        "fax": null,
-        "descAlternativa": "VANGUARD",
-        "estado": "1"
-      }
+      "idEntidad": 42,
+      "razonSocial": "Sociedad Comercial El Espino Ltda",
+      "direccion": "Santiago, Chile",
+      "contacto": "John Doe",
+      "email": "import@elespino.cl",
+      "telefono": "+56 2 2555 0199",
+      "fax": null,
+      "descAlternativa": "EL ESPINO",
+      "estado": "1"
     }
   ],
   "cantidad": 1,
@@ -275,13 +277,13 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
     "idInstruccionEmbarque": 815
   },
   "inspeccionIngresoContenedor": {
-    "idInspeccionIngresoContenedor": 150
+    "idInspeccionIngresoContenedor": 1
   },
   "inspeccionPreEmbarque": {
-    "idInspeccionPreEmbarque": 320
+    "idInspeccionPreEmbarque": 1
   },
   "inspeccionEmbarqueFrio": {
-    "idInspeccionEmbarqueFrio": 410
+    "idInspeccionEmbarqueFrio": 1
   },
   "resultadoCalidad": {
     "idResultadoCalidad": 1
@@ -326,14 +328,14 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
       "estado": "1"
     },
     "inspeccionIngresoContenedor": {
-      "idInspeccionIngresoContenedor": 150,
+      "idInspeccionIngresoContenedor": 1,
       "campana": "UV26",
-      "conEmbarque": "1",
+      "conEmbarque": "SI",
       "estadoProceso": "APROBADO",
       "estado": "1"
     },
     "inspeccionPreEmbarque": {
-      "idInspeccionPreEmbarque": 320,
+      "idInspeccionPreEmbarque": 1,
       "packingList": "PL-8890",
       "nroContenedor": "MSKU9876543",
       "fecha": "2026-02-14",
@@ -341,7 +343,7 @@ Aplica a los endpoints de catálogos generales (`/Produccion/General/GET/*`):
       "estado": "1"
     },
     "inspeccionEmbarqueFrio": {
-      "idInspeccionEmbarqueFrio": 410,
+      "idInspeccionEmbarqueFrio": 1,
       "campana": "UV26",
       "fecha": "2026-02-14",
       "refContenedor": "MSKU9876543",
@@ -391,6 +393,39 @@ Retorna la estructura detallada del `DocumentoGeneralEmbarqueResponseDTO` (idén
 
 ---
 
+### 2.7 Buscar Documento General por sus 3 Inspecciones
+- **Método**: `GET`
+- **Ruta**: `/produccion/documento-general-embarque/buscar-por-inspecciones`
+- **Descripción**: Busca y devuelve el documento general de embarque que coincida exactamente con los IDs de las 3 inspecciones asociadas provistas.
+- **Cabeceras**: `Authorization: Bearer <token>`, `Accept: application/json`
+
+#### Parámetros Query
+| Parámetro | Tipo | Requerido | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| `idIngreso` | `number` | No | ID de la inspección de ingreso | `1` |
+| `idPre` | `number` | No | ID de la inspección pre-embarque | `1` |
+| `idFrio` | `number` | No | ID de la inspección de frío | `1` |
+
+##### Ejemplo de Petición (Request URL):
+`GET /produccion/documento-general-embarque/buscar-por-inspecciones?idIngreso=1&idPre=1&idFrio=1`
+
+#### Respuesta Exitosa (HTTP 200)
+Retorna la estructura detallada de tipo `DocumentoGeneralEmbarqueResponseDTO` (idéntica a la sección 2.5).
+
+#### Respuestas de Error
+- **404 NOT FOUND**: Si no existe ningún documento general que asocie exactamente a las 3 inspecciones provistas.
+  ```json
+  {
+    "codigo": "0",
+    "respuesta": "RECORD_NOT_FOUND",
+    "data": null,
+    "cantidad": null,
+    "error": "No se encontró ningún documento general de embarque con las inspecciones indicadas."
+  }
+  ```
+
+---
+
 ## 3. Módulo 2: Calidad - Inspección Pre-Embarque (Doc Final y Evidencias)
 
 **Ruta Base**: `/calidad/InspeccionPreEmbarque`
@@ -422,7 +457,7 @@ Retorna la estructura detallada del `DocumentoGeneralEmbarqueResponseDTO` (idén
         "idRegistroPaleta": "RP-9011",
         "cantidadRequisitos": 15,
         "cantidadIncidencias": 0,
-        "cliente": "VANGUARD DIRECT LLC",
+        "cliente": "Sociedad Comercial El Espino Ltda",
         "productor": "AGROINDUSTRIA SAFCO PERU S.A.",
         "variedad": "AUTUMN CRISP",
         "tempMuestra": "0.8",
@@ -640,6 +675,165 @@ Retorna la entidad `InspeccionEmbarqueFrioDocFinalResponseDTO` actualizada con e
 
 ---
 
+### 4.4 Buscar Inspección por ID
+- **Método**: `GET`
+- **Ruta**: `/frio/inspeccion-embarque/{id}`
+- **Descripción**: Obtiene los detalles de una inspección por su ID sin palets ni evidencias.
+- **Cabeceras**: `Authorization: Bearer <token>`, `Accept: application/json`
+
+#### Parámetros Path
+| Parámetro | Tipo | Requerido | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | `integer (long)` | **Sí** | ID de la inspección de embarque en frío | `24` |
+
+#### Respuesta Exitosa (HTTP 200)
+```json
+{
+  "codigo": "200",
+  "mensaje": "Búsqueda exitosa",
+  "data": {
+    "idInspeccionEmbarqueFrio": 24,
+    "campana": "UV26",
+    "fecha": "2025-12-15",
+    "refContenedor": "MEDU9638447",
+    "packinglistRef": "PL-815",
+    "observacion": "Observaciones de la inspección",
+    "instruccionEmbarque": {
+      "idInstruccionEmbarque": 815,
+      "fechaEmicion": "2025-12-15 00:00:00",
+      "fechaCarga": null,
+      "nroOrden": "ASP010",
+      "observaciones": null,
+      "poNr": null,
+      "embarqueDirecto": null,
+      "comision": null,
+      "anexado": "1",
+      "idFecha": "UV26",
+      "estadoPedido": true,
+      "estado": "1"
+    },
+    "resultadoCalidad": {
+      "idResultadoCalidad": 30094,
+      "descEstadoCalidad": "CONFORME",
+      "descCorta": "CON",
+      "estado": "1",
+      "fechaCreacion": "2026-08-13 11:41:30",
+      "fechaModificacion": null
+    },
+    "destino": {
+      "idDestino": 1,
+      "descDestino": "VALPARAISO",
+      "descCorta": "VAL",
+      "estado": "1",
+      "fechaCreacion": "2026-08-13 11:41:30",
+      "fechaModificacion": null
+    },
+    "persona": {
+      "idPersona": 60081,
+      "dniPersona": "70080090",
+      "nombres": "JUAN",
+      "apellidoPat": "PEREZ",
+      "apellidoMat": "GOMEZ",
+      "email": "jperez@safco.com",
+      "telefono": "999888777",
+      "tipo": 1,
+      "estado": "1",
+      "urlFirma": "https://storage.safcoperu.com/firmas/juan_perez.png",
+      "nombreCompleto": "JUAN PEREZ GOMEZ",
+      "nombreSimplificado": "J. PEREZ"
+    },
+    "entidad": {
+      "idEntidad": 100,
+      "razonSocial": "TRANSPORTES RAPIDO S.A.",
+      "direccion": "Av. Nicolas de Pierola 123",
+      "contacto": "Pedro Martinez",
+      "email": "contacto@rapido.com",
+      "telefono": "987654321",
+      "fax": null,
+      "descAlternativa": "RAPIDO",
+      "estado": "1"
+    },
+    "estado": "1",
+    "numPallets": 20
+  },
+  "cantidad": 1,
+  "error": null
+}
+```
+
+---
+
+### 4.5 Guardar Detalle para una Inspección específica
+- **Método**: `POST`
+- **Ruta**: `/frio/inspeccion-embarque/{idInspeccion}/detalle`
+- **Descripción**: Crea o actualiza un detalle asociándolo a la inspección de embarque en frío indicada en la URL. Valida que el pallet exista en Nisira para la instrucción de embarque.
+- **Cabeceras**: `Content-Type: application/json`, `Authorization: Bearer <token>`
+
+#### Parámetros Path
+| Parámetro | Tipo | Requerido | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| `idInspeccion` | `integer (long)` | **Sí** | ID de la inspección de embarque en frío padre | `24` |
+
+#### Cuerpo de la Petición (Request Body)
+| Atributo | Tipo | Requerido | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| `idInspeccionEmbarqueFrioDetalle` | `number` | No | ID del detalle (enviar en nulo para registrar uno nuevo, o el ID para actualizar) | `null` |
+| `nroPalletReferencia` | `string` | **Sí** | Número de pallet referenciado (debe existir en el listado de Nisira para la instrucción de embarque del contenedor) | `"ASP01251117081R"` |
+| `sensor` | `string` | No | Termoregistro/sensor colocado en el pallet | `"SENSOR_A"` |
+| `termoRegistro` | `string` | No | Código del termoregistro de frío | `"TERM_01"` |
+| `posicionEnContenedor` | `object` | **Sí** | Ubicación del pallet | `{ "idPosicionEnContenedor": 10 }` |
+| `estado` | `string` | **Sí** | Estado del registro (`"1"` = Activo, `"0"` = Anulado) | `"1"` |
+
+##### Ejemplo de Request Body:
+```json
+{
+  "nroPalletReferencia": "ASP01251117081R",
+  "sensor": "SENSOR_A",
+  "termoRegistro": "TERM_01",
+  "posicionEnContenedor": {
+    "idPosicionEnContenedor": 10
+  },
+  "estado": "1"
+}
+```
+
+#### Respuesta Exitosa (HTTP 200)
+```json
+{
+  "codigo": "200",
+  "mensaje": "Detalle guardado correctamente.",
+  "data": {
+    "idInspeccionEmbarqueFrioDetalle": 105,
+    "idReferenciaPaleta": "RP-9011",
+    "nroPalletReferencia": "ASP01251117081R",
+    "sensor": "SENSOR_A",
+    "termoRegistro": "TERM_01",
+    "posicionEnContenedor": {
+      "idPosicionEnContenedor": 10,
+      "lado": "IZQUIERDA",
+      "posicion": 5
+    },
+    "estado": "1"
+  },
+  "cantidad": 1,
+  "error": null
+}
+```
+
+#### Respuestas de Error
+- **400 BAD REQUEST**: Si el número de pallet referenciado no está registrado en el listado de Nisira para la instrucción de embarque asociada al contenedor.
+  ```json
+  {
+    "codigo": "0",
+    "respuesta": "El número de pallet 'ASP01251117081R' no se encuentra en el listado de pallets de Nisira para la instrucción de embarque 815.",
+    "data": null,
+    "cantidad": null,
+    "error": "BAD_REQUEST"
+  }
+  ```
+
+---
+
 ## 5. Módulo 4: Seguridad Patrimonial - Inspección Ingreso Contenedor
 
 **Ruta Base**: `/SeguridadPatrimonial/InspeccionIngresoContenedor`
@@ -780,7 +974,7 @@ Retorna la entidad `InspeccionEmbarqueFrioDocFinalResponseDTO` actualizada con e
 ### 5.3 Subir Evidencias Visuales de Seguridad Patrimonial
 - **Método**: `POST`
 - **Ruta**: `/SeguridadPatrimonial/InspeccionIngresoContenedor/{idInspeccion}/evidencias-visuales-por-tipo`
-- **Descripción**: Sincroniza fotos agrupadas por tipo de inspección física y de seguridad.
+- **Descripción**: Sincroniza fotos de inspección física y seguridad mediante `multipart/form-data`.
 - **Cabeceras**: `Content-Type: multipart/form-data`
 
 #### Parámetros Path y Form-Data
@@ -1014,5 +1208,5 @@ Retorna la estructura detallada de la conclusión (idéntica a la sección 7.1).
 | **`400 BAD REQUEST`** | Petición inválida | Falta el parámetro obligatorio `campana` o el ID de la inspección en el cuerpo de la petición. |
 | **`401 UNAUTHORIZED`** | No autenticado | Token JWT no enviado o expirado. |
 | **`403 FORBIDDEN`** | Acceso denegado | El usuario no cuenta con los permisos necesarios para la subárea. |
-| **`404 NOT FOUND`** | Recurso no encontrado | El ID de inspección o instrucción de embarque no existe. |
-| **`500 INTERNAL SERVER ERROR`** | Error en servidor | Excepción no controlada en el SP o al almacenar las evidencias multipart. |
+| **`404 NOT FOUND`** | Recurso no encontrado | El ID de inspección, conclusión o instrucción de embarque no existe. |
+| **`500 INTERNAL SERVER ERROR`** | Error en servidor | Excepción no controlada en el SP o al almacenar las evidencias. |
