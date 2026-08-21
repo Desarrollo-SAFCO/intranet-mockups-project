@@ -67,11 +67,30 @@
                         <span class="counter-number" id="currentPassengerCount">0</span>
                         <span class="counter-label" id="maxCapacityDisplay">/ 45 asientos</span>
                     </div>
-                    <span style="font-size:0.8rem; font-weight:700; color:var(--safco-teal);"><i class='bx bx-group'></i> Abordados</span>
+                    <span style="font-size:0.8rem; font-weight:700; color:var(--safco-teal);" id="boardedStatusLabel"><i class='bx bx-group'></i> Abordados</span>
                 </div>
 
                 <div class="progress-bar-track">
                     <div class="progress-bar-fill" id="capacityProgressFill" style="width: 0%;"></div>
+                </div>
+
+                <!-- Desglose Visual Exclusivo para Viaje de Retorno (Asientos Libres vs Ocupados en Ida) -->
+                <div id="returnCapacityBreakdown" class="return-capacity-breakdown" style="display:none;">
+                    <div class="capacity-mini-stat highlight-ingress">
+                        <label>Ingreso (Ida)</label>
+                        <div class="stat-val" id="ingressBasePaxCount">0</div>
+                    </div>
+                    <div class="capacity-mini-stat">
+                        <label>Retorno Hoy</label>
+                        <div class="stat-val" id="returnBoardedPaxCount">0</div>
+                    </div>
+                    <div class="capacity-mini-stat highlight-free">
+                        <label>Asientos Libres</label>
+                        <div class="stat-val" id="availableFreeSeatsCount">0</div>
+                    </div>
+                    <div class="extra-seats-hint" id="extraSeatsMessage">
+                        <i class='bx bx-info-circle'></i> Puede subir hasta <b id="extraSeatsNumber">0</b> personas adicionales
+                    </div>
                 </div>
             </div>
 
@@ -102,15 +121,8 @@
                 <!-- Botones de Escaneo Rápido de Prueba (Demos) -->
                 <div class="quick-scan-demo-row">
                     <span class="quick-scan-title">Simulación rápida de escaneo:</span>
-                    <div class="quick-scan-buttons">
-                        <button type="button" class="btn-quick success" onclick="demoScanCorrectRoute()">
-                            <span>🟢 Pasajero de la Ruta</span>
-                            <small style="color:var(--text-muted); font-size:0.65rem;">Ruta correcta (OK)</small>
-                        </button>
-                        <button type="button" class="btn-quick warning" onclick="demoScanOtherRoute()">
-                            <span>🟡 Pasajero de Otra Ruta</span>
-                            <small style="color:var(--text-muted); font-size:0.65rem;">Alerta Ámbar (Permitir)</small>
-                        </button>
+                    <div class="quick-scan-buttons" id="quickScanButtonsContainer">
+                        <!-- Renderizado dinámico vía JS según modo Ingreso / Retorno -->
                     </div>
                 </div>
             </div>

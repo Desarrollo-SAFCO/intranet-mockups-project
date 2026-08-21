@@ -90,19 +90,19 @@ function renderTripData() {
         if (!tripFlow.iniciado) {
             statusBadge.className = 'badge-status programado';
             statusBadge.textContent = 'EN ESPERA (RETORNO)';
-        } else if (tripFlow.iniciado && !tripFlow.finalizado) {
+        } else if (tripFlow.iniciado && !prg.retorno?.inspeccionGarita?.revisado) {
             statusBadge.className = 'badge-status retorno';
             statusBadge.textContent = 'EN RUTA (RETORNO)';
-        } else if (tripFlow.finalizado && !tripFlow.inspeccionGarita?.revisado) {
-            statusBadge.className = 'badge-status llegada';
-            statusBadge.textContent = 'EN GARITA SALIDA';
+        } else if (prg.retorno?.inspeccionGarita?.revisado && !tripFlow.finalizado) {
+            statusBadge.className = 'badge-status aprobado';
+            statusBadge.textContent = 'SALIDA AUTORIZADA';
         } else {
             statusBadge.className = 'badge-status aprobado';
             statusBadge.textContent = 'RETORNO COMPLETADO';
         }
     }
 
-    // Contadores
+    // Contadores Principales
     const count = tripFlow.pasajeros.length;
     document.getElementById('currentPassengerCount').textContent = count;
     document.getElementById('maxCapacityDisplay').textContent = `/ ${prg.capacidad} asientos`;
@@ -110,11 +110,70 @@ function renderTripData() {
     const percentage = Math.min(100, Math.round((count / prg.capacidad) * 100));
     document.getElementById('capacityProgressFill').style.width = `${percentage}%`;
 
+    // Marcador Visual Exclusivo de Retorno (Asientos de Ingreso vs Libres)
+    const returnBreakdownEl = document.getElementById('returnCapacityBreakdown');
+    const boardedLabel = document.getElementById('boardedStatusLabel');
+
+    if (returnBreakdownEl) {
+        if (isIngreso) {
+            returnBreakdownEl.style.display = 'none';
+            if (boardedLabel) boardedLabel.innerHTML = `<i class='bx bx-group'></i> Abordados (Ida)`;
+        } else {
+            returnBreakdownEl.style.display = 'grid';
+            if (boardedLabel) boardedLabel.innerHTML = `<i class='bx bx-group'></i> Abordados (Retorno)`;
+
+            const ingressBaseCount = prg.ingreso?.pasajeros?.length || 0;
+            const returnBoardedCount = count;
+            const freeSeats = Math.max(0, prg.capacidad - returnBoardedCount);
+
+            document.getElementById('ingressBasePaxCount').textContent = ingressBaseCount;
+            document.getElementById('returnBoardedPaxCount').textContent = returnBoardedCount;
+            document.getElementById('availableFreeSeatsCount').textContent = freeSeats;
+            document.getElementById('extraSeatsNumber').textContent = freeSeats;
+        }
+    }
+
+    // Render Botones de Simulación Rápida de Escaneo
+    renderQuickScanButtons(isIngreso);
+
     // Render Lista de Pasajeros
     renderPassengerList(tripFlow.pasajeros, isIngreso, prg);
 
     // Render Botón de Acción Principal
     renderActionButton(tripFlow, isIngreso, prg);
+}
+
+function renderQuickScanButtons(isIngreso) {
+    const container = document.getElementById('quickScanButtonsContainer');
+    if (!container) return;
+
+    if (isIngreso) {
+        container.innerHTML = `
+            <button type="button" class="btn-quick success" onclick="demoScanCorrectRoute()">
+                <span>🟢 Pasajero de la Ruta</span>
+                <small style="color:var(--text-muted); font-size:0.65rem;">Ruta asignada (OK)</small>
+            </button>
+            <button type="button" class="btn-quick warning" onclick="demoScanOtherRoute()">
+                <span>🟡 Pasajero de Otra Ruta</span>
+                <small style="color:var(--text-muted); font-size:0.65rem;">Alerta Ámbar (Permitir)</small>
+            </button>
+        `;
+    } else {
+        container.innerHTML = `
+            <button type="button" class="btn-quick success" onclick="demoScanCorrectRoute()">
+                <span>🟢 Pasajero con Ingreso</span>
+                <small style="color:var(--text-muted); font-size:0.65rem;">Ingresó en la mañana</small>
+            </button>
+            <button type="button" class="btn-quick danger" onclick="demoScanNoEntryReturn()">
+                <span>🔴 Pasajero SIN Ingreso</span>
+                <small style="color:var(--text-muted); font-size:0.65rem;">Dispara Popup Confirmación</small>
+            </button>
+            <button type="button" class="btn-quick warning" style="grid-column: 1 / -1;" onclick="demoScanOtherRoute()">
+                <span>🟡 Pasajero de Otra Ruta (Retorno)</span>
+                <small style="color:var(--text-muted); font-size:0.65rem;">Alerta Ámbar de Ruta</small>
+            </button>
+        `;
+    }
 }
 
 function renderPassengerList(pasajeros, isIngreso, prg) {
@@ -144,7 +203,10 @@ function renderPassengerList(pasajeros, isIngreso, prg) {
             // En Retorno: Si no tuvo registro de ingreso
             if (p.sinIngresoPrevio) {
                 cardClass = 'passenger-item-pill danger-route';
-                badgeHtml = `<span class="badge-flag danger">⚠️ Sin Ingreso Previo</span>`;
+                badgeHtml = `<span class="badge-flag danger">🔴 Sin Ingreso Previo</span>`;
+            } else {
+                cardClass = 'passenger-item-pill ok-route';
+                badgeHtml = `<span class="badge-flag ok">🟢 Retorno OK</span>`;
             }
         }
 
@@ -404,25 +466,37 @@ function procesarPasajero(query) {
         return;
     }
 
-    // Buscar colaborador
-    const colab = SafcoTransportesDB.findColaboradorByDniOrFotocheck(query);
+    // Buscar colaborador o generar uno mockeado si ingresó un DNI nuevo
+    let colab = SafcoTransportesDB.findColaboradorByDniOrFotocheck(query);
     if (!colab) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Colaborador No Encontrado',
-            text: `No se encontró ningún registro para el DNI/Fotocheck "${query}".`,
-            confirmButtonColor: '#d80000'
-        });
-        return;
+        // Permitir registrar colaboradores escribiendo cualquier DNI válido
+        if (/^\d{8}$/.test(query.trim())) {
+            colab = {
+                dni: query.trim(),
+                nombres: `Colaborador DNI ${query.trim()}`,
+                apellidos: ``,
+                area: `Planta SAFCO`,
+                rutaAsignada: prg.rutaId,
+                fotocheck: `SAF-${query.trim().slice(-4)}`
+            };
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Colaborador No Encontrado',
+                text: `No se encontró ningún registro para el DNI/Fotocheck "${query}".`,
+                confirmButtonColor: '#d80000'
+            });
+            return;
+        }
     }
 
-    // Verificar si ya está abordado en este viaje
+    // Verificar si ya está abordado en este viaje específico
     const alreadyBoarded = tripFlow.pasajeros.some(p => p.dni === colab.dni);
     if (alreadyBoarded) {
         Swal.fire({
             icon: 'warning',
             title: 'Pasajero Ya Registrado',
-            text: `${colab.nombres} ${colab.apellidos} ya fue marcado como abordado en este viaje.`,
+            text: `${colab.nombres} ${colab.apellidos || ''} ya fue marcado como abordado en este viaje.`,
             confirmButtonColor: '#f59e0b'
         });
         return;
@@ -439,7 +513,7 @@ function procesarPasajero(query) {
             // Pasajero normal de la ruta
             tripFlow.pasajeros.push({
                 dni: colab.dni,
-                nombres: `${colab.nombres} ${colab.apellidos}`,
+                nombres: `${colab.nombres} ${colab.apellidos || ''}`.trim(),
                 area: colab.area,
                 rutaAsignada: colab.rutaAsignada,
                 esRutaCorrecta: true,
@@ -465,16 +539,16 @@ function procesarPasajero(query) {
         } else {
             // Pasajero de OTRA ruta -> Alerta Ámbar pero permitir abordaje
             const rutaAsigObj = SafcoTransportesDB.getRutas().find(r => r.id === colab.rutaAsignada);
-            const nombreRutaAsig = rutaAsigObj ? rutaAsigObj.nombre : colab.rutaAsignada;
+            const nombreRutaAsig = rutaAsigObj ? rutaAsigObj.nombre : (colab.rutaAsignada || 'Otra Ruta');
 
             Swal.fire({
                 title: '⚠️ Pasajero de Otra Ruta',
                 html: `
                     <div style="text-align: left; font-size: 0.9rem;">
-                        <p><b>Colaborador:</b> ${colab.nombres} ${colab.apellidos}</p>
+                        <p><b>Colaborador:</b> ${colab.nombres} ${colab.apellidos || ''}</p>
                         <p><b>DNI:</b> ${colab.dni} | <b>Área:</b> ${colab.area}</p>
                         <p style="color: #b45309; font-weight: 700; margin-top: 6px;">
-                            📍 Ruta Asignada: ${nombreRutaAsig}
+                            📍 Ruta Habitual: ${nombreRutaAsig}
                         </p>
                         <p style="color: #004a4c; font-weight: 700;">
                             🚌 Bus Actual: ${prg.rutaNombre}
@@ -494,13 +568,13 @@ function procesarPasajero(query) {
                 if (res.isConfirmed) {
                     tripFlow.pasajeros.push({
                         dni: colab.dni,
-                        nombres: `${colab.nombres} ${colab.apellidos}`,
+                        nombres: `${colab.nombres} ${colab.apellidos || ''}`.trim(),
                         area: colab.area,
                         rutaAsignada: colab.rutaAsignada,
                         esRutaCorrecta: false,
                         horaAbordaje: horaNow,
                         fotocheck: colab.fotocheck,
-                        observacion: `Ruta asignada: ${nombreRutaAsig} (Permitido por chofer)`
+                        observacion: `Ruta habitual: ${nombreRutaAsig} (Permitido por chofer)`
                     });
                     tripFlow.totalChofer = tripFlow.pasajeros.length;
                     SafcoTransportesDB.saveProgramacion(prg);
@@ -526,7 +600,7 @@ function procesarPasajero(query) {
             // Retorno Normal (Tuvo ingreso previo)
             tripFlow.pasajeros.push({
                 dni: colab.dni,
-                nombres: `${colab.nombres} ${colab.apellidos}`,
+                nombres: `${colab.nombres} ${colab.apellidos || ''}`.trim(),
                 area: colab.area,
                 rutaAsignada: colab.rutaAsignada,
                 sinIngresoPrevio: false,
@@ -548,32 +622,32 @@ function procesarPasajero(query) {
                 title: `✅ ${colab.nombres} (Retorno Confirmado)`
             });
         } else {
-            // Retorno de pasajero que NO tuvo ingreso previo -> Alerta Roja pero permitir abordaje
+            // Retorno de pasajero que NO tuvo ingreso previo -> POPUP de confirmación para el chofer
             Swal.fire({
-                title: '⚠️ Sin Registro de Ingreso Previo',
+                title: '⚠️ Pasajero No Registró Ingreso',
                 html: `
                     <div style="text-align: left; font-size: 0.9rem;">
-                        <p><b>Colaborador:</b> ${colab.nombres} ${colab.apellidos}</p>
-                        <p><b>DNI:</b> ${colab.dni} | <b>Área:</b> ${colab.area}</p>
-                        <p style="color: #b91c1c; font-weight: 700; margin-top: 6px; background: #fee2e2; padding: 6px; border-radius: 6px;">
-                            ⛔ Este trabajador no figura en el registro de subida de la mañana (Ida).
-                        </p>
-                        <p style="margin-top: 8px; font-size: 0.82rem; color: #64748b;">
-                            ¿Desea autorizar el abordaje de retorno de todas formas? Se marcará en rojo para trazabilidad de Recursos Humanos.
+                        <p style="margin-bottom:4px;"><b>Colaborador:</b> ${colab.nombres} ${colab.apellidos || ''}</p>
+                        <p style="margin-bottom:4px;"><b>DNI:</b> ${colab.dni} | <b>Área:</b> ${colab.area}</p>
+                        <div style="color: #b91c1c; font-weight: 700; background: #fee2e2; border:1px solid #fca5a5; padding: 8px 12px; border-radius: 8px; margin: 10px 0;">
+                            ⛔ Este colaborador <u>NO registró subida en la mañana</u> (viaje de ida).
+                        </div>
+                        <p style="margin-top: 6px; font-size: 0.84rem; color: #475569;">
+                            ¿Desea autorizar su subida para el retorno? Se agregará con un <b>badge rojo identificador</b> para trazabilidad de Recursos Humanos.
                         </p>
                     </div>
                 `,
-                icon: 'error',
+                icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d80000',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Autorizar Abordaje Retorno',
+                confirmButtonText: 'Sí, Permitir Subida',
                 cancelButtonText: 'Cancelar'
             }).then((res) => {
                 if (res.isConfirmed) {
                     tripFlow.pasajeros.push({
                         dni: colab.dni,
-                        nombres: `${colab.nombres} ${colab.apellidos}`,
+                        nombres: `${colab.nombres} ${colab.apellidos || ''}`.trim(),
                         area: colab.area,
                         rutaAsignada: colab.rutaAsignada,
                         sinIngresoPrevio: true,
@@ -587,10 +661,10 @@ function procesarPasajero(query) {
 
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Retorno Registrado con Observación',
-                        text: `${colab.nombres} registrado con etiqueta roja de 'Sin Ingreso'.`,
+                        title: 'Subida Autorizada con Badge Rojo',
+                        text: `${colab.nombres} registrado con etiqueta de 'Sin Ingreso'.`,
                         confirmButtonColor: '#004a4c',
-                        timer: 2000
+                        timer: 2200
                     });
                 }
             });
@@ -598,51 +672,89 @@ function procesarPasajero(query) {
     }
 }
 
-// Simulaciones rápidas de escaneo
+// Simulaciones rápidas de escaneo (Robustas para cualquier ruta nueva o existente)
 function demoScanCorrectRoute() {
-    // Buscar un colaborador de la ruta asignada que no haya subido
     const prg = SafcoTransportesDB.getProgramacionById(currentTripId);
     if (!prg) return;
 
     const tripFlow = currentMode === 'ingreso' ? prg.ingreso : prg.retorno;
     const colabs = SafcoTransportesDB.getColaboradores();
     
-    const target = colabs.find(c => c.rutaAsignada === prg.rutaId && !tripFlow.pasajeros.some(p => p.dni === c.dni));
-    if (target) {
-        procesarPasajero(target.dni);
-    } else {
-        Swal.fire('Info', 'Todos los pasajeros de la ruta ya fueron abordados.', 'info');
+    // 1. Buscar colaborador de la misma ruta que no esté abordado en este viaje
+    let target = colabs.find(c => c.rutaAsignada === prg.rutaId && !tripFlow.pasajeros.some(p => p.dni === c.dni));
+    
+    // 2. Si no hay (ej. nueva ruta o todos subidos), buscar cualquier colaborador que no esté en este viaje
+    if (!target) {
+        target = colabs.find(c => !tripFlow.pasajeros.some(p => p.dni === c.dni));
+        if (target) {
+            // Asignarle la ruta actual temporalmente para la prueba
+            target = { ...target, rutaAsignada: prg.rutaId };
+        }
     }
+
+    // 3. Si aún no hay, generar uno al vuelo
+    if (!target) {
+        const randomNum = String(Math.floor(1000 + Math.random() * 9000));
+        target = {
+            dni: `7234${randomNum}`,
+            nombres: `Personal Planta ${randomNum}`,
+            apellidos: ``,
+            area: `Empaque / Operaciones`,
+            rutaAsignada: prg.rutaId,
+            fotocheck: `SAF-${randomNum}`
+        };
+    }
+
+    procesarPasajero(target.dni);
 }
 
 function demoScanOtherRoute() {
-    // Buscar colaborador de OTRA ruta
     const prg = SafcoTransportesDB.getProgramacionById(currentTripId);
     if (!prg) return;
 
     const tripFlow = currentMode === 'ingreso' ? prg.ingreso : prg.retorno;
     const colabs = SafcoTransportesDB.getColaboradores();
     
-    const target = colabs.find(c => c.rutaAsignada !== prg.rutaId && !tripFlow.pasajeros.some(p => p.dni === c.dni));
-    if (target) {
-        procesarPasajero(target.dni);
-    } else {
-        Swal.fire('Info', 'No hay colaboradores de otra ruta pendientes de prueba.', 'info');
+    // Buscar colaborador con ruta diferente que no esté en este bus
+    let target = colabs.find(c => c.rutaAsignada !== prg.rutaId && !tripFlow.pasajeros.some(p => p.dni === c.dni));
+    
+    if (!target) {
+        const randomNum = String(Math.floor(5000 + Math.random() * 4000));
+        target = {
+            dni: `7235${randomNum}`,
+            nombres: `Colaborador Turno B (${randomNum})`,
+            apellidos: ``,
+            area: `Sanidad / Campo`,
+            rutaAsignada: prg.rutaId === 'R-01' ? 'R-02' : 'R-01',
+            fotocheck: `SAF-${randomNum}`
+        };
     }
+
+    procesarPasajero(target.dni);
 }
 
 function demoScanNoEntryReturn() {
-    // Buscar colaborador que NO esté en la lista de ingreso
     const prg = SafcoTransportesDB.getProgramacionById(currentTripId);
     if (!prg) return;
 
     const ingresoDnis = (prg.ingreso?.pasajeros || []).map(p => p.dni);
+    const retornoDnis = (prg.retorno?.pasajeros || []).map(p => p.dni);
     const colabs = SafcoTransportesDB.getColaboradores();
     
-    const target = colabs.find(c => !ingresoDnis.includes(c.dni));
-    if (target) {
-        procesarPasajero(target.dni);
-    } else {
-        Swal.fire('Info', 'Todos los colaboradores tienen ingreso registrado.', 'info');
+    // Buscar colaborador que NO esté en la lista de ingreso y que NO haya subido en el retorno
+    let target = colabs.find(c => !ingresoDnis.includes(c.dni) && !retornoDnis.includes(c.dni));
+    
+    if (!target) {
+        const randomNum = String(Math.floor(9000 + Math.random() * 999));
+        target = {
+            dni: `7239${randomNum}`,
+            nombres: `Colaborador Relevo (${randomNum})`,
+            apellidos: ``,
+            area: `Mantenimiento Planta`,
+            rutaAsignada: prg.rutaId,
+            fotocheck: `SAF-${randomNum}`
+        };
     }
+
+    procesarPasajero(target.dni);
 }

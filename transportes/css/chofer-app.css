@@ -234,6 +234,70 @@ body.chofer-body {
   transition: width 0.3s ease;
 }
 
+/* Marcador visual exclusivo de Retorno: Asientos Ocupados en Ida vs Libres */
+.return-capacity-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border-light);
+}
+
+.capacity-mini-stat {
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 0.45rem 0.3rem;
+  text-align: center;
+}
+
+.capacity-mini-stat.highlight-free {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.capacity-mini-stat.highlight-ingress {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.capacity-mini-stat label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.capacity-mini-stat .stat-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.capacity-mini-stat.highlight-free .stat-val {
+  color: #059669;
+}
+
+.capacity-mini-stat.highlight-ingress .stat-val {
+  color: #1d4ed8;
+}
+
+.extra-seats-hint {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #059669;
+  background: #d1fae5;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-align: center;
+}
+
 /* Simulador de Escáner Fotocheck / Lector */
 .scanner-container-card {
   background: var(--card-bg);
