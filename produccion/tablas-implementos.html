@@ -147,6 +147,8 @@
                 </div>
             </div>
         </div>
+    </div>
+
     <!-- Modal Touch: Registro de Nuevo Tipo de Implemento -->
     <div class="modal-backdrop-safco" id="modal-nuevo-tipo">
         <div class="modal-card-safco">
@@ -196,8 +198,8 @@
     <!-- Modal: Editar Implemento -->
     <div class="modal-backdrop-safco" id="modal-editar-herr">
         <div class="modal-card-safco">
-            <div class="modal-card-header" style="background: var(--safco-teal-dark);">
-                <h3><i class='bx bx-edit'></i> Editar Implemento</h3>
+            <div class="modal-card-header" style="background: var(--safco-teal);">
+                <h3><i class='bx bx-edit'></i> Editar Estado de Implemento</h3>
                 <button class="btn-close-safco" onclick="cerrarModal('modal-editar-herr')">&times;</button>
             </div>
             <div class="modal-card-body">
@@ -205,21 +207,22 @@
                 
                 <div class="form-group-safco">
                     <label>Implemento:</label>
-                    <input type="text" id="edit-herr-nombre" class="input-touch" style="width: 100%; font-weight: 700; color: var(--safco-teal);" readonly>
+                    <input type="text" id="edit-herr-nombre" class="input-touch" style="width: 100%; font-weight: 700; color: var(--safco-teal); background: #f8fafc;" readonly>
                 </div>
 
                 <div class="form-group-safco">
                     <label for="edit-herr-estado">Estado de Almacén:</label>
                     <select id="edit-herr-estado" class="select-touch" style="width: 100%;">
-                        <option value="Disponible">🟠 Disponible</option>
+                        <option value="Disponible">🟠 Disponible (En Almacén)</option>
+                        <option value="Asignado">🟢 Asignado (En uso / En Mesa)</option>
                         <option value="Deteriorada">⚪ Deteriorada (No se puede usar)</option>
-                        <option value="Perdida">🔴 Perdida</option>
+                        <option value="Perdida">🔴 Perdida / Extraviada</option>
                     </select>
                 </div>
 
                 <div class="form-group-safco">
                     <label for="edit-herr-descripcion">Observación / Razón de Estado:</label>
-                    <textarea id="edit-herr-descripcion" class="input-touch" style="width: 100%; height: 80px; padding: 0.5rem;" placeholder="Ej: Presenta daño en el resorte, requiere reparación..."></textarea>
+                    <textarea id="edit-herr-descripcion" class="input-touch" style="width: 100%; height: 85px; padding: 0.6rem; font-family: inherit; font-size: 0.88rem;" placeholder="Ej: Presenta daño en el resorte, requiere reparación..."></textarea>
                 </div>
 
                 <div class="modal-card-actions">
@@ -235,8 +238,8 @@
     <!-- Modal: Ver Detalles e Historial de Devoluciones u Observaciones -->
     <div class="modal-backdrop-safco" id="modal-historial-herr">
         <div class="modal-card-safco" style="max-width: 650px;">
-            <div class="modal-card-header">
-                <h3 id="titulo-historial-herr"><i class='bx bx-history'></i> Historial de Devoluciones e Trazabilidad</h3>
+            <div class="modal-card-header" style="background: var(--safco-teal);">
+                <h3 id="titulo-historial-herr"><i class='bx bx-history'></i> Historial de Trazabilidad</h3>
                 <button class="btn-close-safco" onclick="cerrarModal('modal-historial-herr')">&times;</button>
             </div>
             <div class="modal-card-body">
@@ -250,7 +253,7 @@
                     </div>
                 </div>
 
-                <div id="body-historial-herr">
+                <div id="body-historial-herr" style="max-height: 380px; overflow-y: auto; padding: 0.25rem;">
                     <!-- Historial cargado dinámicamente con estado de devolución y observación -->
                 </div>
 
@@ -273,6 +276,15 @@
                 if (!e.target.closest('.action-menu-container')) {
                     document.querySelectorAll('.dropdown-action-menu').forEach(m => m.classList.remove('show'));
                 }
+            });
+
+            // Cerrar modales al hacer clic en el fondo oscuro backdrop
+            document.querySelectorAll('.modal-backdrop-safco').forEach(backdrop => {
+                backdrop.addEventListener('click', (e) => {
+                    if (e.target === backdrop) {
+                        backdrop.classList.remove('active');
+                    }
+                });
             });
         });
 
@@ -504,7 +516,7 @@
 
             document.getElementById('edit-herr-id').value = h.id;
             document.getElementById('edit-herr-nombre').value = `${h.codigo} (${h.tipo})`;
-            document.getElementById('edit-herr-estado').value = (h.estado === 'Asignado') ? 'Disponible' : h.estado;
+            document.getElementById('edit-herr-estado').value = h.estado || 'Disponible';
             document.getElementById('edit-herr-descripcion').value = h.descripcion || '';
 
             document.getElementById('modal-editar-herr').classList.add('active');
@@ -513,7 +525,7 @@
         function guardarEdicionHerramienta() {
             const herrId = document.getElementById('edit-herr-id').value;
             const est = document.getElementById('edit-herr-estado').value;
-            const desc = document.getElementById('edit-herr-descripcion').value;
+            const desc = document.getElementById('edit-herr-descripcion').value.trim();
 
             ProduccionDB.editarHerramienta(herrId, est, desc);
             cerrarModal('modal-editar-herr');
@@ -531,14 +543,32 @@
 
         function verDetallesHistorialHerramienta(herrCodigo) {
             document.querySelectorAll('.dropdown-action-menu').forEach(m => m.classList.remove('show'));
-            document.getElementById('titulo-historial-herr').innerHTML = `<i class='bx bx-history'></i> Historial de Devoluciones - ${herrCodigo}`;
+            document.getElementById('titulo-historial-herr').innerHTML = `<i class='bx bx-history'></i> Trazabilidad - ${herrCodigo}`;
 
             const herrs = ProduccionDB.getHerramientas();
             const hObj = herrs.find(x => x.codigo === herrCodigo);
 
             const historialMap = ProduccionDB.getHistorialHerramientas();
-            const registros = historialMap[herrCodigo] || [];
+            let registros = historialMap[herrCodigo] ? [...historialMap[herrCodigo]] : [];
             const body = document.getElementById('body-historial-herr');
+
+            // Si está asignado actualmente y no tiene entrada activa en el historial, consultar asignación activa
+            if (hObj && hObj.estado === 'Asignado') {
+                const tieneActual = registros.some(r => r.estado && (r.estado.includes('Actual') || r.estado.includes('En uso')));
+                if (!tieneActual) {
+                    const asigList = ProduccionDB.getAsignacionesHerramientas();
+                    const asig = asigList.find(a => a.herramientaCodigo === herrCodigo);
+                    const ops = ProduccionDB.getOperarios();
+                    const op = asig ? ops.find(o => o.id === asig.operarioId) : null;
+                    registros.unshift({
+                        operarioNombre: op ? op.nombre : 'Operario en Línea',
+                        fecha: new Date().toISOString().split('T')[0],
+                        hora: asig ? asig.fechaEntrega : '07:00',
+                        estado: 'En uso (Actual)',
+                        observacion: 'Implemento entregado para la jornada operativa actual.'
+                    });
+                }
+            }
 
             const bannerPoseedor = document.getElementById('banner-ultimo-poseedor');
             const txtTitlePoseedor = document.getElementById('txt-title-poseedor');
@@ -548,11 +578,11 @@
                 bannerPoseedor.style.display = 'block';
                 const ultimoReg = registros[0];
                 const operarioNom = ultimoReg ? ultimoReg.operarioNombre : 'Desconocido';
-                const fechaHoraStr = ultimoReg ? `${ultimoReg.fecha} a las ${ultimoReg.hora}` : 'Sin fecha';
+                const fechaHoraStr = ultimoReg ? `${ultimoReg.fecha} (${ultimoReg.hora})` : 'Sin fecha';
 
                 if (hObj.estado === 'Perdida') {
                     txtTitlePoseedor.innerHTML = `<i class='bx bx-error-alt'></i> ÚLTIMO POSEEDOR DE IMPLEMENTO PERDIDO`;
-                    txtDetallesPoseedor.innerHTML = `El implemento <strong>${herrCodigo}</strong> fue reportado perdido. La última persona registrada a quien se le entregó fue <strong>${operarioNom}</strong> el ${fechaHoraStr}.`;
+                    txtDetallesPoseedor.innerHTML = `El implemento <strong>${herrCodigo}</strong> fue reportado perdido. Última persona registrada: <strong>${operarioNom}</strong> · ${fechaHoraStr}.`;
                 } else {
                     txtTitlePoseedor.innerHTML = `<i class='bx bx-wrench'></i> ÚLTIMO POSEEDOR DE IMPLEMENTO DETERIORADO`;
                     txtDetallesPoseedor.innerHTML = `El implemento <strong>${herrCodigo}</strong> se encuentra deteriorado. Último operario a cargo: <strong>${operarioNom}</strong> (${fechaHoraStr}).`;
@@ -562,23 +592,54 @@
             }
 
             if (registros.length === 0) {
-                body.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--safco-text-muted);">Sin historial de préstamos registrado para este implemento.</div>`;
+                body.innerHTML = `
+                    <div style="text-align: center; color: var(--safco-text-muted); padding: 2rem 1rem;">
+                        <i class='bx bx-history' style="font-size: 2.5rem; color: #94a3b8; display: block; margin-bottom: 0.5rem;"></i>
+                        <strong style="color: var(--safco-text-dark); font-size: 0.95rem;">Sin movimientos previos</strong>
+                        <p style="font-size: 0.82rem; margin-top: 0.3rem;">Este implemento está disponible en almacén sin incidencias ni préstamos registrados.</p>
+                    </div>
+                `;
             } else {
-                let html = `<div style="display: flex; flex-direction: column; gap: 0.6rem;">`;
-                registros.forEach((reg, i) => {
-                    const isActual = reg.estado.includes('Actual');
-                    const isPerdida = reg.estado.includes('Perdida');
-                    const isDeterioro = reg.estado.includes('deterioro') || reg.estado.includes('Deteriorada');
-                    const obsTxt = reg.observacion ? `<div style="font-size: 0.75rem; color: var(--safco-text-dark); margin-top: 0.25rem;">📝 <strong>Observación:</strong> ${reg.observacion}</div>` : '';
+                let html = `<div style="display: flex; flex-direction: column; gap: 0.75rem;">`;
+                registros.forEach((reg) => {
+                    const isActual = reg.estado && (reg.estado.includes('Actual') || reg.estado.includes('En uso'));
+                    const isPerdida = reg.estado && (reg.estado.includes('Perdida') || reg.estado.includes('Perdido'));
+                    const isDeterioro = reg.estado && (reg.estado.includes('deterioro') || reg.estado.includes('Deteriorada'));
+                    
+                    let cardBg = '#f8fafc';
+                    let cardBorder = 'var(--safco-border)';
+                    let borderLeftColor = 'var(--safco-teal)';
+                    let pillCls = 'pill-disponible';
+
+                    if (isPerdida) {
+                        cardBg = '#fff5f5';
+                        cardBorder = '#feb2b2';
+                        borderLeftColor = 'var(--safco-red)';
+                        pillCls = 'pill-perdida';
+                    } else if (isDeterioro) {
+                        cardBg = '#fffaf0';
+                        cardBorder = '#feebc8';
+                        borderLeftColor = '#dd6b20';
+                        pillCls = 'pill-deteriorada';
+                    } else if (isActual) {
+                        cardBg = '#f0fdf4';
+                        cardBorder = '#86efac';
+                        borderLeftColor = 'var(--safco-green)';
+                        pillCls = 'pill-asignado';
+                    }
+
+                    const obsTxt = reg.observacion ? `<div style="font-size: 0.8rem; color: var(--safco-text-dark); margin-top: 0.35rem; background: rgba(0,0,0,0.03); padding: 0.35rem 0.5rem; border-radius: 4px;">📝 <strong>Obs:</strong> ${reg.observacion}</div>` : '';
 
                     html += `
-                        <div style="padding: 0.75rem; background: ${isPerdida || isDeterioro ? '#fff5f5' : (isActual ? 'var(--safco-green-light)' : '#f8fafc')}; border: 1px solid ${isPerdida || isDeterioro ? '#feb2b2' : (isActual ? 'var(--safco-green)' : 'var(--safco-border)')}; border-radius: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="padding: 0.85rem; background: ${cardBg}; border: 1px solid ${cardBorder}; border-left: 4px solid ${borderLeftColor}; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
                                 <div>
-                                    <div style="font-weight: 700; color: var(--safco-text-dark);">${reg.operarioNombre}</div>
-                                    <div style="font-size: 0.75rem; color: var(--safco-text-muted);">Fecha: ${reg.fecha} · Hora: ${reg.hora}</div>
+                                    <div style="font-weight: 700; color: var(--safco-text-dark); font-size: 0.92rem;">${reg.operarioNombre}</div>
+                                    <div style="font-size: 0.75rem; color: var(--safco-text-muted); margin-top: 0.15rem;">
+                                        <i class='bx bx-calendar'></i> ${reg.fecha} &nbsp;·&nbsp; <i class='bx bx-time-five'></i> ${reg.hora}
+                                    </div>
                                 </div>
-                                <span class="mesa-status-pill ${isPerdida ? 'pill-perdida' : (isDeterioro ? 'pill-deteriorada' : (isActual ? 'pill-asignado' : 'pill-disponible'))}">${reg.estado}</span>
+                                <span class="mesa-status-pill ${pillCls}">${reg.estado}</span>
                             </div>
                             ${obsTxt}
                         </div>

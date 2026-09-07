@@ -33,21 +33,21 @@ body.garita-body {
 /* Marco Tablet / Móvil de Garita */
 .garita-device-wrapper {
   width: 100%;
-  max-width: 540px; /* Tamaño ideal Tablet / Smartphone Kiosco */
+  max-width: 560px; /* Tamaño ideal Tablet / Smartphone Kiosco */
   background-color: var(--bg-app);
   border-radius: 32px;
   overflow: hidden;
   box-shadow: var(--shadow-tablet);
   display: flex;
   flex-direction: column;
-  min-height: 840px;
+  min-height: 860px;
 }
 
 /* Header Móvil de Garita */
 .garita-app-header {
   background: linear-gradient(135deg, #00383a 0%, var(--safco-teal) 100%);
   color: #ffffff;
-  padding: 1.25rem 1.25rem 1rem 1.25rem;
+  padding: 1.15rem 1.15rem 0.85rem 1.15rem;
 }
 
 .officer-badge-row {
@@ -55,10 +55,11 @@ body.garita-body {
   justify-content: space-between;
   align-items: center;
   background: rgba(255, 255, 255, 0.12);
-  padding: 0.5rem 0.85rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 14px;
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 0.75rem;
 }
 
 .officer-info-box {
@@ -68,28 +69,137 @@ body.garita-body {
 }
 
 .officer-icon-circle {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: #ffffff;
   color: var(--safco-teal);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: bold;
 }
 
 .officer-text h3 {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   margin: 0;
   font-weight: 700;
 }
 
 .officer-text p {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   margin: 1px 0 0 0;
   opacity: 0.85;
+}
+
+/* Selector Táctil de Días de la Semana en Garita */
+.garita-week-ribbon-container {
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 14px;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.week-ribbon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  margin-bottom: 0.4rem;
+  opacity: 0.9;
+}
+
+.ribbon-title {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.ribbon-date-range {
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+.week-ribbon-pills {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.week-ribbon-pills::-webkit-scrollbar {
+  height: 3px;
+}
+.week-ribbon-pills::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.garita-day-pill-btn {
+  flex: 1;
+  min-width: 52px;
+  padding: 0.35rem 0.2rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.garita-day-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.garita-day-pill-btn.active {
+  background: #ffffff;
+  color: var(--safco-teal);
+  border-color: #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.garita-day-pill-btn .pill-day-name {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.garita-day-pill-btn .pill-day-num {
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.garita-day-pill-btn.is-today::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--safco-red);
+}
+
+.garita-day-pill-btn .pill-buses-indicator {
+  font-size: 0.62rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+.garita-day-pill-btn.active .pill-buses-indicator {
+  color: var(--safco-teal-dark);
+  font-weight: 800;
 }
 
 /* Switch Tabs Ingreso vs Salida */
@@ -98,7 +208,7 @@ body.garita-body {
   background: #e2e8f0;
   padding: 4px;
   border-radius: 12px;
-  margin: 0.75rem 1.25rem;
+  margin: 0.75rem 1.15rem 0.25rem 1.15rem;
   gap: 4px;
 }
 
@@ -127,7 +237,7 @@ body.garita-body {
 
 /* Contenido Central de Garita */
 .garita-app-content {
-  padding: 0 1.25rem 1.5rem 1.25rem;
+  padding: 0.75rem 1.15rem 1.5rem 1.15rem;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -138,19 +248,34 @@ body.garita-body {
 .bus-selector-card {
   background: var(--card-bg);
   border-radius: 16px;
-  padding: 1rem;
+  padding: 0.9rem 1rem;
   border: 1px solid var(--border-light);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
-.bus-selector-card label {
+.selector-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.selector-title-row label {
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  display: block;
-  margin-bottom: 6px;
+}
+
+.selected-day-indicator {
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
 }
 
 .bus-select-control {

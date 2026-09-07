@@ -1,15 +1,20 @@
 /**
- * SAFCO - Lógica de la App Móvil / Tablet para Garita de Seguridad
- * Validación cruzada estricta y resumen numérico simplificado
+ * SAFCO - Lógica de Garita de Seguridad (Control Físico y Validación de Buses)
+ * Sincronizado en tiempo real con las programaciones del Área de Transportes
  */
 
 let garitaMode = 'ingreso'; // 'ingreso' o 'salida'
 let selectedBusId = null;
+let selectedGaritaDate = null; // Fecha ISO activa en la pantalla de Garita
+
+const DIAS_SEMANA_CORTOS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 document.addEventListener('DOMContentLoaded', () => {
     initGarita();
 
     window.addEventListener('safco_transportes_updated', () => {
+        renderGaritaWeekRibbon();
+        populateBusSelector();
         renderGaritaData();
     });
 });
@@ -18,8 +23,67 @@ function initGarita() {
     if (!SafcoTransportesDB.checkAdminAccess()) {
         return;
     }
+
+    const todayStr = getTodayISO();
+    selectedGaritaDate = todayStr;
+
+    renderGaritaWeekRibbon();
     populateBusSelector();
     renderGaritaData();
+}
+
+function getTodayISO() {
+    const now = new Date();
+    return formatISO(now);
+}
+
+function formatISO(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getMondayOf(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+}
+
+function getWeekDaysArray(mondayDate) {
+    const days = [];
+    const todayISO = getTodayISO();
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(mondayDate);
+        d.setDate(mondayDate.getDate() + i);
+        const iso = formatISO(d);
+        days.push({
+            index: i,
+            dateObj: d,
+            iso: iso,
+            dayNameShort: DIAS_SEMANA_CORTOS[i],
+            dayNum: d.getDate(),
+            isToday: iso === todayISO
+        });
+    }
+    return days;
+}
+
+function formatWeekRangeLabel(mondayDate) {
+    const sundayDate = new Date(mondayDate);
+    sundayDate.setDate(mondayDate.getDate() + 6);
+
+    const monDay = mondayDate.getDate();
+    const monMonth = mondayDate.toLocaleDateString('es-PE', { month: 'short' });
+    const sunDay = sundayDate.getDate();
+    const sunMonth = sundayDate.toLocaleDateString('es-PE', { month: 'short' });
+    const year = sundayDate.getFullYear();
+
+    return `${monDay} ${monMonth} - ${sunDay} ${sunMonth} ${year}`;
 }
 
 function setGaritaMode(mode) {
@@ -32,26 +96,82 @@ function setGaritaMode(mode) {
     renderGaritaData();
 }
 
+function renderGaritaWeekRibbon() {
+    const ribbonContainer = document.getElementById('garitaWeekDayPills');
+    const rangeLabel = document.getElementById('garitaActiveWeekRange');
+    if (!ribbonContainer) return;
+
+    const currentMonday = getMondayOf(selectedGaritaDate ? new Date(selectedGaritaDate + 'T00:00:00') : new Date());
+    const days = getWeekDaysArray(currentMonday);
+
+    if (rangeLabel) {
+        rangeLabel.textContent = formatWeekRangeLabel(currentMonday);
+    }
+
+    ribbonContainer.innerHTML = '';
+
+    const allPrgs = SafcoTransportesDB.getProgramaciones();
+
+    days.forEach(day => {
+        const dayPrgs = allPrgs.filter(p => p.fecha === day.iso);
+        const isActive = day.iso === selectedGaritaDate;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `garita-day-pill-btn ${isActive ? 'active' : ''} ${day.isToday ? 'is-today' : ''}`;
+        btn.onclick = () => selectGaritaDay(day.iso);
+
+        btn.innerHTML = `
+            <span class="pill-day-name">${day.dayNameShort}</span>
+            <span class="pill-day-num">${day.dayNum}</span>
+            <span class="pill-buses-indicator">${dayPrgs.length} ${dayPrgs.length === 1 ? 'bus' : 'buses'}</span>
+        `;
+        ribbonContainer.appendChild(btn);
+    });
+}
+
+function selectGaritaDay(dateStr) {
+    selectedGaritaDate = dateStr;
+    renderGaritaWeekRibbon();
+    populateBusSelector();
+    renderGaritaData();
+}
+
 function populateBusSelector() {
     const selector = document.getElementById('selectedBusSelect');
+    const indicatorBadge = document.getElementById('selectedDayIndicatorBadge');
     if (!selector) return;
 
-    const programaciones = SafcoTransportesDB.getProgramaciones();
-    selector.innerHTML = '';
+    const todayISO = getTodayISO();
+    if (indicatorBadge) {
+        if (selectedGaritaDate === todayISO) {
+            indicatorBadge.textContent = 'HOY';
+            indicatorBadge.style.background = '#dcfce7';
+            indicatorBadge.style.color = '#15803d';
+        } else {
+            const d = new Date(selectedGaritaDate + 'T00:00:00');
+            const dayName = DIAS_SEMANA_CORTOS[d.getDay() === 0 ? 6 : d.getDay() - 1];
+            indicatorBadge.textContent = `${dayName} ${d.getDate()}/${d.getMonth() + 1}`;
+            indicatorBadge.style.background = '#e0f2fe';
+            indicatorBadge.style.color = '#0369a1';
+        }
+    }
 
+    const allProgramaciones = SafcoTransportesDB.getProgramaciones();
+    const programaciones = allProgramaciones.filter(p => p.fecha === selectedGaritaDate);
+
+    selector.innerHTML = '';
     const isIngreso = garitaMode === 'ingreso';
-    
-    // Filtrar programaciones relevantes
+
     let list = programaciones;
     if (!isIngreso) {
-        // En salida, priorizar los que ya ingresaron o están en retorno
         list = programaciones.filter(p => p.ingreso?.inspeccionGarita?.revisado || p.retorno?.iniciado);
     }
 
     if (list.length === 0) {
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = 'No hay unidades disponibles';
+        opt.textContent = `No hay unidades programadas para esta fecha (${selectedGaritaDate})`;
         selector.appendChild(opt);
         selectedBusId = null;
         return;
@@ -60,7 +180,7 @@ function populateBusSelector() {
     list.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.id;
-        
+
         let statusText = '';
         if (isIngreso) {
             if (p.ingreso?.inspeccionGarita?.revisado) statusText = ' [✅ Ingresado]';
@@ -73,7 +193,7 @@ function populateBusSelector() {
             else statusText = ' [En Planta]';
         }
 
-        opt.textContent = `${p.placa} - ${p.rutaNombre}${statusText}`;
+        opt.textContent = `${p.placa} - ${p.rutaNombre} (${p.turno.split(' ')[0]})${statusText}`;
         selector.appendChild(opt);
     });
 
@@ -98,9 +218,10 @@ function renderGaritaData() {
     if (!prg) {
         if (content) {
             content.innerHTML = `
-                <div style="text-align:center; padding:3rem; color:var(--text-muted);">
+                <div style="text-align:center; padding:3rem 1.5rem; color:var(--text-muted); background:var(--card-bg); border-radius:18px; border:1px dashed var(--border-light);">
                     <i class='bx bx-bus' style="font-size:3rem; opacity:0.3; display:block; margin-bottom:8px;"></i>
-                    No hay información disponible para este filtro.
+                    <h4 style="margin:0 0 6px 0; color:var(--text-main); font-size:1.05rem;">Sin Unidades para esta fecha</h4>
+                    <p style="font-size:0.85rem; margin:0;">No hay transportes programados por el área de transportes para <b>${selectedGaritaDate}</b>.</p>
                 </div>
             `;
         }
@@ -110,11 +231,10 @@ function renderGaritaData() {
     const isIngreso = garitaMode === 'ingreso';
     const flow = isIngreso ? prg.ingreso : prg.retorno;
 
-    // Estado del Chofer
-    const choferIniciado = flow.iniciado;
-    const choferLlegoAGarita = isIngreso ? flow.finalizado : flow.iniciado;
-    const isRevisadoGarita = flow.inspeccionGarita?.revisado;
-    const countChofer = flow.pasajeros?.length || 0;
+    const choferIniciado = flow?.iniciado;
+    const choferLlegoAGarita = isIngreso ? flow?.finalizado : flow?.iniciado;
+    const isRevisadoGarita = flow?.inspeccionGarita?.revisado;
+    const countChofer = flow?.pasajeros?.length || 0;
 
     let statusBadgeClass = 'en-camino';
     let statusBadgeText = '🚌 EN CAMINO (No ha llegado)';
@@ -134,7 +254,6 @@ function renderGaritaData() {
             statusBadgeText = 'PROGRAMADO (Sin iniciar)';
         }
     } else {
-        // Modo Salida
         if (isRevisadoGarita) {
             statusBadgeClass = 'aprobado';
             statusBadgeText = '✅ SALIDA APROBADA';
@@ -147,11 +266,10 @@ function renderGaritaData() {
         }
     }
 
-    const prevRealCount = (flow.inspeccionGarita?.conteoRealGarita !== null && flow.inspeccionGarita?.conteoRealGarita !== undefined)
+    const prevRealCount = (flow?.inspeccionGarita?.conteoRealGarita !== null && flow?.inspeccionGarita?.conteoRealGarita !== undefined)
         ? flow.inspeccionGarita.conteoRealGarita
         : countChofer;
 
-    // Generar UI interactiva simplificada
     content.innerHTML = `
         <div class="bus-summary-card">
             <div class="bus-summary-header">
@@ -169,8 +287,8 @@ function renderGaritaData() {
                     <span>${prg.choferNombre}</span>
                 </div>
                 <div class="info-field-item">
-                    <label>Empresa de Transporte</label>
-                    <span>${prg.empresa}</span>
+                    <label>Turno y Fecha</label>
+                    <span>${prg.turno.split(' ')[0]} • ${prg.fecha}</span>
                 </div>
                 <div class="info-field-item">
                     <label>Capacidad Máxima</label>
@@ -179,14 +297,12 @@ function renderGaritaData() {
             </div>
 
             ${!choferLlegoAGarita && !isRevisadoGarita ? `
-                <!-- BLOQUEO: Chofer no ha marcado llegada a garita -->
                 <div class="lock-warning-banner">
                     <i class='bx bx-time-five'></i>
                     <strong>Esperando llegada del vehículo a Garita</strong>
                     <span>El chofer aún no ha registrado su llegada a planta en su app móvil. La validación se habilitará cuando el conductor presione "Llegada a Planta / Enviar a Garita".</span>
                 </div>
             ` : isRevisadoGarita ? `
-                <!-- ESTADO: Ya validado -->
                 <div class="garita-validated-success-card">
                     <i class='bx bx-check-double' style="font-size:2.2rem; color:#15803d;"></i>
                     <h4>${isIngreso ? 'Ingreso a Planta Conforme' : 'Salida de Planta Conforme'}</h4>
@@ -201,7 +317,6 @@ function renderGaritaData() {
                     ` : ''}
                 </div>
             ` : `
-                <!-- FORMULARIO DE VALIDACIÓN HABILITADO -->
                 <div class="conteo-validation-box">
                     <div class="conteo-box-item chofer">
                         <label><i class='bx bx-mobile'></i> Reporte del Chofer</label>
@@ -247,12 +362,13 @@ function confirmarInspeccionGarita() {
         return;
     }
 
-    const conteoChofer = flow.pasajeros?.length || 0;
+    const conteoChofer = flow?.pasajeros?.length || 0;
     const tieneDiscrepancia = (conteoReal !== conteoChofer);
 
     let msgHtml = `
         <div style="text-align:left; font-size:0.9rem;">
             <p>Se registrará la conformidad para la unidad <b>${prg.placa}</b> (${prg.rutaNombre}).</p>
+            <p>• Fecha: <b>${prg.fecha}</b> | Turno: <b>${prg.turno}</b></p>
             <p>• Cantidad Chofer: <b>${conteoChofer}</b></p>
             <p>• Conteo Físico Garita: <b>${conteoReal}</b></p>
             ${tieneDiscrepancia ? `<p style="color:#b91c1c; font-weight:700; background:#fee2e2; padding:6px; border-radius:6px;">⚠️ Discrepancia detectada de ${Math.abs(conteoReal - conteoChofer)} pasajero(s).</p>` : `<p style="color:#15803d; font-weight:700;">✅ Conteos coinciden perfectamente.</p>`}

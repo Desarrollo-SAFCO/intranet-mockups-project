@@ -32,6 +32,17 @@
                     <span style="font-size:0.75rem; background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px; font-weight:800; letter-spacing:0.5px;">GARITA</span>
                 </div>
             </div>
+
+            <!-- Selector Táctil de Días de la Semana en Garita -->
+            <div class="garita-week-ribbon-container">
+                <div class="week-ribbon-header">
+                    <span class="ribbon-title"><i class='bx bx-calendar'></i> Semana Operativa:</span>
+                    <span class="ribbon-date-range" id="garitaActiveWeekRange">-</span>
+                </div>
+                <div class="week-ribbon-pills" id="garitaWeekDayPills">
+                    <!-- Dinámico vía JS (Lun, Mar, Mié, Jue, Vie, Sáb, Dom) -->
+                </div>
+            </div>
         </header>
 
         <!-- Switch de Flujo: Ingreso vs Salida -->
@@ -49,7 +60,10 @@
 
             <!-- Selector de Unidad que llega/sale de Garita -->
             <div class="bus-selector-card">
-                <label for="selectedBusSelect"><i class='bx bx-bus'></i> Seleccionar Unidad en Garita:</label>
+                <div class="selector-title-row">
+                    <label for="selectedBusSelect"><i class='bx bx-bus'></i> Seleccionar Unidad en Garita:</label>
+                    <span class="selected-day-indicator" id="selectedDayIndicatorBadge">Hoy</span>
+                </div>
                 <select id="selectedBusSelect" class="bus-select-control">
                     <!-- Dinámico vía JS -->
                 </select>

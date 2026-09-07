@@ -17,17 +17,20 @@
     <header class="header-top-row">
         <div style="display:flex; align-items:center; gap: 1rem;">
             <h1 class="page-main-title">
-                <i class='bx bx-bus-school'></i> Control de Transporte de Personal
+                <i class='bx bx-bus-school'></i> Control y Programación de Transporte de Personal
             </h1>
-            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">(Buses y Rutas de Planta)</span>
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">(Área de Transportes SAFCO)</span>
         </div>
 
         <div class="header-actions-group">
             <button class="btn btn-secondary" onclick="resetMockDemoData()" title="Restablecer Datos de Demostración">
-                <i class='bx bx-reset'></i> Reset Datos Demo
+                <i class='bx bx-reset'></i> Reset Demo
             </button>
-            <button class="btn btn-primary" onclick="abrirModalNuevaProgramacion()" style="background-color: var(--safco-red); color: white;">
-                <i class='bx bx-plus-circle'></i> Programar Nuevo Bus
+            <button class="btn btn-secondary" onclick="abrirModalNuevaProgramacion()" title="Programar un bus individual para una fecha específica">
+                <i class='bx bx-plus'></i> Programar 1 Bus
+            </button>
+            <button class="btn btn-primary btn-cta-semanal" onclick="abrirModalProgramacionSemanal()" style="background-color: var(--safco-red); color: white;">
+                <i class='bx bx-calendar-week'></i> Nueva Programación Semanal
             </button>
         </div>
     </header>
@@ -42,10 +45,10 @@
         </div>
         <div style="display:flex; gap:0.5rem;">
             <a href="chofer-transporte-app.html" target="_blank" class="simulator-link-btn chofer">
-                <i class='bx bx-mobile-alt'></i> 📱 Abrir App Conductor / Chofer
+                <i class='bx bx-mobile-alt'></i> 📱 App Chofer (Subida Fotocheck)
             </a>
             <a href="../seguridad/control-garita-buses.html" target="_blank" class="simulator-link-btn garita">
-                <i class='bx bx-shield-quarter'></i> 🛡️ Abrir Panel Garita Seguridad
+                <i class='bx bx-shield-quarter'></i> 🛡️ Panel Garita de Seguridad
             </a>
         </div>
     </div>
@@ -93,39 +96,60 @@
         </div>
     </section>
 
-    <!-- Filtros de Búsqueda -->
+    <!-- Filtros de Búsqueda Avanzados -->
     <section class="filters-panel">
         <div class="filter-item">
-            <label for="filtroFecha">Fecha del Servicio:</label>
-            <input type="date" id="filtroFecha" class="filter-control" onchange="aplicarFiltros()">
+            <label for="filtroCampana">Campaña:</label>
+            <select id="filtroCampana" class="filter-control" onchange="aplicarFiltros()">
+                <option value="">TODAS LAS CAMPAÑAS</option>
+                <!-- Dinámico vía JS -->
+            </select>
+        </div>
+
+        <div class="filter-item">
+            <label for="filtroEmpresa">Empresa:</label>
+            <select id="filtroEmpresa" class="filter-control" onchange="onFiltroEmpresaChange()">
+                <option value="">TODAS LAS EMPRESAS</option>
+                <option value="ASP">ASP - Agrícola SAFCO Perú</option>
+                <option value="GAP">GAP - Global Agro Perú</option>
+                <option value="AGS">AGS - Agrícola Guilli</option>
+            </select>
+        </div>
+
+        <div class="filter-item">
+            <label for="filtroSucursal">Sucursal / Planta:</label>
+            <select id="filtroSucursal" class="filter-control" onchange="aplicarFiltros()">
+                <option value="">TODAS LAS SUCURSALES</option>
+                <!-- Dinámico vía JS según empresa -->
+            </select>
+        </div>
+
+        <div class="filter-item">
+            <label for="filtroSemana"><i class='bx bx-calendar-week'></i> Semana Operativa:</label>
+            <input type="week" id="filtroSemana" class="filter-control" onchange="aplicarFiltros()">
+        </div>
+
+        <div class="filter-item">
+            <label for="filtroTransportista">Transportista:</label>
+            <select id="filtroTransportista" class="filter-control" onchange="aplicarFiltros()">
+                <option value="">TODOS LOS TRANSPORTISTAS</option>
+                <!-- Dinámico vía JS -->
+            </select>
         </div>
 
         <div class="filter-item">
             <label for="filtroTurno">Turno:</label>
             <select id="filtroTurno" class="filter-control" onchange="aplicarFiltros()">
                 <option value="">TODOS LOS TURNOS</option>
-                <option value="Mañana (06:00 - 15:00)">Mañana (06:00 - 15:00)</option>
-                <option value="Tarde (14:00 - 23:00)">Tarde (14:00 - 23:00)</option>
-                <option value="Noche (22:00 - 06:00)">Noche (22:00 - 06:00)</option>
+                <option value="Mañana (06:00 - 15:00)">Mañana</option>
+                <option value="Tarde (14:00 - 23:00)">Tarde</option>
+                <option value="Noche (22:00 - 06:00)">Noche</option>
             </select>
         </div>
 
-        <div class="filter-item">
-            <label for="filtroEstado">Estado General:</label>
-            <select id="filtroEstado" class="filter-control" onchange="aplicarFiltros()">
-                <option value="">TODOS LOS ESTADOS</option>
-                <option value="PROGRAMADO">PROGRAMADO</option>
-                <option value="EN_RUTA_IDA">EN RUTA (IDA)</option>
-                <option value="LLEGADA_PLANTA">EN GARITA (IDA)</option>
-                <option value="INGRESADO_GARITA">EN PLANTA (INGRESADO)</option>
-                <option value="EN_RUTA_RETORNO">EN RETORNO</option>
-                <option value="FINALIZADO">FINALIZADO</option>
-            </select>
-        </div>
-
-        <div class="filter-item" style="flex:1; min-width:200px;">
-            <label for="filtroBusqueda">Buscar por Ruta, Placa o Conductor:</label>
-            <input type="text" id="filtroBusqueda" class="filter-control" placeholder="Ej. Cono Norte, AYB-745, Carlos Mendoza..." oninput="aplicarFiltros()">
+        <div class="filter-item" style="flex:1; min-width:180px;">
+            <label for="filtroBusqueda">Buscar (Placa, Ruta, Chofer):</label>
+            <input type="text" id="filtroBusqueda" class="filter-control" placeholder="Ej. AYB-745, Cono Norte, Carlos Mendoza..." oninput="aplicarFiltros()">
         </div>
 
         <div style="display:flex; align-items:flex-end; gap:6px; margin-top:auto;">
@@ -135,33 +159,318 @@
         </div>
     </section>
 
-    <!-- Tabla Principal SAFCO -->
+    <!-- Tabla Principal SAFCO: Listado de Cabeceras Semanales de Programación -->
     <main class="table-container-safco">
         <table class="table-safco-transportes">
             <thead>
                 <tr>
-                    <th>ID Servicio</th>
-                    <th>Turno / Fecha</th>
-                    <th>Ruta y Capacidad</th>
-                    <th>Vehículo</th>
-                    <th>Conductor / Empresa</th>
-                    <th>Viaje de Ingreso (Ida)</th>
-                    <th>Viaje de Retorno (Salida)</th>
+                    <th>ID Cabecera</th>
+                    <th>Campaña / Empresa / Sucursal</th>
+                    <th>Semana Operativa</th>
+                    <th>Transportista</th>
+                    <th>Programaciones Semanales</th>
+                    <th>Total Asientos Ofertados</th>
                     <th>Estado</th>
-                    <th>Acciones</th>
+                    <th style="text-align:center;">Acciones</th>
                 </tr>
             </thead>
-            <tbody id="programacionesTbody">
-                <!-- Dinámico vía JS -->
+            <tbody id="cabecerasTbody">
+                <!-- Dinámico vía JS: Filas de Cabeceras con sus métricas semanales -->
             </tbody>
         </table>
     </main>
 
-    <!-- MODAL: Programar Nuevo Servicio -->
+    <!-- =========================================================================
+         MODAL: PROGRAMACIÓN SEMANAL DE TRANSPORTES (WIZARD PASO A PASO)
+         ========================================================================= -->
+    <div class="modal-overlay" id="modalProgramacionSemanal">
+        <div class="modal-content-box modal-semanal-large">
+            
+            <!-- Encabezado del Modal -->
+            <div class="modal-header-teal">
+                <div>
+                    <h3><i class='bx bx-calendar-week'></i> Registro y Programación Semanal de Transportes</h3>
+                    <p style="margin:2px 0 0 0; font-size:0.82rem; opacity:0.9;">
+                        Asistente guiado por pasos: 1. Registro de Cabecera ➔ 2. Asignación Diaria de Flota
+                    </p>
+                </div>
+                <button class="btn-close-modal" onclick="cerrarModalProgramacionSemanal()">&times;</button>
+            </div>
+
+            <!-- Barra Stepper de Pasos (Wizard) -->
+            <div class="wizard-stepper-bar">
+                <div class="step-item active" id="stepIndicator1">
+                    <div class="step-circle">1</div>
+                    <div class="step-text">
+                        <strong>Paso 1: Cabecera de Programación</strong>
+                        <small>Campaña, Empresa, Sucursal, Semana y Transportista</small>
+                    </div>
+                </div>
+                <div class="step-divider" id="stepDivider"></div>
+                <div class="step-item" id="stepIndicator2">
+                    <div class="step-circle">2</div>
+                    <div class="step-text">
+                        <strong>Paso 2: Programación Diaria</strong>
+                        <small>Vehículos, Asientos, Rutas, Personas y Conductores</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-body-pad">
+                
+                <!-- =============================================================
+                     PASO 1: REGISTRO DE LA CABECERA (MASTER)
+                     ============================================================= -->
+                <div id="wizardStep1Container" class="wizard-step-pane active">
+                    <div class="cabecera-master-card">
+                        <div class="cabecera-card-title">
+                            <i class='bx bx-slider-alt'></i> Datos Maestros de la Cabecera
+                        </div>
+
+                        <div class="cabecera-form-grid">
+                            
+                            <!-- 1. Campaña -->
+                            <div class="form-group-item">
+                                <label for="semanalCampanaSelect"><i class='bx bx-purchase-tag'></i> Campaña:</label>
+                                <select id="semanalCampanaSelect" class="form-input-control" required onchange="onModalCabeceraChange()">
+                                    <!-- Dinámico vía JS -->
+                                </select>
+                            </div>
+
+                            <!-- 2. Empresa -->
+                            <div class="form-group-item">
+                                <label for="semanalEmpresaSelect"><i class='bx bx-buildings'></i> Empresa:</label>
+                                <select id="semanalEmpresaSelect" class="form-input-control" required onchange="onModalEmpresaChange()">
+                                    <option value="ASP">ASP (Agrícola SAFCO Perú)</option>
+                                    <option value="GAP">GAP (Global Agro Perú)</option>
+                                    <option value="AGS">AGS (Agrícola Guilli)</option>
+                                </select>
+                            </div>
+
+                            <!-- 3. Sucursal (Dependiente de Empresa) -->
+                            <div class="form-group-item">
+                                <label for="semanalSucursalSelect"><i class='bx bx-store-alt'></i> Sucursal / Planta:</label>
+                                <select id="semanalSucursalSelect" class="form-input-control" required onchange="onModalCabeceraChange()">
+                                    <!-- Dinámico vía JS según empresa -->
+                                </select>
+                            </div>
+
+                            <!-- 4. Semana (Selector en modo semana) -->
+                            <div class="form-group-item">
+                                <label for="semanalWeekInput"><i class='bx bx-calendar'></i> Seleccionar Semana Operativa:</label>
+                                <input type="week" id="semanalWeekInput" class="form-input-control" required onchange="onModalWeekInputChange()">
+                            </div>
+
+                            <!-- 5. Transportista -->
+                            <div class="form-group-item" style="grid-column: span 2;">
+                                <label for="semanalTransportistaSelect"><i class='bx bx-id-card'></i> Empresa de Transporte (Transportista):</label>
+                                <select id="semanalTransportistaSelect" class="form-input-control" required onchange="onModalTransportistaChange()">
+                                    <!-- Dinámico vía JS -->
+                                </select>
+                            </div>
+
+                            <!-- Rango de Días de la Semana (Informativo de Referencia) -->
+                            <div class="form-group-item" style="grid-column: span 2;">
+                                <label><i class='bx bx-info-circle'></i> Días que comprende la semana seleccionada (Referencia Lunes a Domingo):</label>
+                                <div class="week-days-reference-box" id="modalWeekDaysReferenceBox">
+                                    <!-- Dinámico vía JS (Lun..Dom con fechas) -->
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Botón de avance al Paso 2 -->
+                    <div class="step1-actions-bar">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarModalProgramacionSemanal()">Cancelar</button>
+                        <button type="button" class="btn btn-primary btn-next-step" onclick="avanzarAPaso2()">
+                            <span>Guardar Cabecera y Continuar</span>
+                            <i class='bx bx-right-arrow-alt' style="font-size:1.2rem;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- =============================================================
+                     PASO 2: PROGRAMACIÓN DIARIA (7 DÍAS)
+                     ============================================================= -->
+                <div id="wizardStep2Container" class="wizard-step-pane" style="display:none;">
+                    
+                    <!-- Resumen de Cabecera Creada con ID -->
+                    <div class="cabecera-created-summary-card">
+                        <div class="summary-id-badge">
+                            <span class="lbl-id">ID CABECERA:</span>
+                            <strong id="createdCabeceraIdBadge">CAB-2026-W35-ASP-01</strong>
+                        </div>
+
+                        <div class="summary-details-row">
+                            <div class="sum-item">
+                                <small>Campaña / Empresa:</small>
+                                <span id="sumCampanaEmpresa">-</span>
+                            </div>
+                            <div class="sum-item">
+                                <small>Sucursal:</small>
+                                <span id="sumSucursal">-</span>
+                            </div>
+                            <div class="sum-item">
+                                <small>Semana:</small>
+                                <span id="sumSemanaRange">-</span>
+                            </div>
+                            <div class="sum-item">
+                                <small>Transportista:</small>
+                                <strong id="sumTransportista" style="color:var(--safco-teal);">-</strong>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-edit-cabecera" onclick="volverAPaso1()" title="Modificar datos de la cabecera">
+                            <i class='bx bx-edit'></i> Modificar Cabecera
+                        </button>
+                    </div>
+
+                    <!-- Sección de Detalle Diario (7 Días) -->
+                    <div class="detalle-diario-section">
+                        <div class="detalle-section-header">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class='bx bx-list-check' style="color:var(--safco-teal); font-size:1.3rem;"></i>
+                                <h4 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--text-main);">
+                                    Asignación Diaria de Vehículos y Rutas
+                                </h4>
+                            </div>
+                            
+                            <!-- Pestañas de los 7 Días -->
+                            <div class="detalle-days-tabs" id="modalDetalleDaysTabs">
+                                <!-- Dinámico vía JS: Botones Lun, Mar, Mié, Jue, Vie, Sáb, Dom con contadores -->
+                            </div>
+                        </div>
+
+                        <!-- Panel del Día Activo -->
+                        <div class="detalle-day-panel">
+                            
+                            <!-- Barra Superior del Día con Acciones Rápidas -->
+                            <div class="day-panel-top-bar">
+                                <div class="day-active-info">
+                                    <span class="badge-day-pill" id="badgeDayPillLabel">LUNES</span>
+                                    <strong id="activeDayDateLabel">24/08/2026</strong>
+                                    <span class="active-day-bus-counter" id="activeDayBusCounter">0 Vehículos asignados</span>
+                                </div>
+
+                                <div class="day-quick-clone-actions">
+                                    <button type="button" class="btn-clone-day" onclick="clonarDiaActual('LV')" title="Copiar todos los buses de este día a Lunes - Viernes">
+                                        <i class='bx bx-copy'></i> Replicar a Lunes - Viernes
+                                    </button>
+                                    <button type="button" class="btn-clone-day" onclick="clonarDiaActual('ALL')" title="Copiar todos los buses de este día a toda la semana">
+                                        <i class='bx bx-copy-alt'></i> Replicar a Toda la Semana
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Formulario para Agregar un Vehículo a este Día -->
+                            <div class="add-bus-to-day-card">
+                                <div class="add-bus-card-header">
+                                    <span><i class='bx bx-plus-circle'></i> Asignar Unidad del Transportista al <span id="addBusTargetDayName">Lunes</span>:</span>
+                                </div>
+
+                                <div class="add-bus-grid">
+                                    <!-- Vehículo (Muestra cantidad de asientos) -->
+                                    <div class="form-group-item">
+                                        <label for="addBusVehiculoSelect">Vehículo (Capacidad):</label>
+                                        <select id="addBusVehiculoSelect" class="form-input-control">
+                                            <!-- Dinámico vía JS -->
+                                        </select>
+                                    </div>
+
+                                    <!-- Conductor -->
+                                    <div class="form-group-item">
+                                        <label for="addBusChoferSelect">Conductor Asignado:</label>
+                                        <select id="addBusChoferSelect" class="form-input-control">
+                                            <!-- Dinámico vía JS -->
+                                        </select>
+                                    </div>
+
+                                    <!-- Ruta (Muestra cantidad de personas asignadas) -->
+                                    <div class="form-group-item">
+                                        <label for="addBusRutaSelect">Ruta Asignada (Demanda Personas):</label>
+                                        <select id="addBusRutaSelect" class="form-input-control">
+                                            <!-- Dinámico vía JS -->
+                                        </select>
+                                    </div>
+
+                                    <!-- Turno -->
+                                    <div class="form-group-item">
+                                        <label for="addBusTurnoSelect">Turno Operativo:</label>
+                                        <select id="addBusTurnoSelect" class="form-input-control">
+                                            <option value="Mañana (06:00 - 15:00)">Mañana (06:00 - 15:00)</option>
+                                            <option value="Tarde (14:00 - 23:00)">Tarde (14:00 - 23:00)</option>
+                                            <option value="Noche (22:00 - 06:00)">Noche (22:00 - 06:00)</option>
+                                        </select>
+                                    </div>
+
+                                    <div style="display:flex; align-items:flex-end;">
+                                        <button type="button" class="btn btn-primary btn-add-vehicle-day" onclick="agregarVehiculoAlDiaActivo()">
+                                            <i class='bx bx-plus'></i> Asignar Bus
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tabla de Vehículos Asignados para el Día Activo -->
+                            <div class="day-assigned-vehicles-container">
+                                <table class="table-day-vehicles">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Vehículo / Placa</th>
+                                            <th>Asientos Vehículo</th>
+                                            <th>Ruta Asignada</th>
+                                            <th>Total Personas Ruta</th>
+                                            <th>Conductor</th>
+                                            <th>Turno</th>
+                                            <th style="text-align:center;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tableDayVehiclesTbody">
+                                        <!-- Dinámico vía JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Barra de Resumen Global y Guardado Final -->
+                    <div class="modal-semanal-summary-bar">
+                        <div class="summary-stats-group">
+                            <button type="button" class="btn btn-secondary" onclick="volverAPaso1()">
+                                <i class='bx bx-left-arrow-alt'></i> Volver a Cabecera
+                            </button>
+                            <div class="stat-pill">
+                                <span class="stat-lbl">Total Servicios:</span>
+                                <b id="summaryTotalBusesBadge">0</b>
+                            </div>
+                            <div class="stat-pill">
+                                <span class="stat-lbl">Total Asientos Ofertados:</span>
+                                <b id="summaryTotalSeatsBadge" style="color:var(--safco-teal);">0 Asientos</b>
+                            </div>
+                        </div>
+
+                        <div class="summary-actions-group">
+                            <button type="button" class="btn btn-secondary" onclick="cerrarModalProgramacionSemanal()">Cancelar</button>
+                            <button type="button" class="btn btn-primary btn-save-master-semanal" onclick="guardarTodaLaProgramacionSemanal()">
+                                <i class='bx bx-check-double'></i> Finalizar y Guardar Programación
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Programar 1 Servicio Individual (1 Día) -->
     <div class="modal-overlay" id="modalProgramacion">
         <div class="modal-content-box" style="max-width: 650px;">
             <div class="modal-header-teal">
-                <h3><i class='bx bx-calendar-plus'></i> Programar Servicio de Transporte</h3>
+                <h3><i class='bx bx-calendar-plus'></i> Programar Bus Individual (1 Día)</h3>
                 <button class="btn-close-modal" onclick="cerrarModalProgramacion()">&times;</button>
             </div>
             
@@ -170,7 +479,7 @@
                     <div class="form-grid-2" style="margin-bottom: 1rem;">
                         <div class="filter-item">
                             <label for="progFechaInput">Fecha del Servicio:</label>
-                            <input type="date" id="progFechaInput" class="filter-control" required value="2026-08-21">
+                            <input type="date" id="progFechaInput" class="filter-control" required>
                         </div>
 
                         <div class="filter-item">
@@ -198,7 +507,7 @@
                     </div>
 
                     <div style="background:#f1f5f9; padding:0.75rem; border-radius:10px; font-size:0.8rem; color:var(--text-muted);">
-                        <i class='bx bx-info-circle' style="color:var(--safco-teal);"></i> Al guardar la programación, la unidad quedará disponible automáticamente en la <b>App del Conductor</b> para el registro de subida por fotocheck y en el <b>Panel de Garita</b>.
+                        <i class='bx bx-info-circle' style="color:var(--safco-teal);"></i> Al guardar, la unidad estará disponible de inmediato para el <b>Chofer</b> y para <b>Garita de Seguridad</b>.
                     </div>
                 </div>
 
@@ -224,8 +533,6 @@
             </div>
 
             <div class="modal-body-pad">
-                
-                <!-- Selector de Tramo (Ida vs Retorno) -->
                 <div style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">
                     <button class="btn btn-secondary modal-tab-btn active" data-tab="ingreso" onclick="switchDetalleModalTab('ingreso')">
                         <i class='bx bx-log-in-circle'></i> Pasajeros de Ingreso (Ida)
@@ -235,7 +542,6 @@
                     </button>
                 </div>
 
-                <!-- Resumen de Inspección Garita -->
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; background:#f8fafc; border:1px solid var(--border-color); border-radius:12px; padding:0.85rem; margin-bottom:1rem;">
                     <div>
                         <span style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; display:block;">Reporte Chofer</span>
@@ -251,7 +557,6 @@
                     </div>
                 </div>
 
-                <!-- Tabla de Colaboradores -->
                 <div style="max-height: 280px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 10px;">
                     <table class="table-safco-transportes" style="font-size: 0.8rem;">
                         <thead>
@@ -271,8 +576,71 @@
                 </div>
             </div>
 
-            <div class="modal-footer-pad">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModalDetallePasajeros()">Cerrar</button>
+    <!-- MODAL: Ver Detalle Completo de una Cabecera Semanal -->
+    <div class="modal-overlay" id="modalVerDetalleCabecera">
+        <div class="modal-content-box modal-semanal-large">
+            <div class="modal-header-teal">
+                <div>
+                    <h3 id="verCabeceraModalTitle"><i class='bx bx-calendar-check'></i> Detalle de la Programación Semanal</h3>
+                    <p id="verCabeceraModalSubtitle" style="margin:2px 0 0 0; font-size:0.82rem; opacity:0.9;">-</p>
+                </div>
+                <button class="btn-close-modal" onclick="cerrarModalVerDetalleCabecera()">&times;</button>
+            </div>
+
+            <div class="modal-body-pad">
+                <!-- Resumen Superior de la Cabecera -->
+                <div class="cabecera-created-summary-card" style="background:#f8fafc; border-color:#cbd5e1;">
+                    <div class="summary-id-badge">
+                        <span class="lbl-id">ID CABECERA:</span>
+                        <strong id="viewCabeceraIdBadge">-</strong>
+                    </div>
+
+                    <div class="summary-details-row">
+                        <div class="sum-item">
+                            <small>Campaña / Empresa:</small>
+                            <span id="viewCampanaEmpresa">-</span>
+                        </div>
+                        <div class="sum-item">
+                            <small>Sucursal:</small>
+                            <span id="viewSucursal">-</span>
+                        </div>
+                        <div class="sum-item">
+                            <small>Semana:</small>
+                            <span id="viewSemanaRange">-</span>
+                        </div>
+                        <div class="sum-item">
+                            <small>Transportista:</small>
+                            <strong id="viewTransportista" style="color:var(--safco-teal);">-</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de la Flota Programada en la Semana -->
+                <div class="day-assigned-vehicles-container" style="max-height: 420px; overflow-y: auto;">
+                    <table class="table-safco-transportes" style="font-size:0.82rem;">
+                        <thead>
+                            <tr>
+                                <th>ID Viaje</th>
+                                <th>Fecha / Día</th>
+                                <th>Turno</th>
+                                <th>Vehículo / Placa</th>
+                                <th>Asientos Bus</th>
+                                <th>Ruta Asignada</th>
+                                <th>Personas Ruta</th>
+                                <th>Conductor</th>
+                                <th>Estado Viaje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="viewCabeceraTripsTbody">
+                            <!-- Dinámico vía JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer-pad" style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="viewCabeceraTotalCounter" style="font-size:0.85rem; font-weight:700; color:var(--text-main);">-</span>
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalVerDetalleCabecera()">Cerrar</button>
             </div>
         </div>
     </div>

@@ -676,8 +676,40 @@ const ProduccionDB = {
         const herrs = this.getHerramientas();
         const h = herrs.find(x => x.id === herrId);
         if (h) {
+            const estadoAnterior = h.estado;
             h.estado = nuevoEstado;
             h.descripcion = nuevaDescripcion;
+
+            // Registrar en historial de trazabilidad
+            const historial = this.getHistorialHerramientas();
+            if (!historial[h.codigo]) historial[h.codigo] = [];
+
+            const now = new Date();
+            const fechaStr = now.toISOString().split('T')[0];
+            const horaStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            let histEstado = `Cambio de estado: ${nuevoEstado}`;
+            if (nuevoEstado === 'Deteriorada') histEstado = '⚪ Marcada como Deteriorada';
+            else if (nuevoEstado === 'Perdida') histEstado = '🔴 Reportada como Perdida';
+            else if (nuevoEstado === 'Disponible') histEstado = '🟢 Habilitada / Disponible en Almacén';
+            else if (nuevoEstado === 'Asignado') histEstado = 'En uso (Asignado)';
+
+            historial[h.codigo].unshift({
+                operarioNombre: 'Supervisor de Producción (Almacén)',
+                fecha: fechaStr,
+                hora: horaStr,
+                estado: histEstado,
+                observacion: nuevaDescripcion || `Estado actualizado de ${estadoAnterior} a ${nuevoEstado}.`
+            });
+
+            // Si ya no está asignado, desvincular de asignaciones activas
+            if (nuevoEstado !== 'Asignado') {
+                let asigHerr = this.getAsignacionesHerramientas();
+                asigHerr = asigHerr.filter(a => a.herramientaCodigo !== h.codigo);
+                this.saveAsignacionesHerramientas(asigHerr);
+            }
+
+            this.saveHistorialHerramientas(historial);
             this.saveHerramientas(herrs);
             return true;
         }
@@ -690,6 +722,22 @@ const ProduccionDB = {
         if (h) {
             h.estado = 'Disponible';
             h.descripcion = 'Reactivado y habilitado para uso.';
+
+            const historial = this.getHistorialHerramientas();
+            if (!historial[h.codigo]) historial[h.codigo] = [];
+            const now = new Date();
+            const fechaStr = now.toISOString().split('T')[0];
+            const horaStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            historial[h.codigo].unshift({
+                operarioNombre: 'Supervisor de Producción',
+                fecha: fechaStr,
+                hora: horaStr,
+                estado: '🟢 Reactivado en Almacén',
+                observacion: 'Implemento rehabilitado para asignación.'
+            });
+
+            this.saveHistorialHerramientas(historial);
             this.saveHerramientas(herrs);
             return true;
         }

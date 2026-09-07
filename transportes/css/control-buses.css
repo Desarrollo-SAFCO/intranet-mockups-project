@@ -19,7 +19,7 @@
 
 body.transportes-layout {
   font-family: 'Open Sans', sans-serif;
-  background-color: #ffffff;
+  background-color: #f8fafc;
   color: var(--text-main);
   margin: 0;
   padding: 1.5rem 2rem;
@@ -53,9 +53,23 @@ body.transportes-layout {
   flex-wrap: wrap;
 }
 
+.btn-cta-semanal {
+  background-color: var(--safco-red) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 12px rgba(216, 0, 0, 0.28);
+  transition: all 0.2s ease;
+}
+
+.btn-cta-semanal:hover {
+  background-color: var(--safco-red-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(216, 0, 0, 0.38);
+}
+
 /* Barra de Accesos Rápidos para Simuladores */
 .quick-simulator-bar {
-  background: #f1f5f9;
+  background: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 0.75rem 1rem;
@@ -64,14 +78,15 @@ body.transportes-layout {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .simulator-link-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0.4rem 0.85rem;
+  padding: 0.45rem 0.95rem;
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 700;
@@ -85,12 +100,12 @@ body.transportes-layout {
 }
 
 .simulator-link-btn.garita {
-  background: #7c3aed;
+  background: #0284c7;
   color: white;
 }
 
 .simulator-link-btn:hover {
-  opacity: 0.9;
+  opacity: 0.92;
   transform: translateY(-1px);
 }
 
@@ -99,7 +114,7 @@ body.transportes-layout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .kpi-box {
@@ -143,16 +158,181 @@ body.transportes-layout {
   letter-spacing: 0.4px;
 }
 
-/* Filtros */
-.filters-panel {
-  background: #f8fafc;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
+/* Planificador y Selector Semanal en Pantalla Principal (Ribbon) */
+.weekly-nav-ribbon-card {
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+}
+
+.ribbon-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.ribbon-title-box {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.6rem;
+}
+
+.ribbon-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-ribbon-nav {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-ribbon-nav:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.btn-ribbon-nav.today {
+  background: #e6f4f4;
+  border-color: #b3dcd8;
+  color: var(--safco-teal);
+}
+
+.btn-ribbon-nav.all-days {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.btn-ribbon-nav.all-days.active {
+  background: var(--safco-teal);
+  color: white;
+  border-color: var(--safco-teal);
+}
+
+.weekly-days-ribbon {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 860px) {
+  .weekly-days-ribbon {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.main-day-pill-card {
+  background: #f8fafc;
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.65rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.main-day-pill-card:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+  transform: translateY(-2px);
+}
+
+.main-day-pill-card.active {
+  background: #ffffff;
+  border-color: var(--safco-teal);
+  box-shadow: 0 4px 12px rgba(0, 74, 76, 0.18);
+  transform: translateY(-2px);
+}
+
+.main-day-pill-card.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--safco-teal);
+  border-radius: 12px 12px 0 0;
+}
+
+.main-day-pill-card.is-today::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--safco-red);
+}
+
+.pill-day-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.main-day-pill-card.active .pill-day-name {
+  color: var(--safco-teal);
+}
+
+.pill-day-num {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.1;
+  margin: 2px 0;
+}
+
+.pill-bus-count-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.main-day-pill-card.active .pill-bus-count-badge {
+  background: #e6f4f4;
+  color: var(--safco-teal);
+  font-weight: 800;
+}
+
+/* Filtros */
+.filters-panel {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
   flex-wrap: wrap;
 }
 
@@ -179,10 +359,11 @@ body.transportes-layout {
   outline: none;
 }
 
-/* Tabla Estilo SAFCO (Cabecera Verde Petróleo) */
+/* Tabla Estilo SAFCO */
 .table-container-safco {
   overflow-x: auto;
-  border-radius: 12px;
+  background: #ffffff;
+  border-radius: 14px;
   border: 1px solid var(--border-color);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
 }
@@ -219,7 +400,6 @@ body.transportes-layout {
   vertical-align: middle;
 }
 
-/* Badges de Estado en Tabla */
 .badge-tbl {
   padding: 4px 10px;
   border-radius: 20px;
@@ -238,7 +418,6 @@ body.transportes-layout {
 .badge-tbl.retorno { background: #fae8ff; color: #86198f; border: 1px solid #f0abfc; }
 .badge-tbl.finalizado { background: #e0e7ff; color: #4338ca; border: 1px solid #a5b4fc; }
 
-/* Botones de Acción de Fila */
 .row-actions-group {
   display: flex;
   gap: 6px;
@@ -270,14 +449,17 @@ body.transportes-layout {
   color: var(--safco-teal);
 }
 
-/* Modales */
+/* ==========================================================================
+   MODAL DE PROGRAMACIÓN SEMANAL (WIZARD STEPPER PASO A PASO)
+   ========================================================================== */
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(4px);
   display: none;
   align-items: center;
@@ -292,20 +474,24 @@ body.transportes-layout {
 
 .modal-content-box {
   background: #ffffff;
-  border-radius: 18px;
+  border-radius: 20px;
   width: 100%;
   max-width: 800px;
-  max-height: 90vh;
+  max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
 }
 
+.modal-content-box.modal-semanal-large {
+  max-width: 1020px;
+}
+
 .modal-header-teal {
-  background: linear-gradient(135deg, var(--safco-teal) 0%, var(--safco-teal-light) 100%);
+  background: linear-gradient(135deg, #00383a 0%, var(--safco-teal) 100%);
   color: white;
-  padding: 1.25rem 1.5rem;
+  padding: 1.15rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -313,37 +499,595 @@ body.transportes-layout {
 
 .modal-header-teal h3 {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .btn-close-modal {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   color: white;
-  font-size: 1.5rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  opacity: 0.8;
+  transition: all 0.15s ease;
 }
 
 .btn-close-modal:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Barra Stepper de Pasos */
+.wizard-stepper-bar {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1.5px solid var(--border-color);
+  gap: 1rem;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  opacity: 0.55;
+  transition: all 0.2s ease;
+}
+
+.step-item.active {
   opacity: 1;
 }
 
-.modal-body-pad {
-  padding: 1.5rem;
+.step-item.completed .step-circle {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
 }
 
-.modal-footer-pad {
-  padding: 1rem 1.5rem;
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.step-item.active .step-circle {
+  background: var(--safco-teal);
+  color: white;
+  border-color: var(--safco-teal);
+  box-shadow: 0 2px 8px rgba(0, 74, 76, 0.3);
+}
+
+.step-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-text strong {
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.step-text small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.step-divider {
+  flex: 1;
+  height: 2px;
+  background: #cbd5e1;
+  margin: 0 0.5rem;
+}
+
+.step-divider.active {
+  background: var(--safco-teal);
+}
+
+.modal-body-pad {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* 1. Tarjeta de Cabecera Master (Paso 1) */
+.cabecera-master-card {
   background: #f8fafc;
-  border-top: 1px solid var(--border-color);
+  border: 1.5px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+}
+
+.cabecera-card-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--safco-teal);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.cabecera-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.form-group-item label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.form-input-control {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: #ffffff;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.form-input-control:focus {
+  border-color: var(--safco-teal);
+  box-shadow: 0 0 0 3px rgba(0, 74, 76, 0.12);
+}
+
+.week-days-reference-box {
+  background: #ffffff;
+  border: 1.5px solid #93c5fd;
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.ref-day-pill {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ref-day-pill.is-today {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+  font-weight: 800;
+}
+
+/* Botones de acción del Paso 1 */
+.step1-actions-bar {
   display: flex;
   justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btn-next-step {
+  background: var(--safco-teal) !important;
+  color: white !important;
+  font-weight: 800;
+  padding: 0.75rem 1.75rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 74, 76, 0.25);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-next-step:hover {
+  background: var(--safco-teal-dark) !important;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   PASO 2: PROGRAMACIÓN DIARIA
+   ========================================================================== */
+
+/* Tarjeta Resumen de Cabecera en Paso 2 */
+.cabecera-created-summary-card {
+  background: #f0fdfa;
+  border: 1.5px solid #99f6e4;
+  border-radius: 14px;
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.summary-id-badge {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #5eead4;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+}
+
+.summary-id-badge .lbl-id {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #0f766e;
+  text-transform: uppercase;
+}
+
+.summary-id-badge strong {
+  font-size: 0.95rem;
+  color: var(--safco-teal);
+  font-family: monospace;
+}
+
+.summary-details-row {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.sum-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.sum-item small {
+  font-size: 0.68rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.sum-item span, .sum-item strong {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.btn-edit-cabecera {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--safco-teal);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-edit-cabecera:hover {
+  background: #e6f4f4;
+  border-color: var(--safco-teal);
+}
+
+/* Sección de Detalle Diario (7 Días) */
+.detalle-diario-section {
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.15rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+}
+
+.detalle-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.detalle-days-tabs {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.tab-day-btn {
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 9px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
+
+.tab-day-btn:hover {
+  background: #e2e8f0;
+}
+
+.tab-day-btn.active {
+  background: var(--safco-teal);
+  color: #ffffff;
+  border-color: var(--safco-teal);
+  box-shadow: 0 4px 10px rgba(0, 74, 76, 0.25);
+}
+
+.tab-day-count-badge {
+  background: rgba(0, 0, 0, 0.12);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.tab-day-btn.active .tab-day-count-badge {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+/* Panel del Día Activo */
+.detalle-day-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.day-panel-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  background: #f8fafc;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.day-active-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-day-pill {
+  background: #004a4c;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.active-day-bus-counter {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.day-quick-clone-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-clone-day {
+  background: #ffffff;
+  border: 1.5px solid #004a4c;
+  border-radius: 8px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--safco-teal);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-clone-day:hover {
+  background: var(--safco-teal);
+  color: #ffffff;
+}
+
+/* Tarjeta para Agregar Bus al Día */
+.add-bus-to-day-card {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0.95rem 1.15rem;
+}
+
+.add-bus-card-header {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--safco-teal);
+  margin-bottom: 0.75rem;
+}
+
+.add-bus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.85rem;
+}
+
+.btn-add-vehicle-day {
+  width: 100%;
+  background: var(--safco-teal);
+  color: white;
+  font-weight: 800;
+  border: none;
+  border-radius: 9px;
+  padding: 0.65rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 3px 8px rgba(0, 74, 76, 0.2);
+  transition: all 0.15s ease;
+}
+
+.btn-add-vehicle-day:hover {
+  background: var(--safco-teal-dark);
+  transform: translateY(-1px);
+}
+
+/* Tabla de Vehículos Asignados en el Día */
+.day-assigned-vehicles-container {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.table-day-vehicles {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  text-align: left;
+}
+
+.table-day-vehicles thead th {
+  background: #f1f5f9;
+  color: var(--text-main);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-bottom: 1.5px solid var(--border-color);
+}
+
+.table-day-vehicles tbody tr {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table-day-vehicles tbody tr:hover {
+  background: #f8fafc;
+}
+
+.table-day-vehicles td {
+  padding: 0.65rem 0.85rem;
+  vertical-align: middle;
+}
+
+.btn-delete-row-day {
+  background: transparent;
+  border: none;
+  color: var(--safco-red);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-delete-row-day:hover {
+  background: #fee2e2;
+}
+
+/* Barra de Resumen Global y Guardado */
+.modal-semanal-summary-bar {
+  background: #f8fafc;
+  border-top: 1.5px solid var(--border-color);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0.5rem -1.5rem -1.25rem -1.5rem;
+}
+
+.summary-stats-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.stat-lbl {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.summary-actions-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-save-master-semanal {
+  background: var(--safco-teal);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.65rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0, 74, 76, 0.28);
+  transition: all 0.2s ease;
+}
+
+.btn-save-master-semanal:hover {
+  background: var(--safco-teal-dark);
+  transform: translateY(-1px);
 }
 
 .form-grid-2 {
