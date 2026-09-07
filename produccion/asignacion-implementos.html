@@ -35,6 +35,9 @@
                 <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header y ocupar todo el espacio web">
                     <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
                 </button>
+                <a href="diagrama-modelo-implementos.html" id="btn-ver-diagrama-bd" class="btn-safco" style="background: rgba(255,255,255,0.18); color: #ffffff; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); font-weight: 700; display: none;" title="Ver Diagrama de BD (Solo Administrador)">
+                    <i class='bx bx-sitemap'></i> Ver Diagrama BD
+                </a>
                 <button class="btn-safco btn-safco-primary" onclick="abrirModalEntregaMultiple()">
                     <i class='bx bx-plus-circle'></i> Entregar Implementos Múltiples
                 </button>
@@ -55,17 +58,7 @@
             <div class="collapsible-filter-body">
                 <!-- Barra de Filtros -->
                 <div class="filter-bar-produccion" style="margin-bottom: 1rem;">
-                    <div class="filter-item" style="max-width: 180px;">
-                        <label for="filter-linea">Línea de Producción:</label>
-                        <select id="filter-linea" class="select-touch" onchange="renderImplementos()">
-                            <option value="TODAS">Todas las Líneas</option>
-                            <option value="Línea 1">Línea 1</option>
-                            <option value="Línea 2">Línea 2</option>
-                            <option value="Línea 3">Línea 3</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-item" style="max-width: 180px;">
+                    <div class="filter-item" style="max-width: 240px;">
                         <label for="filter-tipo-implemento">Tipo de Implemento:</label>
                         <select id="filter-tipo-implemento" class="select-touch" onchange="renderImplementos()">
                             <option value="TODOS">Todos los Tipos</option>
@@ -76,8 +69,8 @@
                     </div>
 
                     <div class="filter-item" style="flex: 2; min-width: 220px;">
-                        <label for="input-search-implemento">Buscar Operario, Mesa o Implemento:</label>
-                        <input type="text" id="input-search-implemento" class="input-touch" placeholder="Ej: Ana García, L1-R1-M03, Tijera 02..." oninput="renderImplementos()">
+                        <label for="input-search-implemento">Buscar Operario o Implemento:</label>
+                        <input type="text" id="input-search-implemento" class="input-touch" placeholder="Ej: Ana García, Tijera 01, Pesa Patrón, Calibrador..." oninput="renderImplementos()">
                     </div>
                 </div>
 
@@ -93,17 +86,17 @@
                     </div>
                     <div class="kpi-card clickable" id="kpi-card-herr-uso" onclick="filtrarPorKPI('EN_USO')">
                         <div class="kpi-val warn" id="kpi-herr-uso">0</div>
-                        <div class="kpi-lbl">En Uso en Mesa</div>
+                        <div class="kpi-lbl">En Uso Asignados</div>
                     </div>
                     <div class="kpi-card clickable" id="kpi-card-herr-venc" onclick="filtrarPorKPI('VENCIDAS')">
                         <div class="kpi-val bad" id="kpi-herr-venc">0</div>
-                        <div class="kpi-lbl">Calibración Vencida</div>
+                        <div class="kpi-lbl">Deterioradas / Perdidas</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Vista Principal: Tarjetas de Operarios con sus Implementos y Mesas -->
+        <!-- Vista Principal: Tarjetas de Operarios con sus Implementos -->
         <div id="contenedor-operarios-herramientas">
             <!-- Renderizado dinámico -->
         </div>
@@ -203,6 +196,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
+            if (typeof isUserAdmin === 'function' && isUserAdmin()) {
+                const btnDiag = document.getElementById('btn-ver-diagrama-bd');
+                if (btnDiag) btnDiag.style.display = 'inline-flex';
+            }
             poblarSelectsTiposImplementos();
             renderImplementos();
         });
@@ -301,33 +298,12 @@
         }
 
         function renderImplementos() {
-            const fLinea = document.getElementById('filter-linea').value;
             const fTipo = document.getElementById('filter-tipo-implemento').value;
             const search = document.getElementById('input-search-implemento').value.toLowerCase().trim();
 
             const herrs = ProduccionDB.getHerramientas();
-            const asignacionesMesas = ProduccionDB.getAsignacionesMesas();
             const asignacionesHerr = ProduccionDB.getAsignacionesHerramientas();
             const operarios = ProduccionDB.getOperarios();
-            const mesas = ProduccionDB.getMesas();
-
-            const opToMesaMap = {};
-            Object.keys(asignacionesMesas).forEach(codigoMesa => {
-                const mesaObj = mesas.find(m => m.codigo === codigoMesa);
-                const integrs = asignacionesMesas[codigoMesa] || [];
-                integrs.forEach(x => {
-                    const opId = typeof x === 'string' ? x : x.opId;
-                    const labor = typeof x === 'string' ? 'Operario' : x.labor;
-                    if (opId) {
-                        opToMesaMap[opId] = {
-                            codigo: codigoMesa,
-                            linea: mesaObj ? mesaObj.linea : 'Línea 1',
-                            riel: mesaObj ? mesaObj.riel : 'Riel 1',
-                            labor: labor || 'Operario'
-                        };
-                    }
-                });
-            });
 
             const herrByOpMap = {};
             asignacionesHerr.forEach(asig => {
@@ -350,18 +326,19 @@
             const contenedor = document.getElementById('contenedor-operarios-herramientas');
             contenedor.innerHTML = '';
 
-            const operariosAMostrar = operarios.filter(op => opToMesaMap[op.id] || (herrByOpMap[op.id] && herrByOpMap[op.id].length > 0));
+            // Mostrar operarios que tengan implementos asignados o que coincidan con la búsqueda
+            const operariosAMostrar = operarios.filter(op => 
+                (herrByOpMap[op.id] && herrByOpMap[op.id].length > 0) || 
+                (search && op.nombre.toLowerCase().includes(search))
+            );
 
             if (operariosAMostrar.length === 0) {
-                contenedor.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--safco-text-muted);">No hay entregas registradas ni operarios en mesa. Usa el botón "Entregar Implementos Múltiples".</div>`;
+                contenedor.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--safco-text-muted);">No se encontraron operarios con implementos asignados. Usa el botón "Entregar Implementos Múltiples".</div>`;
                 return;
             }
 
             operariosAMostrar.forEach(op => {
-                const infoMesa = opToMesaMap[op.id] || { codigo: 'Sin Mesa', linea: 'Línea 1', riel: 'Riel 1', labor: op.cargo };
                 const herrsAsignadas = herrByOpMap[op.id] || [];
-
-                if (fLinea !== 'TODAS' && infoMesa.linea !== fLinea) return;
 
                 let herrsFiltradas = herrsAsignadas;
                 if (fTipo !== 'TODOS') {
@@ -378,32 +355,34 @@
                     if (!tieneVenc) return;
                 }
 
+                // Buscador: solo por operario e implemento y tipo de implemento
                 if (search) {
-                    const matchOp = op.nombre.toLowerCase().includes(search);
-                    const matchMesa = infoMesa.codigo.toLowerCase().includes(search);
-                    const matchHerr = herrsAsignadas.some(h => h.herramientaCodigo.toLowerCase().includes(search));
-                    if (!matchOp && !matchMesa && !matchHerr) return;
+                    const matchOp = op.nombre.toLowerCase().includes(search) || (op.dni && op.dni.toLowerCase().includes(search));
+                    const matchHerr = herrsAsignadas.some(h => 
+                        h.herramientaCodigo.toLowerCase().includes(search) || 
+                        (h.tipo && h.tipo.toLowerCase().includes(search))
+                    );
+                    if (!matchOp && !matchHerr) return;
                 }
 
                 const iniciales = op.nombre.split(' ').map(n => n[0]).join('').substring(0, 2);
-                const isSeleccionador = infoMesa.labor === 'Seleccionador';
 
                 let herrsChipsHtml = '';
-                if (herrsAsignadas.length === 0) {
+                if (herrsFiltradas.length === 0) {
                     herrsChipsHtml = `<span style="font-size: 0.8rem; color: var(--safco-red); font-style: italic;"><i class='bx bx-error-circle'></i> Sin implementos asignados</span>`;
                 } else {
-                    herrsAsignadas.forEach(h => {
+                    herrsFiltradas.forEach(h => {
                         const icon = h.tipo === 'Tijera' ? '✂️' : (h.tipo === 'Calibrador' ? '📐' : '⚖️');
                         const hObj = herrs.find(x => x.codigo === h.herramientaCodigo);
                         const isVencida = hObj && (hObj.estado === 'Deteriorada' || hObj.estado === 'Perdida');
-                        const calibTxt = isVencida ? `⚠️ ${hObj.estado}` : `Calib: ${hObj ? hObj.diasCalibracion : 15} días`;
+                        const statusTxt = isVencida ? `⚠️ ${hObj.estado}` : `Asignado · ${h.fechaEntrega}`;
 
                         herrsChipsHtml += `
                             <div class="herr-chip ${isVencida ? 'warn' : ''}">
                                 <span class="herr-chip-icon">${icon}</span>
                                 <div>
                                     <div class="herr-chip-name">${h.herramientaCodigo}</div>
-                                    <div class="herr-chip-calib">${calibTxt} · ${h.fechaEntrega}</div>
+                                    <div class="herr-chip-calib">${statusTxt}</div>
                                 </div>
                             </div>
                         `;
@@ -416,8 +395,10 @@
                             <div class="op-main-det">
                                 <div class="op-big-avatar">${iniciales}</div>
                                 <div>
-                                    <div class="op-title-name">${op.nombre} <span class="badge-rol ${isSeleccionador ? 'b-sel' : 'b-emb'}">${infoMesa.labor}</span></div>
-                                    <div class="op-mesa-tag"><i class='bx bx-table'></i> ${infoMesa.codigo} (${infoMesa.linea} - ${infoMesa.riel})</div>
+                                    <div class="op-title-name">${op.nombre}</div>
+                                    <div style="font-size: 0.78rem; color: var(--safco-text-muted); margin-top: 0.15rem;">
+                                        <i class='bx bx-id-card'></i> DNI: ${op.dni || '—'}
+                                    </div>
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.4rem;">
@@ -431,7 +412,7 @@
                         </div>
                         <div>
                             <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--safco-text-muted); margin-bottom: 0.35rem;">
-                                Implementos a su cargo (${herrsAsignadas.length}):
+                                Implementos a su cargo (${herrsFiltradas.length}):
                             </div>
                             <div class="herr-chips-grid">
                                 ${herrsChipsHtml}
@@ -462,23 +443,11 @@
 
         function poblarSelectOperariosEntrega() {
             const operarios = ProduccionDB.getOperarios();
-            const asignacionesMesas = ProduccionDB.getAsignacionesMesas();
             const select = document.getElementById('select-op-entrega-mult');
             select.innerHTML = '';
 
-            const opMesaMap = {};
-            Object.keys(asignacionesMesas).forEach(codigoMesa => {
-                const integrs = asignacionesMesas[codigoMesa] || [];
-                integrs.forEach(x => {
-                    const opId = typeof x === 'string' ? x : x.opId;
-                    if (opId) opMesaMap[opId] = codigoMesa;
-                });
-            });
-
             operarios.forEach(op => {
-                const mesa = opMesaMap[op.id];
-                const mesaTxt = mesa ? ` · Mesa ${mesa}` : '';
-                select.innerHTML += `<option value="${op.id}">${op.nombre} (${op.cargo}${mesaTxt})</option>`;
+                select.innerHTML += `<option value="${op.id}">${op.nombre} (DNI: ${op.dni})</option>`;
             });
         }
 

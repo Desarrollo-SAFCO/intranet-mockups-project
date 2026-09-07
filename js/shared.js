@@ -16,6 +16,21 @@ function checkAuth() {
     }
 }
 
+// Verifica si la sesión actual corresponde a un Administrador
+function isUserAdmin() {
+    try {
+        const sessionStr = localStorage.getItem("userSession");
+        if (!sessionStr) return false;
+        const session = JSON.parse(sessionStr);
+        return session.user === 'admin' || 
+               session.user === 'alex.quintanilla' || 
+               session.scope === 'ALL' || 
+               (session.role && session.role.toLowerCase().includes('admin'));
+    } catch (e) {
+        return false;
+    }
+}
+
 // Cerrar sesión
 function logout(e) {
     if (e && e.preventDefault) e.preventDefault();

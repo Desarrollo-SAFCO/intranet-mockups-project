@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFCO · Arquitectura de Datos - Catálogo y Asignación de Implementos</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Base Styles & Produccion Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/produccion.css">
+    
+    <!-- Shared Auth Script -->
+    <script src="../js/shared.js"></script>
+
+    <!-- Mermaid CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e6fffa',
+                primaryTextColor: '#004a4c',
+                primaryBorderColor: '#004a4c',
+                lineColor: '#004a4c',
+                secondaryColor: '#f0fdf4',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px'
+            }
+        });
+    </script>
+
+    <style>
+        .diagram-wrapper {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid var(--safco-border);
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--safco-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--safco-text-muted);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--safco-teal);
+            background: var(--safco-teal-bg);
+        }
+
+        .tab-btn.active {
+            color: #ffffff;
+            background: var(--safco-teal);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .sql-box {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            text-align: left;
+        }
+
+        .entity-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .entity-card {
+            background: #ffffff;
+            border: 1px solid var(--safco-border);
+            border-radius: 10px;
+            padding: 1.2rem;
+            border-top: 4px solid var(--safco-teal);
+        }
+
+        .entity-title {
+            font-weight: 800;
+            color: var(--safco-teal);
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .entity-field-list {
+            font-size: 0.82rem;
+            color: var(--safco-text-dark);
+            margin-top: 0.5rem;
+        }
+
+        .entity-field-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.35rem 0;
+            border-bottom: 1px dashed var(--safco-border);
+        }
+
+        .field-name {
+            font-family: 'DM Mono', monospace;
+            font-weight: 700;
+        }
+
+        .badge-pk { background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; }
+        .badge-fk { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; }
+
+        /* Pantalla de Acceso Denegado */
+        .denied-screen {
+            display: none;
+            min-height: 70vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .denied-card {
+            background: #ffffff;
+            border: 1px solid #fed7aa;
+            border-radius: 14px;
+            padding: 2.5rem 2rem;
+            max-width: 520px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .denied-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #fff7ed;
+            color: #ea580c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.2rem;
+        }
+    </style>
+</head>
+<body style="background-color: var(--safco-bg); min-height: 100vh;">
+
+    <!-- Pantalla de Bloqueo / Acceso Restringido (Para no-admins) -->
+    <div class="denied-screen" id="bloque-acceso-denegado">
+        <div class="denied-card">
+            <div class="denied-icon">
+                <i class='bx bx-shield-x'></i>
+            </div>
+            <h2 style="color: #9a3412; font-size: 1.3rem; margin-bottom: 0.6rem; font-weight: 800;">
+                Acceso Exclusivo para Administradores
+            </h2>
+            <p style="color: var(--safco-text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                Esta sección contiene diagramas de arquitectura de base de datos relacional y scripts DDL técnicos. Tu cuenta actual no cuenta con el rol de <strong>Administrador</strong>.
+            </p>
+            <div style="display: flex; gap: 0.8rem; justify-content: center;">
+                <a href="tablas-implementos.html" class="btn-safco btn-safco-primary" style="text-decoration: none;">
+                    <i class='bx bx-arrow-back'></i> Volver a Catálogo
+                </a>
+                <a href="asignacion-implementos.html" class="btn-safco btn-safco-secondary" style="text-decoration: none;">
+                    <i class='bx bx-user-check'></i> Volver a Asignación
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal (Visible solo para Administradores) -->
+    <main class="content-area" id="contenido-admin" style="display: none; padding: 1.5rem; max-width: 1350px; margin: 0 auto;">
+        
+        <!-- Banner de Cabecera Ejecutiva -->
+        <div class="produccion-banner">
+            <div class="produccion-banner-title">
+                <div class="produccion-banner-icon">
+                    <i class='bx bx-git-repo-forked'></i>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        <h1 style="margin: 0;">Arquitectura de Datos · Catálogo y Asignación de Implementos</h1>
+                        <span style="background: rgba(255,255,255,0.22); color: #ffffff; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">
+                            <i class='bx bx-lock-open-alt'></i> MODO ADMIN
+                        </span>
+                    </div>
+                    <p>Modelo Relacional Normalizado · Sin Calibración · Historial Dinámico On-Demand sin Tabla Redundante</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <a href="tablas-implementos.html" class="btn-safco btn-safco-secondary" style="text-decoration: none;">
+                    <i class='bx bx-arrow-back'></i> Catálogo Implementos
+                </a>
+                <a href="asignacion-implementos.html" class="btn-safco btn-safco-primary" style="text-decoration: none;">
+                    <i class='bx bx-user-check'></i> Asignación Implementos
+                </a>
+            </div>
+        </div>
+
+        <!-- Pestañas de Navegación -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="cambiarPestana('tab-diagrama')">
+                <i class='bx bx-sitemap'></i> Diagrama ERD Visual (Mermaid)
+            </button>
+            <button class="tab-btn" onclick="cambiarPestana('tab-explicacion')">
+                <i class='bx bx-list-check'></i> Explicación de Entidades e Historial por Petición
+            </button>
+            <button class="tab-btn" onclick="cambiarPestana('tab-sql')">
+                <i class='bx bx-code-curly'></i> Script SQL (DDL + Vista de Historial)
+            </button>
+        </div>
+
+        <!-- Pestaña 1: Diagrama Mermaid Visual -->
+        <div class="tab-content active" id="tab-diagrama">
+            <div class="diagram-wrapper">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--safco-teal); margin: 0; font-weight: 800; font-size: 1.15rem;">
+                        <i class='bx bx-check-shield'></i> Modelo Relacional E-R Normalizado (Tercera Forma Normal)
+                    </h3>
+                    <span style="font-size: 0.8rem; color: var(--safco-text-muted); background: var(--safco-teal-bg); padding: 0.4rem 0.8rem; border-radius: 6px;">
+                        📌 4 Tablas Transaccionales + 1 Vista Externa (Cero Redundancia)
+                    </span>
+                </div>
+
+                <!-- Código Mermaid renderizado dinámicamente -->
+                <div class="mermaid">
+erDiagram
+    TIPO_IMPLEMENTO ||--o{ IMPLEMENTO : "clasifica (1:N)"
+    VISTA_OPERARIOS ||--o{ ASIGNACION_CABECERA : "recibe implementos (1:N)"
+    ASIGNACION_CABECERA ||--o{ ASIGNACION_DETALLE : "contiene items (1:N)"
+    IMPLEMENTO ||--o{ ASIGNACION_DETALLE : "se entrega y devuelve en (1:N)"
+
+    TIPO_IMPLEMENTO {
+        int id_tipo_implemento PK
+        varchar nombre "Ej: Tijera, Pesa Patron, Calibrador"
+        varchar prefijo_codigo "Ej: TIJ, PES, CAL"
+        varchar icono "Ej: ✂️, ⚖️, 📐"
+        boolean activo "true | false"
+    }
+
+    IMPLEMENTO {
+        int id_implemento PK
+        varchar codigo_inventario UK "Ej: Tijera 1, TIJ-01"
+        int fk_id_tipo_implemento FK
+        enum estado_actual "Disponible | Asignado | Deteriorada | Perdida"
+        varchar observacion_estado "Motivo de estado o baja en almacen"
+        date fecha_registro
+        boolean activo
+    }
+
+    ASIGNACION_CABECERA {
+        int id_asignacion PK
+        varchar dni_operario FK "Operario receptor"
+        int fk_id_usuario_entrega "Supervisor que entrega"
+        timestamp fecha_hora_entrega "Inicio del prestamo"
+        varchar observacion_entrega
+        enum estado_asignacion "Activa | Finalizada"
+    }
+
+    ASIGNACION_DETALLE {
+        int id_detalle PK
+        int fk_id_asignacion FK
+        int fk_id_implemento FK
+        timestamp fecha_hora_devolucion "NULL mientras este en uso"
+        enum estado_devolucion "Excelente | Deteriorada | Perdida"
+        varchar observacion_devolucion "Melladura, daño, extravío, etc."
+        int fk_id_usuario_recepcion "Supervisor que recibe"
+    }
+
+    VISTA_OPERARIOS {
+        varchar dni PK
+        varchar nombres_completos
+        varchar cargo
+    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Explicación de Entidades y Arquitectura de Historial por Demanda -->
+        <div class="tab-content" id="tab-explicacion">
+            
+            <!-- Banner Informativo: Por qué es factible y mejor prescindir de una tabla de historial -->
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 5px solid #2563eb; border-radius: 10px; padding: 1.2rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: flex-start; gap: 0.8rem;">
+                    <i class='bx bx-bulb' style="font-size: 1.8rem; color: #2563eb; margin-top: 0.1rem;"></i>
+                    <div>
+                        <h4 style="margin: 0 0 0.4rem 0; color: #1e3a8a; font-weight: 800; font-size: 1rem;">
+                            ¿Es factible generar el historial por petición desde ASIGNACION_DETALLE en vez de una tabla física?
+                        </h4>
+                        <p style="margin: 0; color: #1e40af; font-size: 0.88rem; line-height: 1.5;">
+                            <strong>Sí, es 100% factible y es la mejor práctica de arquitectura relacional:</strong>
+                            <br>• <strong>Cero Redundancia de Datos:</strong> Cada fila en <code>ASIGNACION_DETALLE</code> ya almacena cuándo se entregó, a quién, cuándo se devolvió, el estado en que retornó (Excelente, Deteriorada, Perdida) y la observación de lo ocurrido. Tener una tabla <code>HISTORIAL</code> duplica exactamente la misma información.
+                            <br>• <strong>Consistencia Garantizada:</strong> No hay riesgo de desincronización entre lo que pasó en el préstamo y lo que dice el historial.
+                            <br>• <strong>Historial On-Demand:</strong> Cuando el frontend solicita <code>GET /api/implementos/{id}/historial</code>, el backend ejecuta un <code>JOIN</code> indexado que responde en menos de 1 milisegundo.
+                            <br>• <strong>Eventos Administrativos de Almacén:</strong> Si un implemento se daña o se da de baja dentro de bodega (sin operario), se actualiza directamente <code>IMPLEMENTO.estado_actual</code> y <code>IMPLEMENTO.observacion_estado</code>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="entity-card-grid">
+                
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-category'></i> TIPO_IMPLEMENTO</span>
+                        <span class="badge-rol b-sel">Maestro</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--safco-text-muted);">
+                        Catálogo de categorías de herramientas. Permite agregar nuevos tipos dinámicamente sin modificar código ni base de datos.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item">
+                            <span class="field-name">id_tipo_implemento</span>
+                            <span class="badge-pk">PK</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">nombre</span>
+                            <span>VARCHAR(100) (Tijera, Pesa)</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">prefijo_codigo</span>
+                            <span>VARCHAR(10) (TIJ, PES, CAL)</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">icono</span>
+                            <span>VARCHAR(10) (Emoji / Ícono)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-wrench'></i> IMPLEMENTO</span>
+                        <span class="badge-rol b-sel">Activo Físico</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--safco-text-muted);">
+                        Cada ítem físico individual inventariado. Mantiene su estado en tiempo real y la observación de almacén.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item">
+                            <span class="field-name">id_implemento</span>
+                            <span class="badge-pk">PK</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">codigo_inventario</span>
+                            <span>UNIQUE (Tijera 1)</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">fk_id_tipo_implemento</span>
+                            <span class="badge-fk">FK</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">estado_actual</span>
+                            <span>Disponible | Asignado | Deteriorada | Perdida</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">observacion_estado</span>
+                            <span>VARCHAR(255) (Bajas en almacén)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-cabinet'></i> ASIGNACION_CABECERA</span>
+                        <span class="badge-rol b-emb">Transaccional</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--safco-text-muted);">
+                        Representa el acto de entrega múltiple a un operario en un turno específico por un supervisor responsable.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item">
+                            <span class="field-name">id_asignacion</span>
+                            <span class="badge-pk">PK</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">dni_operario</span>
+                            <span class="badge-fk">Receptor</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">fecha_hora_entrega</span>
+                            <span>TIMESTAMP</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">estado_asignacion</span>
+                            <span>Activa | Finalizada</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="entity-card" style="border-top-color: var(--safco-green);">
+                    <div class="entity-title">
+                        <span><i class='bx bx-history'></i> ASIGNACION_DETALLE</span>
+                        <span class="mesa-status-pill pill-asignado">Historial Natural</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--safco-text-muted);">
+                        Cada ítem entregado. Al devolverse, registra la hora exacta, el estado y las observaciones. Al consultarlo por implemento genera la trazabilidad completa.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item">
+                            <span class="field-name">id_detalle</span>
+                            <span class="badge-pk">PK</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">fk_id_implemento</span>
+                            <span class="badge-fk">FK</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">fecha_hora_devolucion</span>
+                            <span>TIMESTAMP (NULL = En uso)</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">estado_devolucion</span>
+                            <span>Excelente | Deteriorada | Perdida</span>
+                        </div>
+                        <div class="entity-field-item">
+                            <span class="field-name">observacion_devolucion</span>
+                            <span>TEXT (Melladura, daño, etc.)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Pestaña 3: Script DDL SQL y Vista de Historial -->
+        <div class="tab-content" id="tab-sql">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                <h3 style="color: var(--safco-teal); margin: 0;">Script SQL DDL + Vista de Historial On-Demand</h3>
+                <button class="btn-safco btn-safco-secondary" onclick="copiarSQL()"><i class='bx bx-copy'></i> Copiar SQL</button>
+            </div>
+            <pre class="sql-box" id="codigo-sql"><code>-- =========================================================================
+-- SAFCO - ARQUITECTURA DE DATOS: CATÁLOGO Y ASIGNACIÓN DE IMPLEMENTOS
+-- Modelo Normalizado (Cero Redundancia de Historial - Sin Calibración)
+-- =========================================================================
+
+-- 1. TABLA: TIPO DE IMPLEMENTO (Maestro de categorías)
+CREATE TABLE tipo_implemento (
+    id_tipo_implemento SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    prefijo_codigo VARCHAR(10) NOT NULL,
+    icono VARCHAR(10) DEFAULT '🔧',
+    activo BOOLEAN DEFAULT TRUE
+);
+
+-- 2. TABLA: IMPLEMENTO FÍSICO (Inventario individual)
+CREATE TABLE implemento (
+    id_implemento SERIAL PRIMARY KEY,
+    codigo_inventario VARCHAR(50) NOT NULL UNIQUE,
+    fk_id_tipo_implemento INT NOT NULL REFERENCES tipo_implemento(id_tipo_implemento),
+    estado_actual VARCHAR(20) NOT NULL DEFAULT 'Disponible', -- 'Disponible', 'Asignado', 'Deteriorada', 'Perdida'
+    observacion_estado VARCHAR(255), -- Motivo si se deterioró o anuló en almacén
+    fecha_registro DATE DEFAULT CURRENT_DATE,
+    activo BOOLEAN DEFAULT TRUE
+);
+
+-- 3. TABLA: ASIGNACIÓN CABECERA (Entrega agrupada por operario)
+CREATE TABLE asignacion_cabecera (
+    id_asignacion SERIAL PRIMARY KEY,
+    dni_operario VARCHAR(20) NOT NULL,
+    fk_id_usuario_entrega INT NOT NULL,
+    fecha_hora_entrega TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    observacion_entrega VARCHAR(255),
+    estado_asignacion VARCHAR(20) DEFAULT 'Activa' -- 'Activa', 'Finalizada'
+);
+
+-- 4. TABLA: ASIGNACIÓN DETALLE (Items entregados y registro natural de devolución)
+CREATE TABLE asignacion_detalle (
+    id_detalle SERIAL PRIMARY KEY,
+    fk_id_asignacion INT NOT NULL REFERENCES asignacion_cabecera(id_asignacion) ON DELETE CASCADE,
+    fk_id_implemento INT NOT NULL REFERENCES implemento(id_implemento),
+    fecha_hora_devolucion TIMESTAMP NULL, -- NULL mientras esté en uso
+    estado_devolucion VARCHAR(20) NULL,   -- 'Excelente', 'Deteriorada', 'Perdida'
+    observacion_devolucion VARCHAR(255),  -- Motivo del daño o nota al devolver
+    fk_id_usuario_recepcion INT NULL
+);
+
+-- ÍNDICES DE ALTO RENDIMIENTO
+CREATE INDEX idx_detalle_implemento ON asignacion_detalle(fk_id_implemento, fecha_hora_devolucion);
+CREATE INDEX idx_cabecera_operario ON asignacion_cabecera(dni_operario, fecha_hora_entrega DESC);
+CREATE INDEX idx_implemento_estado ON implemento(estado_actual);
+
+-- =========================================================================
+-- VISTA SQL: HISTORIAL DE TRAZABILIDAD ON-DEMAND (Generado por Petición)
+-- Esta vista evita duplicar datos y responde a la petición del endpoint:
+-- GET /api/implementos/:id/historial
+-- =========================================================================
+CREATE OR REPLACE VIEW v_historial_implemento AS
+SELECT 
+    d.fk_id_implemento,
+    i.codigo_inventario,
+    t.nombre AS tipo_implemento,
+    c.id_asignacion,
+    c.fecha_hora_entrega,
+    c.dni_operario,
+    op.nombres_completos AS operario_nombre,
+    c.fk_id_usuario_entrega,
+    d.fecha_hora_devolucion,
+    CASE 
+        WHEN d.fecha_hora_devolucion IS NULL THEN 'En Uso (Actual)'
+        ELSE COALESCE(d.estado_devolucion, 'Devuelto')
+    END AS estado_evento,
+    d.observacion_devolucion,
+    d.fk_id_usuario_recepcion
+FROM asignacion_detalle d
+INNER JOIN asignacion_cabecera c ON d.fk_id_asignacion = c.id_asignacion
+INNER JOIN implemento i ON d.fk_id_implemento = i.id_implemento
+INNER JOIN tipo_implemento t ON i.fk_id_tipo_implemento = t.id_tipo_implemento
+LEFT JOIN vista_operarios op ON c.dni_operario = op.dni;
+
+-- EJEMPLO DE CONSULTA POR PETICIÓN (Ultrarrápida con índice):
+-- SELECT * FROM v_historial_implemento WHERE fk_id_implemento = 19 ORDER BY fecha_hora_entrega DESC;
+</code></pre>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            validarAccesoAdmin();
+        });
+
+        function validarAccesoAdmin() {
+            if (typeof isUserAdmin === 'function' && isUserAdmin()) {
+                document.getElementById('contenido-admin').style.display = 'block';
+                document.getElementById('bloque-acceso-denegado').style.display = 'none';
+            } else {
+                document.getElementById('contenido-admin').style.display = 'none';
+                document.getElementById('bloque-acceso-denegado').style.display = 'flex';
+            }
+        }
+
+        function cambiarPestana(idTab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            const idx = idTab === 'tab-diagrama' ? 0 : (idTab === 'tab-explicacion' ? 1 : 2);
+            document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+            document.getElementById(idTab).classList.add('active');
+        }
+
+        function copiarSQL() {
+            const texto = document.getElementById('codigo-sql').innerText;
+            navigator.clipboard.writeText(texto).then(() => {
+                alert('¡Script SQL copiado al portapapeles!');
+            });
+        }
+    </script>
+</body>
+</html>

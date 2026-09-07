@@ -35,6 +35,9 @@
                 <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header y ocupar todo el espacio web">
                     <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
                 </button>
+                <a href="diagrama-modelo-implementos.html" id="btn-ver-diagrama-bd" class="btn-safco" style="background: rgba(255,255,255,0.18); color: #ffffff; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); font-weight: 700; display: none;" title="Ver Diagrama de BD (Solo Administrador)">
+                    <i class='bx bx-sitemap'></i> Ver Diagrama BD
+                </a>
                 <button class="btn-safco btn-safco-secondary" onclick="abrirModalNuevoTipo()">
                     <i class='bx bx-category-plus'></i> Agregar Tipo de Implemento
                 </button>
@@ -96,7 +99,6 @@
                         <th>TIPO</th>
                         <th>ESTADO ALMACÉN</th>
                         <th>OBSERVACIÓN / DESCRIPCIÓN</th>
-                        <th>CALIBRACIÓN</th>
                         <th style="text-align: right;">ACCIONES</th>
                     </tr>
                 </thead>
@@ -132,11 +134,6 @@
                 <div class="form-group-safco">
                     <label for="modal-add-cant-herr">Cantidad a Generar:</label>
                     <input type="number" id="modal-add-cant-herr" class="input-touch" style="width: 100%;" value="10" min="1" max="100">
-                </div>
-
-                <div class="form-group-safco">
-                    <label for="modal-add-dias-calib">Período de Calibración (Días):</label>
-                    <input type="number" id="modal-add-dias-calib" class="input-touch" style="width: 100%;" value="30" min="1" max="365">
                 </div>
 
                 <div class="modal-card-actions">
@@ -214,7 +211,7 @@
                     <label for="edit-herr-estado">Estado de Almacén:</label>
                     <select id="edit-herr-estado" class="select-touch" style="width: 100%;">
                         <option value="Disponible">🟠 Disponible (En Almacén)</option>
-                        <option value="Asignado">🟢 Asignado (En uso / En Mesa)</option>
+                        <option value="Asignado">🟢 Asignado (En uso)</option>
                         <option value="Deteriorada">⚪ Deteriorada (No se puede usar)</option>
                         <option value="Perdida">🔴 Perdida / Extraviada</option>
                     </select>
@@ -270,6 +267,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
+            if (typeof isUserAdmin === 'function' && isUserAdmin()) {
+                const btnDiag = document.getElementById('btn-ver-diagrama-bd');
+                if (btnDiag) btnDiag.style.display = 'inline-flex';
+            }
             poblarSelectsTiposImplementos();
             renderTablaHerramientas();
             document.addEventListener('click', (e) => {
@@ -423,7 +424,7 @@
             }
 
             if (filtradas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--safco-text-muted); padding: 1.5rem;">No hay implementos registrados con los filtros seleccionados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--safco-text-muted); padding: 1.5rem;">No hay implementos registrados con los filtros seleccionados.</td></tr>`;
                 return;
             }
 
@@ -456,7 +457,6 @@
                         <td data-label="Tipo"><span class="badge-rol b-sel">${h.tipo}</span></td>
                         <td data-label="Estado"><span class="mesa-status-pill ${pillCls}">${h.estado}</span></td>
                         <td data-label="Descripción" style="font-size: 0.82rem; color: var(--safco-text-dark);">${descTxt}</td>
-                        <td data-label="Calibración" style="font-size: 0.82rem;">${h.diasCalibracion} días</td>
                         <td data-label="Acciones" style="text-align: right;">
                             <div class="action-menu-container">
                                 <button class="btn-kebab-menu" onclick="toggleKebabMenu('${menuId}', event)">
@@ -494,9 +494,8 @@
         function confirmarGenerarHerramientas() {
             const tipo = document.getElementById('modal-add-tipo-herr').value;
             const cantidad = parseInt(document.getElementById('modal-add-cant-herr').value) || 1;
-            const diasCalib = parseInt(document.getElementById('modal-add-dias-calib').value) || 30;
 
-            const nuevas = ProduccionDB.addHerramientasBulk(tipo, cantidad, diasCalib);
+            const nuevas = ProduccionDB.addHerramientasBulk(tipo, cantidad);
             cerrarModal('modal-nueva-herr');
             renderTablaHerramientas();
 
