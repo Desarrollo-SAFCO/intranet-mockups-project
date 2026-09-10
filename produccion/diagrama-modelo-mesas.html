@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFCO · Arquitectura de Datos - Mesas de Producción</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Base Styles & Produccion Styles -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/produccion.css">
+    
+    <!-- Shared Auth Script -->
+    <script src="../js/shared.js"></script>
+
+    <!-- Mermaid CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e6fffa',
+                primaryTextColor: '#004a4c',
+                primaryBorderColor: '#004a4c',
+                lineColor: '#004a4c',
+                secondaryColor: '#f0fdf4',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px'
+            }
+        });
+    </script>
+
+    <style>
+        .diagram-wrapper {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid var(--safco-border);
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            margin-bottom: 2rem;
+        }
+
+        /* Viewport y Canvas Interactivo de Zoom & Pan */
+        .diagram-viewport {
+            position: relative;
+            width: 100%;
+            height: 720px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1.5px solid var(--safco-border);
+            overflow: hidden;
+            cursor: grab;
+            user-select: none;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.03);
+            touch-action: none;
+        }
+
+        .diagram-viewport:active {
+            cursor: grabbing;
+        }
+
+        .diagram-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+            transition: transform 0.08s ease-out;
+        }
+
+        #mermaid-container {
+            display: block;
+        }
+
+        #diagram-canvas svg {
+            max-width: none !important;
+            display: block !important;
+        }
+
+        /* Entidades interactivas en el diagrama Mermaid */
+        #diagram-canvas svg g.er.entityBox,
+        #diagram-canvas svg g[id*="entity"],
+        #diagram-canvas svg g[class*="entity"],
+        #diagram-canvas svg g.node {
+            cursor: pointer !important;
+            transition: filter 0.2s ease;
+        }
+
+        #diagram-canvas svg g.er.entityBox:hover,
+        #diagram-canvas svg g[id*="entity"]:hover,
+        #diagram-canvas svg g[class*="entity"]:hover,
+        #diagram-canvas svg g.node:hover {
+            filter: drop-shadow(0 0 14px rgba(0, 168, 150, 0.9)) !important;
+        }
+
+        /* Barra de acceso rápido / Píldoras de tablas */
+        .table-quick-pills {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            overflow-x: auto;
+            padding: 0.5rem 0.75rem;
+            background: #ffffff;
+            border: 1px solid var(--safco-border);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .table-quick-pills::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .table-quick-pills::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .pills-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--safco-teal);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+
+        .pill-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.28rem 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+            color: var(--safco-teal);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .pill-btn:hover {
+            background: var(--safco-teal);
+            color: #ffffff;
+            border-color: var(--safco-teal);
+            transform: translateY(-1px);
+        }
+
+        .zoom-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0 0.2rem;
+        }
+
+        .zoom-slider {
+            width: 105px;
+            accent-color: var(--safco-teal);
+            cursor: pointer;
+        }
+
+        /* Modo Pantalla Completa */
+        .diagram-viewport.diagram-fullscreen-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            background: #f8fafc !important;
+        }
+
+        /* Toolbar interactiva de Zoom y Enfoque */
+        .diagram-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1.5px solid var(--safco-border);
+            padding: 0.6rem 0.9rem;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .diagram-toolbar-left, .diagram-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-diagram-tool {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.42rem 0.75rem;
+            border-radius: 7px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--safco-teal);
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .btn-diagram-tool:hover {
+            background: var(--safco-teal);
+            color: #ffffff;
+            border-color: var(--safco-teal);
+            transform: translateY(-1px);
+        }
+
+        .zoom-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 800;
+            background: var(--safco-teal-bg);
+            color: var(--safco-teal);
+            padding: 0.38rem 0.7rem;
+            border-radius: 6px;
+            min-width: 54px;
+            text-align: center;
+            border: 1px solid var(--safco-teal-light);
+        }
+
+        .focus-table-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+        }
+
+        .focus-table-selector label {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--safco-teal);
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .focus-table-selector select {
+            border: none;
+            background: transparent;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--safco-text-dark);
+            outline: none;
+            cursor: pointer;
+            padding: 2px 0;
+        }
+
+        /* Controles flotantes en esquina */
+        .floating-zoom-controls {
+            position: absolute;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.94);
+            padding: 0.4rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            border: 1px solid #cbd5e1;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-float-zoom {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: var(--safco-teal);
+            font-size: 1.15rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .btn-float-zoom:hover {
+            background: var(--safco-teal);
+            color: #ffffff;
+        }
+
+        .zoom-hint {
+            position: absolute;
+            bottom: 0.85rem;
+            left: 1rem;
+            font-size: 0.74rem;
+            color: var(--safco-text-muted);
+            background: rgba(255, 255, 255, 0.92);
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            pointer-events: none;
+            font-weight: 600;
+            z-index: 40;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--safco-border);
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--safco-text-muted);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--safco-teal);
+            background: var(--safco-teal-bg);
+        }
+
+        .tab-btn.active {
+            color: #ffffff;
+            background: var(--safco-teal);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .sql-box {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            text-align: left;
+        }
+
+        .entity-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .entity-card {
+            background: #ffffff;
+            border: 1px solid var(--safco-border);
+            border-radius: 10px;
+            padding: 1.2rem;
+            border-top: 4px solid var(--safco-teal);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .entity-title {
+            font-weight: 800;
+            color: var(--safco-teal);
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .entity-field-list {
+            font-size: 0.82rem;
+            color: var(--safco-text-dark);
+            margin-top: 0.5rem;
+        }
+
+        .entity-field-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.35rem 0;
+            border-bottom: 1px dashed var(--safco-border);
+        }
+
+        .field-name {
+            font-family: 'DM Mono', monospace;
+            font-weight: 700;
+        }
+
+        .badge-pk { background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; }
+        .badge-fk { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; }
+        .badge-uk { background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; }
+
+        /* Pantalla de Acceso Denegado */
+        .denied-screen {
+            display: none;
+            min-height: 70vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .denied-card {
+            background: #ffffff;
+            border: 1px solid #fed7aa;
+            border-radius: 14px;
+            padding: 2.5rem 2rem;
+            max-width: 540px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .denied-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #fff7ed;
+            color: #ea580c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.2rem;
+        }
+    </style>
+</head>
+<body style="background-color: var(--safco-bg); min-height: 100vh;">
+
+    <!-- Pantalla de Bloqueo / Acceso Restringido (Para no-admins) -->
+    <div class="denied-screen" id="bloque-acceso-denegado">
+        <div class="denied-card">
+            <div class="denied-icon">
+                <i class='bx bx-shield-x'></i>
+            </div>
+            <h2 style="color: #9a3412; font-size: 1.3rem; margin-bottom: 0.6rem; font-weight: 800;">
+                Acceso Exclusivo para Administradores
+            </h2>
+            <p style="color: var(--safco-text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                Esta sección contiene diagramas relacionales de infraestructura, slots de mesas, métricas de rendimiento y scripts DDL técnicos. Tu cuenta actual no cuenta con el rol de <strong>Administrador</strong>.
+            </p>
+            <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+                <a href="tablas-mesas.html" class="btn-safco btn-safco-primary" style="text-decoration: none;">
+                    <i class='bx bx-table'></i> Volver a Mesas de Producción
+                </a>
+                <a href="asignacion-mesas.html" class="btn-safco btn-safco-secondary" style="text-decoration: none;">
+                    <i class='bx bx-grid-alt'></i> Volver a Asignación de Mesas
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal (Visible solo para Administradores) -->
+    <main class="content-area" id="contenido-admin" style="display: none; padding: 1.5rem; max-width: 1400px; margin: 0 auto;">
+        
+        <!-- Banner de Cabecera Ejecutiva -->
+        <div class="produccion-banner">
+            <div class="produccion-banner-title">
+                <div class="produccion-banner-icon">
+                    <i class='bx bx-sitemap'></i>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                        <h1 style="margin: 0;">Arquitectura de Datos · Mesas y Asignación de Producción</h1>
+                        <span style="background: rgba(255,255,255,0.22); color: #ffffff; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">
+                            <i class='bx bx-lock-open-alt'></i> MODO ADMIN
+                        </span>
+                    </div>
+                    <p>Infraestructura Línea-Riel-Mesa · Asignación de Slots · Trazabilidad de Traslados · Snapshots de Cierre</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <a href="tablas-mesas.html" class="btn-safco btn-safco-secondary" style="text-decoration: none;">
+                    <i class='bx bx-table'></i> Mesas (Catálogo)
+                </a>
+                <a href="asignacion-mesas.html" class="btn-safco btn-safco-primary" style="text-decoration: none;">
+                    <i class='bx bx-grid-alt'></i> Asignación en Vivo
+                </a>
+            </div>
+        </div>
+
+        <!-- Pestañas de Navegación -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="cambiarPestana('tab-diagrama')">
+                <i class='bx bx-sitemap'></i> Diagrama ERD Visual (Mermaid)
+            </button>
+            <button class="tab-btn" onclick="cambiarPestana('tab-explicacion')">
+                <i class='bx bx-list-check'></i> Entidades y Reglas de Negocio
+            </button>
+            <button class="tab-btn" onclick="cambiarPestana('tab-sql')">
+                <i class='bx bx-code-curly'></i> Script SQL DDL + Vistas Analíticas
+            </button>
+        </div>
+
+        <!-- Pestaña 1: Diagrama Mermaid Visual con Zoom & Pan Interactivo -->
+        <div class="tab-content active" id="tab-diagrama">
+            <div class="diagram-wrapper">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <h3 style="color: var(--safco-teal); margin: 0; font-weight: 800; font-size: 1.15rem;">
+                        <i class='bx bx-check-shield'></i> Modelo Relacional E-R Normalizado (3NF) - Mesas de Producción
+                    </h3>
+                    <span style="font-size: 0.8rem; color: var(--safco-teal); background: var(--safco-teal-bg); padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;">
+                        📌 8 Tablas Normalizadas + 3 Vistas On-Demand
+                    </span>
+                </div>
+
+                <!-- Toolbar de Controles de Zoom, Enfoque y Pantalla Completa -->
+                <div class="diagram-toolbar">
+                    <div class="diagram-toolbar-left">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: var(--safco-teal); display: flex; align-items: center; gap: 4px;">
+                            <i class='bx bx-zoom-in'></i> Zoom:
+                        </span>
+                        <button class="btn-diagram-tool" onclick="zoomDiagram(-0.25)" title="Reducir Zoom (Alejar)">
+                            <i class='bx bx-minus'></i>
+                        </button>
+                        <span class="zoom-badge" id="zoom-level-badge">100%</span>
+                        <button class="btn-diagram-tool" onclick="zoomDiagram(0.25)" title="Aumentar Zoom (Acercar)">
+                            <i class='bx bx-plus'></i>
+                        </button>
+                        
+                        <div class="zoom-slider-container">
+                            <input type="range" class="zoom-slider" id="zoom-slider" min="40" max="400" step="5" value="100" oninput="onZoomSliderChange(this.value)" title="Control continuo de escala de zoom (40% - 400%)">
+                        </div>
+
+                        <button class="btn-diagram-tool" onclick="resetZoomDiagram()" title="Restablecer escala real (100%)">
+                            <i class='bx bx-reset'></i> 100%
+                        </button>
+                        <button class="btn-diagram-tool" onclick="fitDiagramToContainer()" title="Ajustar diagrama al espacio disponible">
+                            <i class='bx bx-fullscreen'></i> Ajustar
+                        </button>
+                    </div>
+
+                    <div class="diagram-toolbar-right">
+                        <!-- Selector de Enfoque Directo en Tabla -->
+                        <div class="focus-table-selector">
+                            <label for="select-focus-table"><i class='bx bx-target-lock'></i> Enfocar Tabla:</label>
+                            <select id="select-focus-table" onchange="enfocarTablaEnDiagrama(this.value)">
+                                <option value="">-- Seleccionar tabla para ampliar --</option>
+                                <option value="LINEA_PRODUCCION">LINEA_PRODUCCION</option>
+                                <option value="RIEL_PRODUCCION">RIEL_PRODUCCION</option>
+                                <option value="MESA_PRODUCCION">MESA_PRODUCCION</option>
+                                <option value="TURNO_PRODUCCION">TURNO_PRODUCCION</option>
+                                <option value="ASIGNACION_MESA_CABECERA">ASIGNACION_MESA_CABECERA</option>
+                                <option value="ASIGNACION_MESA_OPERARIO">ASIGNACION_MESA_OPERARIO</option>
+                                <option value="TRASLADO_EQUIPO_LOG">TRASLADO_EQUIPO_LOG</option>
+                                <option value="SNAPSHOT_CONFIGURACION_MESA">SNAPSHOT_CONFIGURACION_MESA</option>
+                                <option value="VISTA_OPERARIOS">VISTA_OPERARIOS</option>
+                            </select>
+                        </div>
+
+                        <button class="btn-diagram-tool" onclick="abrirFichaTablaActual()" title="Ver ficha técnica completa de la tabla en ventana ampliada">
+                            <i class='bx bx-detail'></i> Ver Ficha
+                        </button>
+
+                        <button class="btn-diagram-tool" id="btn-toggle-fullscreen" onclick="toggleDiagramFullscreen()" title="Ampliar a pantalla completa sin restricciones">
+                            <i class='bx bx-expand-alt' id="ico-fullscreen"></i> <span id="txt-fullscreen">Pantalla Completa</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Barra de Acceso Rápido: Clic para Zoom Inmediato a cualquier Tabla -->
+                <div class="table-quick-pills">
+                    <span class="pills-title"><i class='bx bx-search-alt-2'></i> Hacer Zoom a Tabla:</span>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('LINEA_PRODUCCION')">LINEA_PRODUCCION</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('RIEL_PRODUCCION')">RIEL_PRODUCCION</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('MESA_PRODUCCION')">MESA_PRODUCCION</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('TURNO_PRODUCCION')">TURNO_PRODUCCION</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('ASIGNACION_MESA_CABECERA')">ASIGNACION_MESA_CABECERA</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('ASIGNACION_MESA_OPERARIO')">ASIGNACION_MESA_OPERARIO</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('TRASLADO_EQUIPO_LOG')">TRASLADO_EQUIPO_LOG</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('SNAPSHOT_CONFIGURACION_MESA')">SNAPSHOT_CONFIGURACION_MESA</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('VISTA_OPERARIOS')">VISTA_OPERARIOS</button>
+                </div>
+
+                <!-- Viewport con Arrastre (Pan) y Zoom con Rueda del Ratón -->
+                <div class="diagram-viewport" id="diagram-viewport">
+                    <div class="diagram-canvas" id="diagram-canvas">
+                        <div class="mermaid" id="mermaid-container">
+erDiagram
+    LINEA_PRODUCCION ||--o{ RIEL_PRODUCCION : "contiene (1:N)"
+    RIEL_PRODUCCION ||--o{ MESA_PRODUCCION : "aloja (1:N)"
+    TURNO_PRODUCCION ||--o{ ASIGNACION_MESA_CABECERA : "define horario (1:N)"
+    MESA_PRODUCCION ||--o{ ASIGNACION_MESA_CABECERA : "opera en (1:N)"
+    ASIGNACION_MESA_CABECERA ||--o{ ASIGNACION_MESA_OPERARIO : "asigna integrantes (1:N)"
+    VISTA_OPERARIOS ||--o{ ASIGNACION_MESA_OPERARIO : "ocupa slot (1:N)"
+    MESA_PRODUCCION ||--o{ TRASLADO_EQUIPO_LOG : "origen y destino (1:N)"
+    MESA_PRODUCCION ||--o{ SNAPSHOT_CONFIGURACION_MESA : "guarda cierre (1:N)"
+
+    LINEA_PRODUCCION {
+        int id_linea PK
+        varchar nombre UK "Ej: Línea 1, Línea 2"
+        varchar codigo UK "Ej: L1, L2"
+        boolean activo
+    }
+
+    RIEL_PRODUCCION {
+        int id_riel PK
+        int fk_id_linea FK
+        varchar nombre "Ej: Riel 1, Riel 2"
+        int numero_riel "1 | 2"
+        boolean activo
+    }
+
+    MESA_PRODUCCION {
+        int id_mesa PK
+        varchar codigo_mesa UK "Ej: L1-R1-M01"
+        int fk_id_linea FK
+        int fk_id_riel FK
+        int numero_mesa "1..N"
+        int capacidad_maxima "Default: 3 (1 a 6)"
+        varchar estado_operativo "Activa | Inactiva"
+        boolean activo
+        timestamp fecha_creacion
+    }
+
+    TURNO_PRODUCCION {
+        int id_turno PK
+        varchar codigo_turno UK "MAÑANA | NOCHE"
+        time hora_inicio "07:00"
+        time hora_fin "15:30"
+        boolean activo
+    }
+
+    ASIGNACION_MESA_CABECERA {
+        int id_asignacion_mesa PK
+        int fk_id_mesa FK
+        date fecha_operacion
+        int fk_id_turno FK
+        varchar estado_mesa_turno "En Proceso | Finalizada | Cancelada"
+        int fk_id_supervisor_apertura
+        timestamp fecha_hora_apertura
+        timestamp fecha_hora_cierre
+        varchar observacion_cierre
+    }
+
+    ASIGNACION_MESA_OPERARIO {
+        int id_asignacion_op PK
+        int fk_id_asignacion_mesa FK
+        varchar dni_operario FK "Operario asignado"
+        int numero_slot "1..6"
+        varchar labor_rol "Seleccionador | Embalador 1 | Embalador 2"
+        varchar estado_llegada "En hora | Tarde"
+        timestamp fecha_hora_ingreso
+        timestamp fecha_hora_salida "NULL mientras labore"
+        varchar motivo_salida "Permiso médico, malestar, etc."
+        varchar estado_operario "Activo | Trasladado | Salida"
+        int cajas_aprobadas "Conteo de calidad"
+        int cajas_rechazadas
+        int rendimiento_cajas
+    }
+
+    TRASLADO_EQUIPO_LOG {
+        int id_traslado PK
+        int fk_id_mesa_origen FK
+        int fk_id_mesa_destino FK
+        timestamp fecha_hora_traslado
+        int fk_id_usuario_traslado
+        varchar motivo_traslado
+        int total_integrantes_movidos
+    }
+
+    SNAPSHOT_CONFIGURACION_MESA {
+        int id_snapshot PK
+        int fk_id_mesa FK
+        date fecha_snapshot
+        int fk_id_turno FK
+        json datos_equipo "Estructura para restaurar día anterior"
+        timestamp fecha_hora_registro
+    }
+
+    VISTA_OPERARIOS {
+        varchar dni PK
+        varchar nombres_completos
+        varchar cargo
+    }
+                        </div>
+                    </div>
+
+                    <!-- Botones flotantes de Zoom rápido -->
+                    <div class="floating-zoom-controls">
+                        <button class="btn-float-zoom" onclick="zoomDiagram(0.25)" title="Acercar (+25%)"><i class='bx bx-plus'></i></button>
+                        <button class="btn-float-zoom" onclick="zoomDiagram(-0.25)" title="Alejar (-25%)"><i class='bx bx-minus'></i></button>
+                        <button class="btn-float-zoom" onclick="resetZoomDiagram()" title="Tamaño 100%"><i class='bx bx-reset'></i></button>
+                        <button class="btn-float-zoom" onclick="fitDiagramToContainer()" title="Ajustar al centro"><i class='bx bx-locate'></i></button>
+                        <button class="btn-float-zoom" onclick="toggleDiagramFullscreen()" title="Pantalla Completa"><i class='bx bx-expand-alt'></i></button>
+                    </div>
+
+                    <!-- Indicador inferior de interacción -->
+                    <div class="zoom-hint">
+                        <i class='bx bx-mouse'></i> <strong>Interacción:</strong> Clic en cualquier tabla para hacerle zoom · Rueda del ratón para Zoom continuo · Arrastra para mover · Doble clic para Ficha Técnica
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Explicación de Entidades y Reglas de Negocio -->
+        <div class="tab-content" id="tab-explicacion">
+            
+            <!-- Banner de Principios y Reglas de Negocio -->
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 5px solid #2563eb; border-radius: 10px; padding: 1.2rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: flex-start; gap: 0.8rem;">
+                    <i class='bx bx-check-circle' style="font-size: 1.8rem; color: #2563eb; margin-top: 0.1rem;"></i>
+                    <div>
+                        <h4 style="margin: 0 0 0.4rem 0; color: #1e3a8a; font-weight: 800; font-size: 1.05rem;">
+                            Reglas de Negocio Operativas e Integridad Relacional
+                        </h4>
+                        <p style="margin: 0; color: #1e40af; font-size: 0.88rem; line-height: 1.55;">
+                            • <strong>Regla de Oro del Seleccionador (SEL):</strong> Cada mesa activa debe tener como máximo <strong>1 Seleccionador</strong>. Si el usuario designa a un operario como Seleccionador, los demás integrantes en la mesa pasan automáticamente a <code>Embalador 1</code> y <code>Embalador 2</code>. Las mesas sin seleccionador entran en estado de alerta <code>Sin Seleccionador SEL</code>.<br>
+                            • <strong>Cero Redundancia de Historial:</strong> La tabla <code>asignacion_mesa_operario</code> registra la hora de ingreso, hora de salida, motivo de salida y métricas de cajas. No se requiere una tabla redundante de bitácora; la historia se obtiene mediante consultas indexadas.<br>
+                            • <strong>Rotación Circular por Riel:</strong> Los operarios pueden rotar en círculo dentro de su propio riel (M01 → M02 → M03 → M01), manteniendo intacta la estructura de su equipo de trabajo.<br>
+                            • <strong>Snapshot y Cierre de Línea:</strong> Al ejecutar <code>finalizarProcesoLinea()</code>, se registra la salida de los operarios y se crea un snapshot en <code>snapshot_configuracion_mesa</code>, permitiendo restaurar la cuadrilla con el botón <em>Día Anterior</em>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="entity-card-grid">
+                
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-slider-alt'></i> LINEA_PRODUCCION</span>
+                        <span class="badge-rol b-sel">Maestro</span>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--safco-text-muted);">
+                        Catálogo de líneas físicas de empaque (Línea 1, Línea 2, etc.).
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item"><span class="field-name">id_linea</span><span class="badge-pk">PK</span></div>
+                        <div class="entity-field-item"><span class="field-name">nombre</span><span class="badge-uk">UK VARCHAR(50)</span></div>
+                        <div class="entity-field-item"><span class="field-name">codigo</span><span class="badge-uk">UK VARCHAR(10)</span></div>
+                        <div class="entity-field-item"><span class="field-name">activo</span><span>BOOLEAN DEFAULT TRUE</span></div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-git-repo-forked'></i> RIEL_PRODUCCION</span>
+                        <span class="badge-rol b-sel">Subdivisión</span>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--safco-text-muted);">
+                        Rieles o vías de transporte que componen cada línea (Riel 1, Riel 2).
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item"><span class="field-name">id_riel</span><span class="badge-pk">PK</span></div>
+                        <div class="entity-field-item"><span class="field-name">fk_id_linea</span><span class="badge-fk">FK LINEA</span></div>
+                        <div class="entity-field-item"><span class="field-name">nombre</span><span>VARCHAR(50)</span></div>
+                        <div class="entity-field-item"><span class="field-name">numero_riel</span><span>INT (1, 2)</span></div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-table'></i> MESA_PRODUCCION</span>
+                        <span class="badge-rol b-sel">Infraestructura</span>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--safco-text-muted);">
+                        Activo físico individual donde se ubica la cuadrilla de operarios.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item"><span class="field-name">id_mesa</span><span class="badge-pk">PK</span></div>
+                        <div class="entity-field-item"><span class="field-name">codigo_mesa</span><span class="badge-uk">UK (L1-R1-M01)</span></div>
+                        <div class="entity-field-item"><span class="field-name">capacidad_maxima</span><span>INT DEFAULT 3</span></div>
+                        <div class="entity-field-item"><span class="field-name">estado_operativo</span><span>'Activa' | 'Inactiva'</span></div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-time'></i> TURNO_PRODUCCION</span>
+                        <span class="badge-rol b-sel">Horario</span>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--safco-text-muted);">
+                        Jornadas laborales estándar para control de asistencia y rendimiento.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item"><span class="field-name">id_turno</span><span class="badge-pk">PK</span></div>
+                        <div class="entity-field-item"><span class="field-name">codigo_turno</span><span class="badge-uk">UK (MAÑANA, NOCHE)</span></div>
+                        <div class="entity-field-item"><span class="field-name">hora_inicio</span><span>TIME (07:00)</span></div>
+                        <div class="entity-field-item"><span class="field-name">hora_fin</span><span>TIME (15:30)</span></div>
+                    </div>
+                </div>
+
+                <div class="entity-card" style="border-top-color: var(--safco-teal-dark);">
+                    <div class="entity-title">
+                        <span><i class='bx bx-calendar-event'></i> ASIGNACION_MESA_CABECERA</span>
+                        <span class="badge-rol b-emb">Jornada Mesa</span>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--safco-text-muted);">
+                        Sesión operativa de una mesa para una fecha y turno determinado.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item"><span class="field-name">id_asignacion_mesa</span><span class="badge-pk">PK</span></div>
+                        <div class="entity-field-item"><span class="field-name">fk_id_mesa</span><span class="badge-fk">FK MESA</span></div>
+                        <div class="entity-field-item"><span class="field-name">fecha_operacion</span><span>DATE</span></div>
+                        <div class="entity-field-item"><span class="field-name">estado_mesa_turno</span><span>'En Proceso' | 'Finalizada'</span></div>
+                    </div>
+                </div>
+
+                <div class="entity-card" style="border-top-color: var(--safco-green);">
+                    <div class="entity-title">
+                        <span><i class='bx bx-group'></i> ASIGNACION_MESA_OPERARIO</span>
+                        <span class="mesa-status-pill pill-asignado">Puesto / Slot</span>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--safco-text-muted);">
+                        Detalle de cada operario en el slot, asistencia, labor y métricas de cajas.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item"><span class="field-name">id_asignacion_op</span><span class="badge-pk">PK</span></div>
+                        <div class="entity-field-item"><span class="field-name">dni_operario</span><span class="badge-fk">FK OPERARIO</span></div>
+                        <div class="entity-field-item"><span class="field-name">labor_rol</span><span>Seleccionador | Embalador</span></div>
+                        <div class="entity-field-item"><span class="field-name">motivo_salida</span><span>VARCHAR(255) NULL</span></div>
+                        <div class="entity-field-item"><span class="field-name">cajas_aprobadas / rech.</span><span>INT Métricas Calidad</span></div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-transfer-alt'></i> TRASLADO_EQUIPO_LOG</span>
+                        <span class="badge-rol b-emb">Auditoría</span>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--safco-text-muted);">
+                        Trazabilidad cuando un equipo completo se traslada de una mesa a otra.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item"><span class="field-name">id_traslado</span><span class="badge-pk">PK</span></div>
+                        <div class="entity-field-item"><span class="field-name">fk_id_mesa_origen</span><span class="badge-fk">FK MESA ORIGEN</span></div>
+                        <div class="entity-field-item"><span class="field-name">fk_id_mesa_destino</span><span class="badge-fk">FK MESA DESTINO</span></div>
+                        <div class="entity-field-item"><span class="field-name">fecha_hora_traslado</span><span>TIMESTAMP</span></div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-title">
+                        <span><i class='bx bx-history'></i> SNAPSHOT_CONFIGURACION_MESA</span>
+                        <span class="badge-rol b-emb">Snapshot</span>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--safco-text-muted);">
+                        Configuración guardada al cierre de turno para restaurar el Día Anterior.
+                    </p>
+                    <div class="entity-field-list">
+                        <div class="entity-field-item"><span class="field-name">id_snapshot</span><span class="badge-pk">PK</span></div>
+                        <div class="entity-field-item"><span class="field-name">fk_id_mesa</span><span class="badge-fk">FK MESA</span></div>
+                        <div class="entity-field-item"><span class="field-name">datos_equipo</span><span>JSON (Operarios y roles)</span></div>
+                        <div class="entity-field-item"><span class="field-name">fecha_snapshot</span><span>DATE</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Pestaña 3: Script DDL SQL y Vistas Analíticas -->
+        <div class="tab-content" id="tab-sql">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="color: var(--safco-teal); margin: 0;">Script SQL DDL + Vistas Analíticas de Rendimiento</h3>
+                <button class="btn-safco btn-safco-secondary" onclick="copiarSQL()"><i class='bx bx-copy'></i> Copiar SQL</button>
+            </div>
+            <pre class="sql-box" id="codigo-sql"><code>-- =========================================================================
+-- SAFCO - ARQUITECTURA DE DATOS: MESAS Y ASIGNACIÓN DE PRODUCCIÓN
+-- Motor: PostgreSQL 14+ / Compatible con MySQL 8.0+
+-- =========================================================================
+
+-- 1. TABLA: LÍNEA DE PRODUCCIÓN
+CREATE TABLE linea_produccion (
+    id_linea SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE,      -- 'Línea 1', 'Línea 2', etc.
+    codigo VARCHAR(10) NOT NULL UNIQUE,      -- 'L1', 'L2'
+    activo BOOLEAN DEFAULT TRUE
+);
+
+-- 2. TABLA: RIEL DE PRODUCCIÓN
+CREATE TABLE riel_produccion (
+    id_riel SERIAL PRIMARY KEY,
+    fk_id_linea INT NOT NULL REFERENCES linea_produccion(id_linea) ON DELETE RESTRICT,
+    nombre VARCHAR(50) NOT NULL,             -- 'Riel 1', 'Riel 2'
+    numero_riel INT NOT NULL,                -- 1, 2
+    activo BOOLEAN DEFAULT TRUE,
+    CONSTRAINT uk_linea_riel UNIQUE (fk_id_linea, numero_riel)
+);
+
+-- 3. TABLA: MESA DE PRODUCCIÓN (Infraestructura física)
+CREATE TABLE mesa_produccion (
+    id_mesa SERIAL PRIMARY KEY,
+    codigo_mesa VARCHAR(20) NOT NULL UNIQUE, -- 'L1-R1-M01', 'L1-R1-M02'
+    fk_id_linea INT NOT NULL REFERENCES linea_produccion(id_linea) ON DELETE RESTRICT,
+    fk_id_riel INT NOT NULL REFERENCES riel_produccion(id_riel) ON DELETE RESTRICT,
+    numero_mesa INT NOT NULL,                -- 1..N
+    capacidad_maxima INT NOT NULL DEFAULT 3, -- Configurable (1 a 6 operarios)
+    estado_operativo VARCHAR(20) NOT NULL DEFAULT 'Activa', -- 'Activa', 'Inactiva'
+    activo BOOLEAN DEFAULT TRUE,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_riel_numero_mesa UNIQUE (fk_id_riel, numero_mesa)
+);
+
+-- 4. TABLA: TURNO DE PRODUCCIÓN
+CREATE TABLE turno_produccion (
+    id_turno SERIAL PRIMARY KEY,
+    codigo_turno VARCHAR(20) NOT NULL UNIQUE, -- 'MAÑANA', 'NOCHE'
+    hora_inicio TIME NOT NULL,                -- 07:00
+    hora_fin TIME NOT NULL,                   -- 15:30
+    activo BOOLEAN DEFAULT TRUE
+);
+
+-- 5. TABLA: ASIGNACIÓN CABECERA DE MESA (Jornada diaria de la mesa)
+CREATE TABLE asignacion_mesa_cabecera (
+    id_asignacion_mesa SERIAL PRIMARY KEY,
+    fk_id_mesa INT NOT NULL REFERENCES mesa_produccion(id_mesa) ON DELETE RESTRICT,
+    fecha_operacion DATE NOT NULL DEFAULT CURRENT_DATE,
+    fk_id_turno INT NOT NULL REFERENCES turno_produccion(id_turno) ON DELETE RESTRICT,
+    estado_mesa_turno VARCHAR(20) NOT NULL DEFAULT 'En Proceso', -- 'En Proceso', 'Finalizada', 'Cancelada'
+    fk_id_supervisor_apertura INT NOT NULL,
+    fecha_hora_apertura TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_hora_cierre TIMESTAMP NULL,
+    observacion_cierre VARCHAR(255) NULL
+);
+
+-- 6. TABLA: ASIGNACIÓN DETALLE DE OPERARIO (Slot, labor, asistencia y métricas)
+CREATE TABLE asignacion_mesa_operario (
+    id_asignacion_op SERIAL PRIMARY KEY,
+    fk_id_asignacion_mesa INT NOT NULL REFERENCES asignacion_mesa_cabecera(id_asignacion_mesa) ON DELETE CASCADE,
+    dni_operario VARCHAR(20) NOT NULL,
+    numero_slot INT NOT NULL,                 -- 1, 2, 3.. (posición en la mesa)
+    labor_rol VARCHAR(30) NOT NULL,           -- 'Seleccionador', 'Embalador 1', 'Embalador 2'
+    estado_llegada VARCHAR(20) DEFAULT 'En hora', -- 'En hora', 'Tarde'
+    fecha_hora_ingreso TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_hora_salida TIMESTAMP NULL,         -- NULL mientras esté laborando
+    motivo_salida VARCHAR(255) NULL,          -- Permiso médico, malestar, etc.
+    estado_operario VARCHAR(20) DEFAULT 'Activo', -- 'Activo', 'Trasladado', 'Salida'
+    cajas_aprobadas INT DEFAULT 0,            -- Conteo de calidad en tiempo real
+    cajas_rechazadas INT DEFAULT 0,           -- Cajas descartadas
+    rendimiento_cajas INT DEFAULT 0           -- Total procesado
+);
+
+-- 7. TABLA: TRASLADO DE EQUIPO LOG (Auditoría de movimientos de cuadrilla)
+CREATE TABLE traslado_equipo_log (
+    id_traslado SERIAL PRIMARY KEY,
+    fk_id_mesa_origen INT NOT NULL REFERENCES mesa_produccion(id_mesa),
+    fk_id_mesa_destino INT NOT NULL REFERENCES mesa_produccion(id_mesa),
+    fecha_hora_traslado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fk_id_usuario_traslado INT NOT NULL,
+    motivo_traslado VARCHAR(255) DEFAULT 'Reubicación operativa de cuadrilla',
+    total_integrantes_movidos INT NOT NULL
+);
+
+-- 8. TABLA: SNAPSHOT DE CONFIGURACIÓN DE MESAS (Restauración de Día Anterior)
+CREATE TABLE snapshot_configuracion_mesa (
+    id_snapshot SERIAL PRIMARY KEY,
+    fk_id_mesa INT NOT NULL REFERENCES mesa_produccion(id_mesa) ON DELETE CASCADE,
+    fecha_snapshot DATE NOT NULL,
+    fk_id_turno INT NOT NULL REFERENCES turno_produccion(id_turno),
+    datos_equipo JSON NOT NULL,               -- Array JSON con DNIs y roles
+    fecha_hora_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_snapshot_mesa_fecha UNIQUE (fk_id_mesa, fecha_snapshot, fk_id_turno)
+);
+
+-- =========================================================================
+-- ÍNDICES DE ALTO RENDIMIENTO
+-- =========================================================================
+CREATE INDEX idx_mesa_linea_riel ON mesa_produccion(fk_id_linea, fk_id_riel, codigo_mesa);
+CREATE INDEX idx_asig_cabecera_fecha ON asignacion_mesa_cabecera(fecha_operacion, fk_id_mesa);
+CREATE INDEX idx_asig_operario_dni ON asignacion_mesa_operario(dni_operario, fecha_hora_ingreso DESC);
+CREATE INDEX idx_asig_operario_salida ON asignacion_mesa_operario(fk_id_asignacion_mesa, fecha_hora_salida);
+
+-- =========================================================================
+-- VISTAS ANALÍTICAS ON-DEMAND (Cero Redundancia de Historial)
+-- =========================================================================
+
+-- Vista 1: Estado Operativo y KPIs en Vivo por Mesa
+CREATE OR REPLACE VIEW v_estado_actual_mesas AS
+SELECT 
+    m.id_mesa,
+    m.codigo_mesa,
+    l.nombre AS linea,
+    r.nombre AS riel,
+    m.capacidad_maxima,
+    c.id_asignacion_mesa,
+    c.fecha_operacion,
+    COUNT(o.id_asignacion_op) FILTER (WHERE o.fecha_hora_salida IS NULL) AS total_operarios_activos,
+    COUNT(o.id_asignacion_op) FILTER (WHERE o.labor_rol = 'Seleccionador' AND o.fecha_hora_salida IS NULL) AS cuenta_seleccionadores,
+    CASE 
+        WHEN COUNT(o.id_asignacion_op) FILTER (WHERE o.fecha_hora_salida IS NULL) = 0 THEN 'Vacía'
+        WHEN COUNT(o.id_asignacion_op) FILTER (WHERE o.labor_rol = 'Seleccionador' AND o.fecha_hora_salida IS NULL) = 0 THEN 'Sin Seleccionador'
+        WHEN COUNT(o.id_asignacion_op) FILTER (WHERE o.fecha_hora_salida IS NULL) >= m.capacidad_maxima THEN 'Operativa Completa'
+        ELSE 'Incompleta'
+    END AS estado_alerta_kpi
+FROM mesa_produccion m
+INNER JOIN linea_produccion l ON m.fk_id_linea = l.id_linea
+INNER JOIN riel_produccion r ON m.fk_id_riel = r.id_riel
+LEFT JOIN asignacion_mesa_cabecera c ON m.id_mesa = c.fk_id_mesa AND c.fecha_operacion = CURRENT_DATE AND c.estado_mesa_turno = 'En Proceso'
+LEFT JOIN asignacion_mesa_operario o ON c.id_asignacion_mesa = o.fk_id_asignacion_mesa
+WHERE m.estado_operativo = 'Activa' AND m.activo = TRUE
+GROUP BY m.id_mesa, m.codigo_mesa, l.nombre, r.nombre, m.capacidad_maxima, c.id_asignacion_mesa, c.fecha_operacion;
+
+-- Vista 2: Historial de Operarios y Asistencia en Mesas
+CREATE OR REPLACE VIEW v_historial_operario_mesas AS
+SELECT 
+    o.dni_operario,
+    m.codigo_mesa,
+    l.nombre AS linea,
+    r.nombre AS riel,
+    c.fecha_operacion,
+    o.numero_slot,
+    o.labor_rol,
+    o.estado_llegada,
+    o.fecha_hora_ingreso,
+    o.fecha_hora_salida,
+    COALESCE(o.motivo_salida, 'En Mesa Actualmente') AS motivo_salida,
+    o.cajas_aprobadas,
+    o.cajas_rechazadas,
+    o.rendimiento_cajas
+FROM asignacion_mesa_operario o
+INNER JOIN asignacion_mesa_cabecera c ON o.fk_id_asignacion_mesa = c.id_asignacion_mesa
+INNER JOIN mesa_produccion m ON c.fk_id_mesa = m.id_mesa
+INNER JOIN linea_produccion l ON m.fk_id_linea = l.id_linea
+INNER JOIN riel_produccion r ON m.fk_id_riel = r.id_riel;
+
+-- Vista 3: Métricas de Rendimiento y Calidad de Cajas por Mesa
+CREATE OR REPLACE VIEW v_resumen_rendimiento_mesas AS
+SELECT 
+    m.codigo_mesa,
+    l.nombre AS linea,
+    r.nombre AS riel,
+    c.fecha_operacion,
+    SUM(o.cajas_aprobadas) AS total_aprobadas,
+    SUM(o.cajas_rechazadas) AS total_rechazadas,
+    (SUM(o.cajas_aprobadas) + SUM(o.cajas_rechazadas)) AS total_cajas,
+    CASE 
+        WHEN (SUM(o.cajas_aprobadas) + SUM(o.cajas_rechazadas)) > 0 
+        THEN ROUND((SUM(o.cajas_aprobadas)::NUMERIC / (SUM(o.cajas_aprobadas) + SUM(o.cajas_rechazadas))) * 100, 1)
+        ELSE 0
+    END AS porcentaje_calidad_ok
+FROM asignacion_mesa_operario o
+INNER JOIN asignacion_mesa_cabecera c ON o.fk_id_asignacion_mesa = c.id_asignacion_mesa
+INNER JOIN mesa_produccion m ON c.fk_id_mesa = m.id_mesa
+INNER JOIN linea_produccion l ON m.fk_id_linea = l.id_linea
+INNER JOIN riel_produccion r ON m.fk_id_riel = r.id_riel
+GROUP BY m.codigo_mesa, l.nombre, r.nombre, c.fecha_operacion;
+</code></pre>
+        </div>
+
+    </main>
+
+    <!-- Modal de Ficha Técnica Detallada de Tabla Ampliada -->
+    <div class="modal-backdrop-safco" id="modal-detalle-tabla">
+        <div class="modal-card-safco" style="max-width: 820px; width: 90%;">
+            <div class="modal-card-header" style="background: var(--safco-teal);">
+                <h3 id="modal-tabla-titulo" style="display: flex; align-items: center; gap: 0.5rem; margin: 0; color: #ffffff;">
+                    <i class='bx bx-table'></i> Ficha Técnica de Tabla
+                </h3>
+                <button class="btn-close-safco" onclick="cerrarModalTabla()">&times;</button>
+            </div>
+            <div class="modal-card-body" id="modal-tabla-body">
+                <!-- Se pobla dinámicamente con los campos en tamaño grande -->
+            </div>
+            <div class="modal-card-actions">
+                <button class="btn-safco btn-safco-secondary" onclick="cerrarModalTabla()">Cerrar</button>
+                <button class="btn-safco btn-safco-teal" id="btn-modal-copiar-sql-tabla" onclick="copiarSqlTablaActual()">
+                    <i class='bx bx-copy'></i> Copiar SQL de esta Tabla
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DICCIONARIO DE DATOS PARA VISTA AMPLIADA DE CADA TABLA
+        const TABLAS_METADATA = {
+            'LINEA_PRODUCCION': {
+                titulo: 'LINEA_PRODUCCION',
+                tipo: 'Catálogo Maestro',
+                descripcion: 'Catálogo de líneas maestras de empaque (Línea 1..4). Agrupa rieles y mesas.',
+                columnas: [
+                    { nombre: 'id_linea', tipo: 'SERIAL', clave: 'PK', nulo: 'NO', default: 'Autoincrementable', desc: 'Identificador primario de la línea.' },
+                    { nombre: 'nombre', tipo: 'VARCHAR(50)', clave: 'UK', nulo: 'NO', default: '-', desc: 'Nombre oficial (ej: Línea 1).' },
+                    { nombre: 'codigo', tipo: 'VARCHAR(10)', clave: 'UK', nulo: 'NO', default: '-', desc: 'Código corto (ej: L1).' },
+                    { nombre: 'activo', tipo: 'BOOLEAN', clave: '-', nulo: 'NO', default: 'TRUE', desc: 'Estado de vigencia lógica.' }
+                ],
+                sql: `CREATE TABLE linea_produccion (\n    id_linea SERIAL PRIMARY KEY,\n    nombre VARCHAR(50) NOT NULL UNIQUE,\n    codigo VARCHAR(10) NOT NULL UNIQUE,\n    activo BOOLEAN DEFAULT TRUE\n);`
+            },
+            'RIEL_PRODUCCION': {
+                titulo: 'RIEL_PRODUCCION',
+                tipo: 'Subdivisión de Línea',
+                descripcion: 'Vía de transporte dentro de cada línea donde se distribuyen las mesas.',
+                columnas: [
+                    { nombre: 'id_riel', tipo: 'SERIAL', clave: 'PK', nulo: 'NO', default: 'Autoincrementable', desc: 'Identificador primario del riel.' },
+                    { nombre: 'fk_id_linea', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Referencia a linea_produccion(id_linea).' },
+                    { nombre: 'nombre', tipo: 'VARCHAR(50)', clave: '-', nulo: 'NO', default: '-', desc: 'Nombre visible (Riel 1, Riel 2).' },
+                    { nombre: 'numero_riel', tipo: 'INT', clave: '-', nulo: 'NO', default: '-', desc: 'Número correlativo (1 o 2).' },
+                    { nombre: 'activo', tipo: 'BOOLEAN', clave: '-', nulo: 'NO', default: 'TRUE', desc: 'Estado de vigencia.' }
+                ],
+                sql: `CREATE TABLE riel_produccion (\n    id_riel SERIAL PRIMARY KEY,\n    fk_id_linea INT NOT NULL REFERENCES linea_produccion(id_linea) ON DELETE RESTRICT,\n    nombre VARCHAR(50) NOT NULL,\n    numero_riel INT NOT NULL,\n    activo BOOLEAN DEFAULT TRUE,\n    CONSTRAINT uk_linea_riel UNIQUE (fk_id_linea, numero_riel)\n);`
+            },
+            'MESA_PRODUCCION': {
+                titulo: 'MESA_PRODUCCION',
+                tipo: 'Activo Físico de Infraestructura',
+                descripcion: 'Mesa de trabajo física donde labora la cuadrilla de operarios.',
+                columnas: [
+                    { nombre: 'id_mesa', tipo: 'SERIAL', clave: 'PK', nulo: 'NO', default: 'Autoincrementable', desc: 'Identificador primario de la mesa.' },
+                    { nombre: 'codigo_mesa', tipo: 'VARCHAR(20)', clave: 'UK', nulo: 'NO', default: '-', desc: 'Código oficial único (ej: L1-R1-M01).' },
+                    { nombre: 'fk_id_linea', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Línea de pertenencia.' },
+                    { nombre: 'fk_id_riel', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Riel donde está ubicada.' },
+                    { nombre: 'numero_mesa', tipo: 'INT', clave: '-', nulo: 'NO', default: '-', desc: 'Número correlativo en el riel.' },
+                    { nombre: 'capacidad_maxima', tipo: 'INT', clave: '-', nulo: 'NO', default: '3', desc: 'Capacidad de operarios (1 a 6).' },
+                    { nombre: 'estado_operativo', tipo: 'VARCHAR(20)', clave: '-', nulo: 'NO', default: "'Activa'", desc: "'Activa', 'Inactiva'." },
+                    { nombre: 'activo', tipo: 'BOOLEAN', clave: '-', nulo: 'NO', default: 'TRUE', desc: 'Borrado lógico.' }
+                ],
+                sql: `CREATE TABLE mesa_produccion (\n    id_mesa SERIAL PRIMARY KEY,\n    codigo_mesa VARCHAR(20) NOT NULL UNIQUE,\n    fk_id_linea INT NOT NULL REFERENCES linea_produccion(id_linea) ON DELETE RESTRICT,\n    fk_id_riel INT NOT NULL REFERENCES riel_produccion(id_riel) ON DELETE RESTRICT,\n    numero_mesa INT NOT NULL,\n    capacidad_maxima INT NOT NULL DEFAULT 3,\n    estado_operativo VARCHAR(20) NOT NULL DEFAULT 'Activa',\n    activo BOOLEAN DEFAULT TRUE,\n    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT uk_riel_numero_mesa UNIQUE (fk_id_riel, numero_mesa)\n);`
+            },
+            'TURNO_PRODUCCION': {
+                titulo: 'TURNO_PRODUCCION',
+                tipo: 'Catálogo de Horarios',
+                descripcion: 'Definición de turnos laborales estándar en planta.',
+                columnas: [
+                    { nombre: 'id_turno', tipo: 'SERIAL', clave: 'PK', nulo: 'NO', default: 'Autoincrementable', desc: 'Identificador del turno.' },
+                    { nombre: 'codigo_turno', tipo: 'VARCHAR(20)', clave: 'UK', nulo: 'NO', default: '-', desc: 'Código visible (MAÑANA, NOCHE).' },
+                    { nombre: 'hora_inicio', tipo: 'TIME', clave: '-', nulo: 'NO', default: '-', desc: 'Hora de ingreso (07:00).' },
+                    { nombre: 'hora_fin', tipo: 'TIME', clave: '-', nulo: 'NO', default: '-', desc: 'Hora de salida (15:30).' }
+                ],
+                sql: `CREATE TABLE turno_produccion (\n    id_turno SERIAL PRIMARY KEY,\n    codigo_turno VARCHAR(20) NOT NULL UNIQUE,\n    hora_inicio TIME NOT NULL,\n    hora_fin TIME NOT NULL,\n    activo BOOLEAN DEFAULT TRUE\n);`
+            },
+            'ASIGNACION_MESA_CABECERA': {
+                titulo: 'ASIGNACION_MESA_CABECERA',
+                tipo: 'Sesión Operativa',
+                descripcion: 'Sesión operativa de una mesa para un turno y fecha determinados.',
+                columnas: [
+                    { nombre: 'id_asignacion_mesa', tipo: 'SERIAL', clave: 'PK', nulo: 'NO', default: 'Autoincrementable', desc: 'Identificador de sesión.' },
+                    { nombre: 'fk_id_mesa', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Referencia a mesa_produccion.' },
+                    { nombre: 'fecha_operacion', tipo: 'DATE', clave: '-', nulo: 'NO', default: 'CURRENT_DATE', desc: 'Fecha de la jornada.' },
+                    { nombre: 'fk_id_turno', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Referencia al turno de trabajo.' },
+                    { nombre: 'estado_mesa_turno', tipo: 'VARCHAR(20)', clave: '-', nulo: 'NO', default: "'En Proceso'", desc: "'En Proceso', 'Finalizada', 'Cancelada'." },
+                    { nombre: 'fecha_hora_apertura', tipo: 'TIMESTAMP', clave: '-', nulo: 'NO', default: 'CURRENT_TIMESTAMP', desc: 'Apertura de la mesa.' }
+                ],
+                sql: `CREATE TABLE asignacion_mesa_cabecera (\n    id_asignacion_mesa SERIAL PRIMARY KEY,\n    fk_id_mesa INT NOT NULL REFERENCES mesa_produccion(id_mesa) ON DELETE RESTRICT,\n    fecha_operacion DATE NOT NULL DEFAULT CURRENT_DATE,\n    fk_id_turno INT NOT NULL REFERENCES turno_produccion(id_turno) ON DELETE RESTRICT,\n    estado_mesa_turno VARCHAR(20) NOT NULL DEFAULT 'En Proceso',\n    fk_id_supervisor_apertura INT NOT NULL,\n    fecha_hora_apertura TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    fecha_hora_cierre TIMESTAMP NULL,\n    observacion_cierre VARCHAR(255) NULL\n);`
+            },
+            'ASIGNACION_MESA_OPERARIO': {
+                titulo: 'ASIGNACION_MESA_OPERARIO',
+                tipo: 'Detalle de Slots y Rendimiento',
+                descripcion: 'Cada puesto ocupado en la mesa, asistencia, rol y conteo de cajas.',
+                columnas: [
+                    { nombre: 'id_asignacion_op', tipo: 'SERIAL', clave: 'PK', nulo: 'NO', default: 'Autoincrementable', desc: 'Identificador del puesto ocupado.' },
+                    { nombre: 'fk_id_asignacion_mesa', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Referencia a asignacion_mesa_cabecera.' },
+                    { nombre: 'dni_operario', tipo: 'VARCHAR(20)', clave: 'FK', nulo: 'NO', default: '-', desc: 'DNI del operario asignado.' },
+                    { nombre: 'numero_slot', tipo: 'INT', clave: '-', nulo: 'NO', default: '-', desc: 'Posición física en mesa (Slot 1..6).' },
+                    { nombre: 'labor_rol', tipo: 'VARCHAR(30)', clave: '-', nulo: 'NO', default: '-', desc: "'Seleccionador', 'Embalador 1', etc." },
+                    { nombre: 'estado_llegada', tipo: 'VARCHAR(20)', clave: '-', nulo: 'NO', default: "'En hora'", desc: "'En hora' o 'Tarde'." },
+                    { nombre: 'fecha_hora_ingreso', tipo: 'TIMESTAMP', clave: '-', nulo: 'NO', default: 'CURRENT_TIMESTAMP', desc: 'Momento de colocación en mesa.' },
+                    { nombre: 'fecha_hora_salida', tipo: 'TIMESTAMP', clave: '-', nulo: 'SÍ', default: 'NULL', desc: 'NULL mientras labore. Salida al liberar.' },
+                    { nombre: 'motivo_salida', tipo: 'VARCHAR(255)', clave: '-', nulo: 'SÍ', default: 'NULL', desc: 'Causa de salida (médico, permiso, etc.).' },
+                    { nombre: 'cajas_aprobadas', tipo: 'INT', clave: '-', nulo: 'NO', default: '0', desc: 'Cajas conformes por calidad.' },
+                    { nombre: 'cajas_rechazadas', tipo: 'INT', clave: '-', nulo: 'NO', default: '0', desc: 'Cajas descartadas por calidad.' }
+                ],
+                sql: `CREATE TABLE asignacion_mesa_operario (\n    id_asignacion_op SERIAL PRIMARY KEY,\n    fk_id_asignacion_mesa INT NOT NULL REFERENCES asignacion_mesa_cabecera(id_asignacion_mesa) ON DELETE CASCADE,\n    dni_operario VARCHAR(20) NOT NULL,\n    numero_slot INT NOT NULL,\n    labor_rol VARCHAR(30) NOT NULL,\n    estado_llegada VARCHAR(20) DEFAULT 'En hora',\n    fecha_hora_ingreso TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    fecha_hora_salida TIMESTAMP NULL,\n    motivo_salida VARCHAR(255) NULL,\n    estado_operario VARCHAR(20) DEFAULT 'Activo',\n    cajas_aprobadas INT DEFAULT 0,\n    cajas_rechazadas INT DEFAULT 0,\n    rendimiento_cajas INT DEFAULT 0\n);`
+            },
+            'TRASLADO_EQUIPO_LOG': {
+                titulo: 'TRASLADO_EQUIPO_LOG',
+                tipo: 'Auditoría de Cuadrillas',
+                descripcion: 'Registro de reubicaciones masivas de cuadrillas entre mesas.',
+                columnas: [
+                    { nombre: 'id_traslado', tipo: 'SERIAL', clave: 'PK', nulo: 'NO', default: 'Autoincrementable', desc: 'Identificador del traslado.' },
+                    { nombre: 'fk_id_mesa_origen', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Mesa de origen del equipo.' },
+                    { nombre: 'fk_id_mesa_destino', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Mesa de destino del equipo.' },
+                    { nombre: 'fecha_hora_traslado', tipo: 'TIMESTAMP', clave: '-', nulo: 'NO', default: 'CURRENT_TIMESTAMP', desc: 'Momento exacto del traslado.' },
+                    { nombre: 'total_integrantes_movidos', tipo: 'INT', clave: '-', nulo: 'NO', default: '-', desc: 'Cantidad de operarios trasladados.' }
+                ],
+                sql: `CREATE TABLE traslado_equipo_log (\n    id_traslado SERIAL PRIMARY KEY,\n    fk_id_mesa_origen INT NOT NULL REFERENCES mesa_produccion(id_mesa),\n    fk_id_mesa_destino INT NOT NULL REFERENCES mesa_produccion(id_mesa),\n    fecha_hora_traslado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    fk_id_usuario_traslado INT NOT NULL,\n    motivo_traslado VARCHAR(255) DEFAULT 'Reubicación operativa de cuadrilla',\n    total_integrantes_movidos INT NOT NULL\n);`
+            },
+            'SNAPSHOT_CONFIGURACION_MESA': {
+                titulo: 'SNAPSHOT_CONFIGURACION_MESA',
+                tipo: 'Respaldo para Restauración',
+                descripcion: 'Snapshot de conformación de mesas para restaurar el Día Anterior.',
+                columnas: [
+                    { nombre: 'id_snapshot', tipo: 'SERIAL', clave: 'PK', nulo: 'NO', default: 'Autoincrementable', desc: 'Identificador del snapshot.' },
+                    { nombre: 'fk_id_mesa', tipo: 'INT', clave: 'FK', nulo: 'NO', default: '-', desc: 'Referencia a mesa_produccion.' },
+                    { nombre: 'fecha_snapshot', tipo: 'DATE', clave: '-', nulo: 'NO', default: '-', desc: 'Fecha de captura del estado.' },
+                    { nombre: 'datos_equipo', tipo: 'JSON', clave: '-', nulo: 'NO', default: '-', desc: 'Payload con operarios y puestos.' }
+                ],
+                sql: `CREATE TABLE snapshot_configuracion_mesa (\n    id_snapshot SERIAL PRIMARY KEY,\n    fk_id_mesa INT NOT NULL REFERENCES mesa_produccion(id_mesa) ON DELETE CASCADE,\n    fecha_snapshot DATE NOT NULL,\n    fk_id_turno INT NOT NULL REFERENCES turno_produccion(id_turno),\n    datos_equipo JSON NOT NULL,\n    fecha_hora_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT uk_snapshot_mesa_fecha UNIQUE (fk_id_mesa, fecha_snapshot, fk_id_turno)\n);`
+            },
+            'VISTA_OPERARIOS': {
+                titulo: 'VISTA_OPERARIOS',
+                tipo: 'Vista Externa de RRHH',
+                descripcion: 'Integración referencial con el maestro de personal.',
+                columnas: [
+                    { nombre: 'dni', tipo: 'VARCHAR(20)', clave: 'PK', nulo: 'NO', default: '-', desc: 'Documento Nacional de Identidad.' },
+                    { nombre: 'nombres_completos', tipo: 'VARCHAR(150)', clave: '-', nulo: 'NO', default: '-', desc: 'Nombre y apellidos del colaborador.' },
+                    { nombre: 'cargo', tipo: 'VARCHAR(50)', clave: '-', nulo: 'NO', default: '-', desc: 'Cargo oficial de contratación.' }
+                ],
+                sql: `-- Vista de enlace con módulo central de Recursos Humanos\nCREATE OR REPLACE VIEW vista_operarios AS\nSELECT dni, nombres_completos, cargo FROM rrhh_colaboradores;`
+            }
+        };
+
+        let tablaActualSeleccionada = 'MESA_PRODUCCION';
+
+        // VARIABLES DE CONTROL DE ZOOM Y PAN
+        let currentScale = 1.0;
+        let translateX = 0;
+        let translateY = 0;
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let isDiagramFullscreen = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            validarAccesoAdmin();
+            initDiagramControls();
+        });
+
+        function validarAccesoAdmin() {
+            if (typeof isUserAdmin === 'function' && isUserAdmin()) {
+                document.getElementById('contenido-admin').style.display = 'block';
+                document.getElementById('bloque-acceso-denegado').style.display = 'none';
+            } else {
+                document.getElementById('contenido-admin').style.display = 'none';
+                document.getElementById('bloque-acceso-denegado').style.display = 'flex';
+            }
+        }
+
+        function cambiarPestana(idTab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            const idx = idTab === 'tab-diagrama' ? 0 : (idTab === 'tab-explicacion' ? 1 : 2);
+            document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+            document.getElementById(idTab).classList.add('active');
+
+            if (idTab === 'tab-diagrama') {
+                setTimeout(centrarDiagramaInicial, 50);
+            }
+        }
+
+        function copiarSQL() {
+            const texto = document.getElementById('codigo-sql').innerText;
+            navigator.clipboard.writeText(texto).then(() => {
+                alert('¡Script SQL copiado al portapapeles!');
+            });
+        }
+
+        // =========================================================================
+        // MOTOR DE ZOOM Y PAN PARA EL DIAGRAMA DE BASE DE DATOS
+        // =========================================================================
+
+        function applyTransform() {
+            const canvas = document.getElementById('diagram-canvas');
+            if (canvas) {
+                canvas.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+            }
+        }
+
+        function actualizarBadgeZoom() {
+            const badge = document.getElementById('zoom-level-badge');
+            if (badge) {
+                badge.textContent = `${Math.round(currentScale * 100)}%`;
+            }
+            const slider = document.getElementById('zoom-slider');
+            if (slider) {
+                slider.value = Math.round(currentScale * 100);
+            }
+        }
+
+        function onZoomSliderChange(val) {
+            const newScale = Math.min(Math.max(0.35, parseFloat(val) / 100), 4.0);
+            const viewport = document.getElementById('diagram-viewport');
+            if (!viewport) return;
+            const vRect = viewport.getBoundingClientRect();
+            const centerX = vRect.width / 2;
+            const centerY = vRect.height / 2;
+
+            translateX = centerX - (centerX - translateX) * (newScale / currentScale);
+            translateY = centerY - (centerY - translateY) * (newScale / currentScale);
+            currentScale = newScale;
+
+            applyTransform();
+            actualizarBadgeZoom();
+        }
+
+        function zoomDiagram(delta) {
+            const viewport = document.getElementById('diagram-viewport');
+            if (!viewport) return;
+            const vRect = viewport.getBoundingClientRect();
+            const centerX = vRect.width / 2;
+            const centerY = vRect.height / 2;
+
+            const newScale = Math.min(Math.max(0.35, currentScale + delta), 4.0);
+            translateX = centerX - (centerX - translateX) * (newScale / currentScale);
+            translateY = centerY - (centerY - translateY) * (newScale / currentScale);
+            currentScale = newScale;
+            applyTransform();
+            actualizarBadgeZoom();
+        }
+
+        function resetZoomDiagram() {
+            currentScale = 1.0;
+            const viewport = document.getElementById('diagram-viewport');
+            const svg = document.querySelector('#mermaid-container svg');
+            if (viewport && svg) {
+                fijarDimensionesRealesSvg(svg);
+                const vRect = viewport.getBoundingClientRect();
+                const natW = parseFloat(svg.style.width) || 1400;
+                const natH = parseFloat(svg.style.height) || 900;
+                translateX = (vRect.width - natW) / 2;
+                translateY = Math.max(20, (vRect.height - natH) / 2);
+            } else {
+                translateX = 0;
+                translateY = 0;
+            }
+            applyTransform();
+            actualizarBadgeZoom();
+        }
+
+        function fitDiagramToContainer() {
+            centrarDiagramaInicial();
+        }
+
+        // Fijar dimensiones intrínsecas físicas en el SVG para que NUNCA se achique al hacer zoom
+        function fijarDimensionesRealesSvg(svg) {
+            if (!svg) return;
+
+            let w = 0, h = 0;
+            if (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width > 0) {
+                w = svg.viewBox.baseVal.width;
+                h = svg.viewBox.baseVal.height;
+            } else if (svg.getBBox) {
+                try {
+                    const b = svg.getBBox();
+                    w = b.width;
+                    h = b.height;
+                } catch (e) {}
+            }
+
+            if (!w || w < 200) {
+                w = 1450;
+                h = 950;
+            }
+
+            const wPx = Math.round(w);
+            const hPx = Math.round(h);
+
+            svg.setAttribute('width', wPx);
+            svg.setAttribute('height', hPx);
+            svg.style.width = wPx + 'px';
+            svg.style.height = hPx + 'px';
+            svg.style.maxWidth = 'none';
+            svg.style.minWidth = wPx + 'px';
+            svg.style.minHeight = hPx + 'px';
+            svg.style.display = 'block';
+
+            const container = document.getElementById('mermaid-container');
+            if (container) {
+                container.style.width = wPx + 'px';
+                container.style.height = hPx + 'px';
+                container.style.maxWidth = 'none';
+            }
+        }
+
+        function centrarDiagramaInicial() {
+            const viewport = document.getElementById('diagram-viewport');
+            const svg = document.querySelector('#mermaid-container svg');
+            if (!viewport || !svg) return;
+
+            fijarDimensionesRealesSvg(svg);
+
+            const vRect = viewport.getBoundingClientRect();
+            const naturalWidth = parseFloat(svg.style.width) || 1400;
+            const naturalHeight = parseFloat(svg.style.height) || 900;
+
+            if (naturalWidth > 0 && naturalHeight > 0) {
+                const scaleX = (vRect.width - 60) / naturalWidth;
+                const scaleY = (vRect.height - 60) / naturalHeight;
+                currentScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.65), 1.15);
+
+                translateX = (vRect.width - (naturalWidth * currentScale)) / 2;
+                translateY = Math.max(20, (vRect.height - (naturalHeight * currentScale)) / 2);
+            } else {
+                currentScale = 1.0;
+                translateX = 30;
+                translateY = 30;
+            }
+
+            applyTransform();
+            actualizarBadgeZoom();
+        }
+
+        // Búsqueda inteligente de la caja delimitadora (BBox) de cualquier tabla en el SVG
+        function obtenerBBoxDeTabla(svg, tableName) {
+            const tableUpper = tableName.trim().toUpperCase();
+
+            // 1. Buscar en grupos de entidad con ID o clase
+            const allG = svg.querySelectorAll('g');
+            for (const g of allG) {
+                const id = (g.getAttribute('id') || '').toUpperCase();
+                const cls = (g.getAttribute('class') || '').toUpperCase();
+                if ((id.includes('ENTITY-') || cls.includes('ENTITY') || id.includes('NODE')) && id.includes(tableUpper)) {
+                    try {
+                        const b = g.getBBox();
+                        if (b.width > 20 && b.height > 20) return { elem: g, bbox: b };
+                    } catch(e) {}
+                }
+            }
+
+            // 2. Buscar por coincidencia exacta en los textos del SVG
+            const allTexts = svg.querySelectorAll('text');
+            for (const t of allTexts) {
+                if (t.textContent.trim().toUpperCase() === tableUpper) {
+                    let parent = t.parentElement;
+                    while (parent && parent !== svg) {
+                        try {
+                            const b = parent.getBBox();
+                            if (b.width > 60 && b.height > 60) {
+                                return { elem: parent, bbox: b };
+                            }
+                        } catch(e) {}
+                        parent = parent.parentElement;
+                    }
+                    try {
+                        return { elem: t, bbox: t.getBBox() };
+                    } catch(e) {}
+                }
+            }
+
+            return null;
+        }
+
+        // ENFOCAR DIRECTAMENTE UNA TABLA EN EL DIAGRAMA (ZOOM INTELIGENTE A LA TABLA)
+        function enfocarTablaEnDiagrama(tableName) {
+            if (!tableName) return;
+            tablaActualSeleccionada = tableName;
+
+            // Sincronizar el selector desplegable
+            const select = document.getElementById('select-focus-table');
+            if (select) select.value = tableName;
+
+            const svg = document.querySelector('#mermaid-container svg');
+            const viewport = document.getElementById('diagram-viewport');
+            if (!svg || !viewport) return;
+
+            fijarDimensionesRealesSvg(svg);
+
+            const result = obtenerBBoxDeTabla(svg, tableName);
+            const vRect = viewport.getBoundingClientRect();
+
+            if (result && result.bbox && result.bbox.width > 0) {
+                const bbox = result.bbox;
+                const targetElem = result.elem;
+
+                // Zoom óptimo, nítido y legible para visualizar cada columna
+                currentScale = 1.9;
+
+                const targetCenterX = bbox.x + (bbox.width / 2);
+                const targetCenterY = bbox.y + (bbox.height / 2);
+
+                translateX = (vRect.width / 2) - (targetCenterX * currentScale);
+                translateY = (vRect.height / 2) - (targetCenterY * currentScale);
+
+                applyTransform();
+                actualizarBadgeZoom();
+
+                // Efecto de resplandor visual en la tabla seleccionada
+                if (targetElem) {
+                    targetElem.style.transition = 'filter 0.3s ease';
+                    targetElem.style.filter = 'drop-shadow(0 0 16px #00a896) drop-shadow(0 0 8px #028090)';
+                    setTimeout(() => {
+                        targetElem.style.filter = '';
+                    }, 3200);
+                }
+            } else {
+                currentScale = 1.6;
+                applyTransform();
+                actualizarBadgeZoom();
+            }
+        }
+
+        // Vincular interactividad directa a las tablas en el SVG (clic para zoom, dblclick para ficha)
+        function vincularEventosTablasSvg() {
+            const svg = document.querySelector('#mermaid-container svg');
+            if (!svg) return;
+
+            const tableKeys = Object.keys(TABLAS_METADATA);
+            const allTexts = svg.querySelectorAll('text');
+
+            allTexts.forEach(t => {
+                const txt = t.textContent.trim().toUpperCase();
+                if (tableKeys.includes(txt)) {
+                    const res = obtenerBBoxDeTabla(svg, txt);
+                    const targetGroup = res ? res.elem : (t.closest('g') || t);
+
+                    targetGroup.style.cursor = 'pointer';
+
+                    if (!targetGroup.querySelector('title')) {
+                        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                        title.textContent = `Hacer Zoom a tabla ${txt} · (Doble Clic para ver Ficha Técnica)`;
+                        targetGroup.appendChild(title);
+                    }
+
+                    targetGroup.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        enfocarTablaEnDiagrama(txt);
+                    });
+
+                    targetGroup.addEventListener('dblclick', (e) => {
+                        e.stopPropagation();
+                        verFichaTabla(txt);
+                    });
+                }
+            });
+        }
+
+        // PANTALLA COMPLETA DEL VISOR
+        function toggleDiagramFullscreen() {
+            const viewport = document.getElementById('diagram-viewport');
+            const ico = document.getElementById('ico-fullscreen');
+            const txt = document.getElementById('txt-fullscreen');
+
+            isDiagramFullscreen = !isDiagramFullscreen;
+            viewport.classList.toggle('diagram-fullscreen-mode', isDiagramFullscreen);
+
+            if (isDiagramFullscreen) {
+                if (ico) ico.className = 'bx bx-collapse-alt';
+                if (txt) txt.textContent = 'Salir Pantalla Completa';
+                document.body.style.overflow = 'hidden';
+            } else {
+                if (ico) ico.className = 'bx bx-expand-alt';
+                if (txt) txt.textContent = 'Pantalla Completa';
+                document.body.style.overflow = '';
+            }
+
+            setTimeout(centrarDiagramaInicial, 120);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isDiagramFullscreen) {
+                toggleDiagramFullscreen();
+            }
+        });
+
+        // INICIALIZACIÓN DE EVENTOS DE MOUSE Y TOUCH
+        function initDiagramControls() {
+            const viewport = document.getElementById('diagram-viewport');
+            const canvas = document.getElementById('diagram-canvas');
+            if (!viewport || !canvas) return;
+
+            // Zoom con rueda del ratón (centrado en puntero)
+            viewport.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const delta = e.deltaY < 0 ? 0.20 : -0.20;
+                const newScale = Math.min(Math.max(0.35, currentScale + delta), 4.0);
+
+                translateX = mouseX - (mouseX - translateX) * (newScale / currentScale);
+                translateY = mouseY - (mouseY - translateY) * (newScale / currentScale);
+                currentScale = newScale;
+                applyTransform();
+                actualizarBadgeZoom();
+            }, { passive: false });
+
+            // Doble clic para acercar en el punto seleccionado
+            viewport.addEventListener('dblclick', (e) => {
+                if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const newScale = Math.min(currentScale + 0.45, 4.0);
+
+                translateX = mouseX - (mouseX - translateX) * (newScale / currentScale);
+                translateY = mouseY - (mouseY - translateY) * (newScale / currentScale);
+                currentScale = newScale;
+                applyTransform();
+                actualizarBadgeZoom();
+            });
+
+            // Arrastre con mouse (Pan)
+            viewport.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.floating-zoom-controls') || e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
+                isDragging = true;
+                viewport.style.cursor = 'grabbing';
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                applyTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    viewport.style.cursor = 'grab';
+                }
+            });
+
+            // Soporte para gestos táctiles (Touch)
+            let lastTouchX = 0, lastTouchY = 0;
+            viewport.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    lastTouchX = e.touches[0].clientX - translateX;
+                    lastTouchY = e.touches[0].clientY - translateY;
+                }
+            }, { passive: true });
+
+            viewport.addEventListener('touchmove', (e) => {
+                if (isDragging && e.touches.length === 1) {
+                    translateX = e.touches[0].clientX - lastTouchX;
+                    translateY = e.touches[0].clientY - lastTouchY;
+                    applyTransform();
+                }
+            }, { passive: true });
+
+            viewport.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+
+            // Reintentar ajuste cuando Mermaid termine el render SVG
+            const checkSvgInterval = setInterval(() => {
+                const svg = document.querySelector('#mermaid-container svg');
+                if (svg) {
+                    clearInterval(checkSvgInterval);
+                    centrarDiagramaInicial();
+                    vincularEventosTablasSvg();
+                }
+            }, 180);
+        }
+
+        // =========================================================================
+        // MODAL DE FICHA TÉCNICA DETALLADA DE CADA TABLA
+        // =========================================================================
+
+        function abrirFichaTablaActual() {
+            const select = document.getElementById('select-focus-table');
+            const tabla = select.value || tablaActualSeleccionada || 'MESA_PRODUCCION';
+            verFichaTabla(tabla);
+        }
+
+        function verFichaTabla(nombreTabla) {
+            const t = TABLAS_METADATA[nombreTabla] || TABLAS_METADATA['MESA_PRODUCCION'];
+            tablaActualSeleccionada = nombreTabla;
+
+            document.getElementById('modal-tabla-titulo').innerHTML = `<i class='bx bx-table'></i> Tabla: ${t.titulo} <span style="font-size: 0.75rem; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 4px; margin-left: auto;">${t.tipo}</span>`;
+
+            let colsHtml = '';
+            t.columnas.forEach(c => {
+                let badgeClave = '-';
+                if (c.clave === 'PK') badgeClave = '<span class="badge-pk">PK</span>';
+                else if (c.clave === 'FK') badgeClave = '<span class="badge-fk">FK</span>';
+                else if (c.clave === 'UK') badgeClave = '<span class="badge-uk">UK</span>';
+
+                colsHtml += `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 0.65rem 0.8rem; font-family: 'DM Mono', monospace; font-weight: 800; color: var(--safco-teal); font-size: 0.9rem;">${c.nombre}</td>
+                        <td style="padding: 0.65rem 0.8rem; font-family: 'DM Mono', monospace; font-size: 0.85rem; color: #475569;">${c.tipo}</td>
+                        <td style="padding: 0.65rem 0.8rem; text-align: center;">${badgeClave}</td>
+                        <td style="padding: 0.65rem 0.8rem; text-align: center; font-weight: 700; color: ${c.nulo === 'NO' ? '#b91c1c' : '#16a34a'}; font-size: 0.82rem;">${c.nulo}</td>
+                        <td style="padding: 0.65rem 0.8rem; font-size: 0.82rem; color: #64748b;">${c.default}</td>
+                        <td style="padding: 0.65rem 0.8rem; font-size: 0.84rem; color: var(--safco-text-dark);">${c.desc}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('modal-tabla-body').innerHTML = `
+                <div style="background: var(--safco-teal-bg); border: 1.5px solid var(--safco-teal-light); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+                    <div style="font-weight: 800; color: var(--safco-teal); font-size: 0.95rem; margin-bottom: 0.2rem;">${t.titulo} · ${t.tipo}</div>
+                    <div style="font-size: 0.86rem; color: var(--safco-text-dark); line-height: 1.4;">${t.descripcion}</div>
+                </div>
+
+                <div style="overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.2rem;">
+                    <table style="width: 100%; border-collapse: collapse; background: #ffffff; text-align: left;">
+                        <thead>
+                            <tr style="background: var(--safco-teal); color: #ffffff; font-size: 0.78rem; text-transform: uppercase;">
+                                <th style="padding: 0.65rem 0.8rem;">Columna</th>
+                                <th style="padding: 0.65rem 0.8rem;">Tipo de Dato</th>
+                                <th style="padding: 0.65rem 0.8rem; text-align: center;">Clave</th>
+                                <th style="padding: 0.65rem 0.8rem; text-align: center;">Nulo</th>
+                                <th style="padding: 0.65rem 0.8rem;">Default</th>
+                                <th style="padding: 0.65rem 0.8rem;">Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${colsHtml}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-weight: 800; font-size: 0.82rem; color: var(--safco-teal);"><i class='bx bx-code'></i> Definición DDL SQL de la Tabla:</span>
+                </div>
+                <pre style="background: #0f172a; color: #e2e8f0; padding: 0.85rem; border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 0.82rem; margin: 0; overflow-x: auto;" id="codigo-sql-tabla-modal">${t.sql}</pre>
+            `;
+
+            document.getElementById('modal-detalle-tabla').classList.add('active');
+        }
+
+        function cerrarModalTabla() {
+            document.getElementById('modal-detalle-tabla').classList.remove('active');
+        }
+
+        function copiarSqlTablaActual() {
+            const texto = document.getElementById('codigo-sql-tabla-modal').innerText;
+            navigator.clipboard.writeText(texto).then(() => {
+                alert('¡Definición DDL de la tabla copiada al portapapeles!');
+            });
+        }
+    </script>
+</body>
+</html>

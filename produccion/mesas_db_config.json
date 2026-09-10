@@ -1,0 +1,179 @@
+{
+  "title": "ESPECIFICACIÓN DE BASE DE DATOS\nMESAS Y ASIGNACIÓN DE PRODUCCIÓN",
+  "subtitle": "Modelo Relacional Normalizado (3NF) · Infraestructura Línea/Riel · Asignación de Slots · Trazabilidad de Traslados",
+  "short_title": "ESPECIFICACIÓN BD MESAS",
+  "logo": "C:/PROYECTOS SAFCO/WEB/safco-intranet/intranet-mockups-project/logo_sin_fondo.png",
+  "metadata": [
+    "<b>Módulo:</b> Mesas y Asignación de Producción en Línea",
+    "<b>Destinatarios:</b> Administrador de Base de Datos (DBA) / Ingenieros Backend",
+    "<b>Elaborado por:</b> Área de Sistemas e Innovación Tecnológica SAFCO",
+    "<b>Estado:</b> Aprobado para Implementación (Versión 1.0)"
+  ],
+  "overview": "El presente documento define la arquitectura de datos, diccionario de campos y script DDL para la gestión de infraestructura de mesas de producción por línea y riel, la asignación de puestos (slots) con roles operativos (Seleccionador y Embaladores), control de asistencia integrada con motivo de salida, trazabilidad de traslados de cuadrilla y snapshots de cierre de turno.",
+  "key_decisions": [
+    "<b>Cero Redundancia de Historial:</b> Toda la trazabilidad histórica de los operarios en mesas y turnos se deriva de forma natural desde ASIGNACION_MESA_OPERARIO mediante consultas y vistas indexadas, evitando tablas duplicadas de auditoría.",
+    "<b>Regla de Oro del Seleccionador:</b> Cada mesa operativa cuenta con un único Seleccionador (SEL) activo. Si se designa un seleccionador, los demás integrantes pasan a Embaladores. Las mesas sin seleccionador son alertadas automáticamente.",
+    "<b>Trazabilidad de Traslados de Equipo:</b> Se registra cada reubicación masiva de cuadrilla entre mesas mediante TRASLADO_EQUIPO_LOG con sello de tiempo y usuario responsable.",
+    "<b>Snapshots de Cierre para Restauración:</b> Al finalizar el turno, la conformación de la línea se almacena en SNAPSHOT_CONFIGURACION_MESA para habilitar la restauración automática con el botón 'Día Anterior'."
+  ],
+  "relationships": [
+    {
+      "from": "linea_produccion",
+      "cardinality": "1 : N",
+      "to": "riel_produccion",
+      "fk": "fk_id_linea",
+      "description": "Cada línea agrupa sus rieles correspondientes (Riel 1, Riel 2)."
+    },
+    {
+      "from": "riel_produccion",
+      "cardinality": "1 : N",
+      "to": "mesa_produccion",
+      "fk": "fk_id_riel",
+      "description": "Cada riel aloja las mesas físicas correlativas de trabajo."
+    },
+    {
+      "from": "mesa_produccion",
+      "cardinality": "1 : N",
+      "to": "asignacion_mesa_cabecera",
+      "fk": "fk_id_mesa",
+      "description": "Una mesa física mantiene múltiples jornadas operativas registradas."
+    },
+    {
+      "from": "turno_produccion",
+      "cardinality": "1 : N",
+      "to": "asignacion_mesa_cabecera",
+      "fk": "fk_id_turno",
+      "description": "Cada jornada diaria se ejecuta dentro de un turno programado."
+    },
+    {
+      "from": "asignacion_mesa_cabecera",
+      "cardinality": "1 : N",
+      "to": "asignacion_mesa_operario",
+      "fk": "fk_id_asignacion_mesa",
+      "description": "La cabecera contiene los slots y cuadrilla asignada en la mesa."
+    },
+    {
+      "from": "mesa_produccion",
+      "cardinality": "1 : N",
+      "to": "traslado_equipo_log",
+      "fk": "fk_id_mesa_origen",
+      "description": "Auditoría de traslados completos de equipo entre mesas físicas."
+    },
+    {
+      "from": "mesa_produccion",
+      "cardinality": "1 : N",
+      "to": "snapshot_configuracion_mesa",
+      "fk": "fk_id_mesa",
+      "description": "Respaldo persistente de asignaciones para restaurar el día anterior."
+    }
+  ],
+  "tables": [
+    {
+      "name": "linea_produccion",
+      "description": "Catálogo de líneas físicas de empaque (Línea 1..4).",
+      "columns": [
+        { "name": "id_linea", "type": "SERIAL", "key": "PK", "nullable": false, "default": "Autoincrementable", "description": "Identificador primario de la línea." },
+        { "name": "nombre", "type": "VARCHAR(50)", "key": "UK", "nullable": false, "default": "-", "description": "Nombre oficial (ej: Línea 1)." },
+        { "name": "codigo", "type": "VARCHAR(10)", "key": "UK", "nullable": false, "default": "-", "description": "Código corto (ej: L1)." },
+        { "name": "activo", "type": "BOOLEAN", "key": "-", "nullable": false, "default": "TRUE", "description": "Borrado lógico / vigencia." }
+      ]
+    },
+    {
+      "name": "riel_produccion",
+      "description": "Subdivisión de transporte en cada línea (Riel 1, Riel 2).",
+      "columns": [
+        { "name": "id_riel", "type": "SERIAL", "key": "PK", "nullable": false, "default": "Autoincrementable", "description": "Identificador primario del riel." },
+        { "name": "fk_id_linea", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Referencia a linea_produccion(id_linea)." },
+        { "name": "nombre", "type": "VARCHAR(50)", "key": "-", "nullable": false, "default": "-", "description": "Nombre visible (Riel 1, Riel 2)." },
+        { "name": "numero_riel", "type": "INT", "key": "-", "nullable": false, "default": "-", "description": "Número de riel correlativo (1 o 2)." },
+        { "name": "activo", "type": "BOOLEAN", "key": "-", "nullable": false, "default": "TRUE", "description": "Estado de vigencia del riel." }
+      ]
+    },
+    {
+      "name": "mesa_produccion",
+      "description": "Inventario de activos físicos de mesas de empaque.",
+      "columns": [
+        { "name": "id_mesa", "type": "SERIAL", "key": "PK", "nullable": false, "default": "Autoincrementable", "description": "Identificador único primario." },
+        { "name": "codigo_mesa", "type": "VARCHAR(20)", "key": "UK", "nullable": false, "default": "-", "description": "Código oficial (ej: L1-R1-M01)." },
+        { "name": "fk_id_linea", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Referencia a línea de pertenencia." },
+        { "name": "fk_id_riel", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Referencia al riel de ubicación." },
+        { "name": "numero_mesa", "type": "INT", "key": "-", "nullable": false, "default": "-", "description": "Número de mesa dentro del riel." },
+        { "name": "capacidad_maxima", "type": "INT", "key": "-", "nullable": false, "default": "3", "description": "Capacidad máxima de operarios (1 a 6)." },
+        { "name": "estado_operativo", "type": "VARCHAR(20)", "key": "-", "nullable": false, "default": "'Activa'", "description": "'Activa', 'Inactiva'." },
+        { "name": "activo", "type": "BOOLEAN", "key": "-", "nullable": false, "default": "TRUE", "description": "Borrado lógico / vigencia." },
+        { "name": "fecha_creacion", "type": "TIMESTAMP", "key": "-", "nullable": false, "default": "CURRENT_TIMESTAMP", "description": "Alta en inventario físico." }
+      ]
+    },
+    {
+      "name": "turno_produccion",
+      "description": "Maestro de horarios laborales estándar en planta.",
+      "columns": [
+        { "name": "id_turno", "type": "SERIAL", "key": "PK", "nullable": false, "default": "Autoincrementable", "description": "Identificador del turno." },
+        { "name": "codigo_turno", "type": "VARCHAR(20)", "key": "UK", "nullable": false, "default": "-", "description": "Código visible ('MAÑANA', 'NOCHE')." },
+        { "name": "hora_inicio", "type": "TIME", "key": "-", "nullable": false, "default": "-", "description": "Hora de ingreso programada (07:00)." },
+        { "name": "hora_fin", "type": "TIME", "key": "-", "nullable": false, "default": "-", "description": "Hora de salida programada (15:30)." },
+        { "name": "activo", "type": "BOOLEAN", "key": "-", "nullable": false, "default": "TRUE", "description": "Estado de vigencia del turno." }
+      ]
+    },
+    {
+      "name": "asignacion_mesa_cabecera",
+      "description": "Sesión operativa diaria de una mesa para un turno.",
+      "columns": [
+        { "name": "id_asignacion_mesa", "type": "SERIAL", "key": "PK", "nullable": false, "default": "Autoincrementable", "description": "Identificador de jornada de mesa." },
+        { "name": "fk_id_mesa", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Referencia a mesa_produccion(id_mesa)." },
+        { "name": "fecha_operacion", "type": "DATE", "key": "-", "nullable": false, "default": "CURRENT_DATE", "description": "Fecha del turno de producción." },
+        { "name": "fk_id_turno", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Referencia a turno_produccion." },
+        { "name": "estado_mesa_turno", "type": "VARCHAR(20)", "key": "-", "nullable": false, "default": "'En Proceso'", "description": "'En Proceso', 'Finalizada', 'Cancelada'." },
+        { "name": "fk_id_supervisor_apertura", "type": "INT", "key": "-", "nullable": false, "default": "-", "description": "ID del supervisor responsable." },
+        { "name": "fecha_hora_apertura", "type": "TIMESTAMP", "key": "-", "nullable": false, "default": "CURRENT_TIMESTAMP", "description": "Momento de apertura de mesa." },
+        { "name": "fecha_hora_cierre", "type": "TIMESTAMP", "key": "-", "nullable": true, "default": "NULL", "description": "Momento de liberación / cierre." },
+        { "name": "observacion_cierre", "type": "VARCHAR(255)", "key": "-", "nullable": true, "default": "NULL", "description": "Observaciones al finalizar turno." }
+      ]
+    },
+    {
+      "name": "asignacion_mesa_operario",
+      "description": "Detalle de operarios por puesto/slot, asistencia y métricas de cajas.",
+      "columns": [
+        { "name": "id_asignacion_op", "type": "SERIAL", "key": "PK", "nullable": false, "default": "Autoincrementable", "description": "Identificador de puesto ocupado." },
+        { "name": "fk_id_asignacion_mesa", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Referencia a asignacion_mesa_cabecera." },
+        { "name": "dni_operario", "type": "VARCHAR(20)", "key": "FK", "nullable": false, "default": "-", "description": "DNI del operario que ocupa el puesto." },
+        { "name": "numero_slot", "type": "INT", "key": "-", "nullable": false, "default": "-", "description": "Slot o posición en mesa (1..6)." },
+        { "name": "labor_rol", "type": "VARCHAR(30)", "key": "-", "nullable": false, "default": "-", "description": "'Seleccionador', 'Embalador 1', etc." },
+        { "name": "estado_llegada", "type": "VARCHAR(20)", "key": "-", "nullable": false, "default": "'En hora'", "description": "'En hora' o 'Tarde'." },
+        { "name": "fecha_hora_ingreso", "type": "TIMESTAMP", "key": "-", "nullable": false, "default": "CURRENT_TIMESTAMP", "description": "Momento de escaneo/colocación." },
+        { "name": "fecha_hora_salida", "type": "TIMESTAMP", "key": "-", "nullable": true, "default": "NULL", "description": "NULL mientras labore. Salida al liberar." },
+        { "name": "motivo_salida", "type": "VARCHAR(255)", "key": "-", "nullable": true, "default": "NULL", "description": "Motivo de salida (médico, permiso, etc.)." },
+        { "name": "estado_operario", "type": "VARCHAR(20)", "key": "-", "nullable": false, "default": "'Activo'", "description": "'Activo', 'Trasladado', 'Salida'." },
+        { "name": "cajas_aprobadas", "type": "INT", "key": "-", "nullable": false, "default": "0", "description": "Cajas aprobadas por calidad." },
+        { "name": "cajas_rechazadas", "type": "INT", "key": "-", "nullable": false, "default": "0", "description": "Cajas rechazadas por calidad." },
+        { "name": "rendimiento_cajas", "type": "INT", "key": "-", "nullable": false, "default": "0", "description": "Total de cajas procesadas." }
+      ]
+    },
+    {
+      "name": "traslado_equipo_log",
+      "description": "Auditoría histórica de traslados completos de cuadrilla entre mesas.",
+      "columns": [
+        { "name": "id_traslado", "type": "SERIAL", "key": "PK", "nullable": false, "default": "Autoincrementable", "description": "Identificador de auditoría de traslado." },
+        { "name": "fk_id_mesa_origen", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Mesa física de origen del equipo." },
+        { "name": "fk_id_mesa_destino", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Mesa física de destino del equipo." },
+        { "name": "fecha_hora_traslado", "type": "TIMESTAMP", "key": "-", "nullable": false, "default": "CURRENT_TIMESTAMP", "description": "Momento exacto del traslado." },
+        { "name": "fk_id_usuario_traslado", "type": "INT", "key": "-", "nullable": false, "default": "-", "description": "ID del supervisor responsable." },
+        { "name": "motivo_traslado", "type": "VARCHAR(255)", "key": "-", "nullable": true, "default": "'Reubicación'", "description": "Justificación operativa." },
+        { "name": "total_integrantes_movidos", "type": "INT", "key": "-", "nullable": false, "default": "-", "description": "Cantidad de personas trasladadas." }
+      ]
+    },
+    {
+      "name": "snapshot_configuracion_mesa",
+      "description": "Snapshot persistente para la restauración del Día Anterior.",
+      "columns": [
+        { "name": "id_snapshot", "type": "SERIAL", "key": "PK", "nullable": false, "default": "Autoincrementable", "description": "Identificador del snapshot." },
+        { "name": "fk_id_mesa", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Referencia a mesa_produccion." },
+        { "name": "fecha_snapshot", "type": "DATE", "key": "-", "nullable": false, "default": "-", "description": "Fecha del cierre capturado." },
+        { "name": "fk_id_turno", "type": "INT", "key": "FK", "nullable": false, "default": "-", "description": "Turno de producción capturado." },
+        { "name": "datos_equipo", "type": "JSON", "key": "-", "nullable": false, "default": "-", "description": "Payload con cuadrilla y roles." },
+        { "name": "fecha_hora_registro", "type": "TIMESTAMP", "key": "-", "nullable": false, "default": "CURRENT_TIMESTAMP", "description": "Sello de tiempo de guardado." }
+      ]
+    }
+  ],
+  "sql_ddl": "-- 1. TABLA: LÍNEA DE PRODUCCIÓN\nCREATE TABLE linea_produccion (\n    id_linea SERIAL PRIMARY KEY,\n    nombre VARCHAR(50) NOT NULL UNIQUE,\n    codigo VARCHAR(10) NOT NULL UNIQUE,\n    activo BOOLEAN DEFAULT TRUE\n);\n\n-- 2. TABLA: RIEL DE PRODUCCIÓN\nCREATE TABLE riel_produccion (\n    id_riel SERIAL PRIMARY KEY,\n    fk_id_linea INT NOT NULL REFERENCES linea_produccion(id_linea) ON DELETE RESTRICT,\n    nombre VARCHAR(50) NOT NULL,\n    numero_riel INT NOT NULL,\n    activo BOOLEAN DEFAULT TRUE,\n    CONSTRAINT uk_linea_riel UNIQUE (fk_id_linea, numero_riel)\n);\n\n-- 3. TABLA: MESA DE PRODUCCIÓN\nCREATE TABLE mesa_produccion (\n    id_mesa SERIAL PRIMARY KEY,\n    codigo_mesa VARCHAR(20) NOT NULL UNIQUE,\n    fk_id_linea INT NOT NULL REFERENCES linea_produccion(id_linea) ON DELETE RESTRICT,\n    fk_id_riel INT NOT NULL REFERENCES riel_produccion(id_riel) ON DELETE RESTRICT,\n    numero_mesa INT NOT NULL,\n    capacidad_maxima INT NOT NULL DEFAULT 3,\n    estado_operativo VARCHAR(20) NOT NULL DEFAULT 'Activa',\n    activo BOOLEAN DEFAULT TRUE,\n    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT uk_riel_numero_mesa UNIQUE (fk_id_riel, numero_mesa)\n);\n\n-- 4. TABLA: TURNO DE PRODUCCIÓN\nCREATE TABLE turno_produccion (\n    id_turno SERIAL PRIMARY KEY,\n    codigo_turno VARCHAR(20) NOT NULL UNIQUE,\n    hora_inicio TIME NOT NULL,\n    hora_fin TIME NOT NULL,\n    activo BOOLEAN DEFAULT TRUE\n);\n\n-- 5. TABLA: ASIGNACIÓN CABECERA DE MESA\nCREATE TABLE asignacion_mesa_cabecera (\n    id_asignacion_mesa SERIAL PRIMARY KEY,\n    fk_id_mesa INT NOT NULL REFERENCES mesa_produccion(id_mesa) ON DELETE RESTRICT,\n    fecha_operacion DATE NOT NULL DEFAULT CURRENT_DATE,\n    fk_id_turno INT NOT NULL REFERENCES turno_produccion(id_turno) ON DELETE RESTRICT,\n    estado_mesa_turno VARCHAR(20) NOT NULL DEFAULT 'En Proceso',\n    fk_id_supervisor_apertura INT NOT NULL,\n    fecha_hora_apertura TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    fecha_hora_cierre TIMESTAMP NULL,\n    observacion_cierre VARCHAR(255) NULL\n);\n\n-- 6. TABLA: ASIGNACIÓN DETALLE DE OPERARIO\nCREATE TABLE asignacion_mesa_operario (\n    id_asignacion_op SERIAL PRIMARY KEY,\n    fk_id_asignacion_mesa INT NOT NULL REFERENCES asignacion_mesa_cabecera(id_asignacion_mesa) ON DELETE CASCADE,\n    dni_operario VARCHAR(20) NOT NULL,\n    numero_slot INT NOT NULL,\n    labor_rol VARCHAR(30) NOT NULL,\n    estado_llegada VARCHAR(20) DEFAULT 'En hora',\n    fecha_hora_ingreso TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    fecha_hora_salida TIMESTAMP NULL,\n    motivo_salida VARCHAR(255) NULL,\n    estado_operario VARCHAR(20) DEFAULT 'Activo',\n    cajas_aprobadas INT DEFAULT 0,\n    cajas_rechazadas INT DEFAULT 0,\n    rendimiento_cajas INT DEFAULT 0\n);\n\n-- 7. TABLA: TRASLADO DE EQUIPO LOG\nCREATE TABLE traslado_equipo_log (\n    id_traslado SERIAL PRIMARY KEY,\n    fk_id_mesa_origen INT NOT NULL REFERENCES mesa_produccion(id_mesa),\n    fk_id_mesa_destino INT NOT NULL REFERENCES mesa_produccion(id_mesa),\n    fecha_hora_traslado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    fk_id_usuario_traslado INT NOT NULL,\n    motivo_traslado VARCHAR(255) DEFAULT 'Reubicación operativa de cuadrilla',\n    total_integrantes_movidos INT NOT NULL\n);\n\n-- 8. TABLA: SNAPSHOT DE CONFIGURACIÓN DE MESAS\nCREATE TABLE snapshot_configuracion_mesa (\n    id_snapshot SERIAL PRIMARY KEY,\n    fk_id_mesa INT NOT NULL REFERENCES mesa_produccion(id_mesa) ON DELETE CASCADE,\n    fecha_snapshot DATE NOT NULL,\n    fk_id_turno INT NOT NULL REFERENCES turno_produccion(id_turno),\n    datos_equipo JSON NOT NULL,\n    fecha_hora_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT uk_snapshot_mesa_fecha UNIQUE (fk_id_mesa, fecha_snapshot, fk_id_turno)\n);\n\n-- ÍNDICES DE ALTO RENDIMIENTO\nCREATE INDEX idx_mesa_linea_riel ON mesa_produccion(fk_id_linea, fk_id_riel, codigo_mesa);\nCREATE INDEX idx_asig_cabecera_fecha ON asignacion_mesa_cabecera(fecha_operacion, fk_id_mesa);\nCREATE INDEX idx_asig_operario_dni ON asignacion_mesa_operario(dni_operario, fecha_hora_ingreso DESC);\nCREATE INDEX idx_asig_operario_salida ON asignacion_mesa_operario(fk_id_asignacion_mesa, fecha_hora_salida);\n\n-- VISTA: ESTADO ACTUAL Y KPIS DE MESAS EN VIVO\nCREATE OR REPLACE VIEW v_estado_actual_mesas AS\nSELECT \n    m.id_mesa,\n    m.codigo_mesa,\n    l.nombre AS linea,\n    r.nombre AS riel,\n    m.capacidad_maxima,\n    c.id_asignacion_mesa,\n    c.fecha_operacion,\n    COUNT(o.id_asignacion_op) FILTER (WHERE o.fecha_hora_salida IS NULL) AS total_operarios_activos,\n    COUNT(o.id_asignacion_op) FILTER (WHERE o.labor_rol = 'Seleccionador' AND o.fecha_hora_salida IS NULL) AS cuenta_seleccionadores,\n    CASE \n        WHEN COUNT(o.id_asignacion_op) FILTER (WHERE o.fecha_hora_salida IS NULL) = 0 THEN 'Vacía'\n        WHEN COUNT(o.id_asignacion_op) FILTER (WHERE o.labor_rol = 'Seleccionador' AND o.fecha_hora_salida IS NULL) = 0 THEN 'Sin Seleccionador'\n        WHEN COUNT(o.id_asignacion_op) FILTER (WHERE o.fecha_hora_salida IS NULL) >= m.capacidad_maxima THEN 'Operativa Completa'\n        ELSE 'Incompleta'\n    END AS estado_alerta_kpi\nFROM mesa_produccion m\nINNER JOIN linea_produccion l ON m.fk_id_linea = l.id_linea\nINNER JOIN riel_produccion r ON m.fk_id_riel = r.id_riel\nLEFT JOIN asignacion_mesa_cabecera c ON m.id_mesa = c.fk_id_mesa AND c.fecha_operacion = CURRENT_DATE AND c.estado_mesa_turno = 'En Proceso'\nLEFT JOIN asignacion_mesa_operario o ON c.id_asignacion_mesa = o.fk_id_asignacion_mesa\nWHERE m.estado_operativo = 'Activa' AND m.activo = TRUE\nGROUP BY m.id_mesa, m.codigo_mesa, l.nombre, r.nombre, m.capacidad_maxima, c.id_asignacion_mesa, c.fecha_operacion;"
+}

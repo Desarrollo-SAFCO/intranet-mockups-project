@@ -41,11 +41,281 @@
             background: #ffffff;
             border-radius: 14px;
             border: 1px solid var(--safco-border);
-            padding: 2rem;
+            padding: 1.5rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.04);
             margin-bottom: 2rem;
+        }
+
+        /* Viewport y Canvas Interactivo de Zoom & Pan */
+        .diagram-viewport {
+            position: relative;
+            width: 100%;
+            height: 680px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1.5px solid var(--safco-border);
+            overflow: hidden;
+            cursor: grab;
+            user-select: none;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.03);
+            touch-action: none;
+        }
+
+        .diagram-viewport:active {
+            cursor: grabbing;
+        }
+
+        .diagram-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+            transition: transform 0.08s ease-out;
+        }
+
+        #mermaid-container {
+            display: block;
+        }
+
+        #diagram-canvas svg {
+            max-width: none !important;
+            display: block !important;
+        }
+
+        /* Entidades interactivas en el diagrama Mermaid */
+        #diagram-canvas svg g.er.entityBox,
+        #diagram-canvas svg g[id*="entity"],
+        #diagram-canvas svg g[class*="entity"],
+        #diagram-canvas svg g.node {
+            cursor: pointer !important;
+            transition: filter 0.2s ease;
+        }
+
+        #diagram-canvas svg g.er.entityBox:hover,
+        #diagram-canvas svg g[id*="entity"]:hover,
+        #diagram-canvas svg g[class*="entity"]:hover,
+        #diagram-canvas svg g.node:hover {
+            filter: drop-shadow(0 0 14px rgba(0, 168, 150, 0.9)) !important;
+        }
+
+        /* Barra de acceso rápido / Píldoras de tablas */
+        .table-quick-pills {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
             overflow-x: auto;
+            padding: 0.5rem 0.75rem;
+            background: #ffffff;
+            border: 1px solid var(--safco-border);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .table-quick-pills::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .table-quick-pills::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .pills-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--safco-teal);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+
+        .pill-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.28rem 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+            color: var(--safco-teal);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .pill-btn:hover {
+            background: var(--safco-teal);
+            color: #ffffff;
+            border-color: var(--safco-teal);
+            transform: translateY(-1px);
+        }
+
+        .zoom-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0 0.2rem;
+        }
+
+        .zoom-slider {
+            width: 105px;
+            accent-color: var(--safco-teal);
+            cursor: pointer;
+        }
+
+        /* Modo Pantalla Completa */
+        .diagram-viewport.diagram-fullscreen-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            background: #f8fafc !important;
+        }
+
+        /* Toolbar interactiva de Zoom y Enfoque */
+        .diagram-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1.5px solid var(--safco-border);
+            padding: 0.6rem 0.9rem;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .diagram-toolbar-left, .diagram-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-diagram-tool {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.42rem 0.75rem;
+            border-radius: 7px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--safco-teal);
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .btn-diagram-tool:hover {
+            background: var(--safco-teal);
+            color: #ffffff;
+            border-color: var(--safco-teal);
+            transform: translateY(-1px);
+        }
+
+        .zoom-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 800;
+            background: var(--safco-teal-bg);
+            color: var(--safco-teal);
+            padding: 0.38rem 0.7rem;
+            border-radius: 6px;
+            min-width: 54px;
             text-align: center;
+            border: 1px solid var(--safco-teal-light);
+        }
+
+        .focus-table-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+        }
+
+        .focus-table-selector label {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--safco-teal);
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .focus-table-selector select {
+            border: none;
+            background: transparent;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--safco-text-dark);
+            outline: none;
+            cursor: pointer;
+            padding: 2px 0;
+        }
+
+        /* Controles flotantes en esquina */
+        .floating-zoom-controls {
+            position: absolute;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.94);
+            padding: 0.4rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            border: 1px solid #cbd5e1;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-float-zoom {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: var(--safco-teal);
+            font-size: 1.15rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .btn-float-zoom:hover {
+            background: var(--safco-teal);
+            color: #ffffff;
+        }
+
+        .zoom-hint {
+            position: absolute;
+            bottom: 0.85rem;
+            left: 1rem;
+            font-size: 0.74rem;
+            color: var(--safco-text-muted);
+            background: rgba(255, 255, 255, 0.92);
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            pointer-events: none;
+            font-weight: 600;
+            z-index: 40;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
 
         .tabs-nav {
@@ -249,10 +519,10 @@
             </button>
         </div>
 
-        <!-- Pestaña 1: Diagrama Mermaid Visual -->
+        <!-- Pestaña 1: Diagrama Mermaid Visual con Zoom & Pan -->
         <div class="tab-content active" id="tab-diagrama">
             <div class="diagram-wrapper">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
                     <h3 style="color: var(--safco-teal); margin: 0; font-weight: 800; font-size: 1.15rem;">
                         <i class='bx bx-check-shield'></i> Modelo Relacional E-R Normalizado (Tercera Forma Normal)
                     </h3>
@@ -261,8 +531,66 @@
                     </span>
                 </div>
 
-                <!-- Código Mermaid renderizado dinámicamente -->
-                <div class="mermaid">
+                <!-- Toolbar de Controles de Zoom, Enfoque y Pantalla Completa -->
+                <div class="diagram-toolbar">
+                    <div class="diagram-toolbar-left">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: var(--safco-teal); display: flex; align-items: center; gap: 4px;">
+                            <i class='bx bx-zoom-in'></i> Zoom:
+                        </span>
+                        <button class="btn-diagram-tool" onclick="zoomDiagram(-0.25)" title="Reducir Zoom (Alejar)">
+                            <i class='bx bx-minus'></i>
+                        </button>
+                        <span class="zoom-badge" id="zoom-level-badge">100%</span>
+                        <button class="btn-diagram-tool" onclick="zoomDiagram(0.25)" title="Aumentar Zoom (Acercar)">
+                            <i class='bx bx-plus'></i>
+                        </button>
+
+                        <div class="zoom-slider-container">
+                            <input type="range" class="zoom-slider" id="zoom-slider" min="40" max="400" step="5" value="100" oninput="onZoomSliderChange(this.value)" title="Control continuo de escala de zoom (40% - 400%)">
+                        </div>
+
+                        <button class="btn-diagram-tool" onclick="resetZoomDiagram()" title="Restablecer tamaño real (100%)">
+                            <i class='bx bx-reset'></i> 100%
+                        </button>
+                        <button class="btn-diagram-tool" onclick="fitDiagramToContainer()" title="Ajustar diagrama al espacio disponible">
+                            <i class='bx bx-fullscreen'></i> Ajustar
+                        </button>
+                    </div>
+
+                    <div class="diagram-toolbar-right">
+                        <!-- Selector de Enfoque Directo en Tabla -->
+                        <div class="focus-table-selector">
+                            <label for="select-focus-table"><i class='bx bx-target-lock'></i> Enfocar Tabla:</label>
+                            <select id="select-focus-table" onchange="enfocarTablaEnDiagrama(this.value)">
+                                <option value="">-- Seleccionar tabla para ampliar --</option>
+                                <option value="TIPO_IMPLEMENTO">TIPO_IMPLEMENTO</option>
+                                <option value="IMPLEMENTO">IMPLEMENTO</option>
+                                <option value="ASIGNACION_CABECERA">ASIGNACION_CABECERA</option>
+                                <option value="ASIGNACION_DETALLE">ASIGNACION_DETALLE</option>
+                                <option value="VISTA_OPERARIOS">VISTA_OPERARIOS</option>
+                            </select>
+                        </div>
+
+                        <button class="btn-diagram-tool" id="btn-toggle-fullscreen" onclick="toggleDiagramFullscreen()" title="Ampliar a pantalla completa sin restricciones">
+                            <i class='bx bx-expand-alt' id="ico-fullscreen"></i> <span id="txt-fullscreen">Pantalla Completa</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Barra de Acceso Rápido: Clic para Zoom Inmediato a cualquier Tabla -->
+                <div class="table-quick-pills">
+                    <span class="pills-title"><i class='bx bx-search-alt-2'></i> Hacer Zoom a Tabla:</span>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('TIPO_IMPLEMENTO')">TIPO_IMPLEMENTO</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('IMPLEMENTO')">IMPLEMENTO</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('ASIGNACION_CABECERA')">ASIGNACION_CABECERA</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('ASIGNACION_DETALLE')">ASIGNACION_DETALLE</button>
+                    <button type="button" class="pill-btn" onclick="enfocarTablaEnDiagrama('VISTA_OPERARIOS')">VISTA_OPERARIOS</button>
+                </div>
+
+                <!-- Viewport con Arrastre (Pan) y Zoom con Rueda del Ratón -->
+                <div class="diagram-viewport" id="diagram-viewport">
+                    <div class="diagram-canvas" id="diagram-canvas">
+                        <div class="mermaid" id="mermaid-container">
 erDiagram
     TIPO_IMPLEMENTO ||--o{ IMPLEMENTO : "clasifica (1:N)"
     VISTA_OPERARIOS ||--o{ ASIGNACION_CABECERA : "recibe implementos (1:N)"
@@ -311,6 +639,22 @@ erDiagram
         varchar nombres_completos
         varchar cargo
     }
+                        </div>
+                    </div>
+
+                    <!-- Botones flotantes de Zoom rápido -->
+                    <div class="floating-zoom-controls">
+                        <button class="btn-float-zoom" onclick="zoomDiagram(0.25)" title="Acercar (+25%)"><i class='bx bx-plus'></i></button>
+                        <button class="btn-float-zoom" onclick="zoomDiagram(-0.25)" title="Alejar (-25%)"><i class='bx bx-minus'></i></button>
+                        <button class="btn-float-zoom" onclick="resetZoomDiagram()" title="Tamaño 100%"><i class='bx bx-reset'></i></button>
+                        <button class="btn-float-zoom" onclick="fitDiagramToContainer()" title="Ajustar al centro"><i class='bx bx-locate'></i></button>
+                        <button class="btn-float-zoom" onclick="toggleDiagramFullscreen()" title="Pantalla Completa"><i class='bx bx-expand-alt'></i></button>
+                    </div>
+
+                    <!-- Indicador inferior de interacción -->
+                    <div class="zoom-hint">
+                        <i class='bx bx-mouse'></i> <strong>Interacción:</strong> Clic en cualquier tabla para hacerle zoom · Rueda del ratón para Zoom continuo · Arrastra para mover
+                    </div>
                 </div>
             </div>
         </div>
@@ -555,9 +899,18 @@ LEFT JOIN vista_operarios op ON c.dni_operario = op.dni;
     </main>
 
     <script>
+        // VARIABLES DE CONTROL DE ZOOM Y PAN
+        let currentScale = 1.0;
+        let translateX = 0;
+        let translateY = 0;
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let isDiagramFullscreen = false;
+
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
             validarAccesoAdmin();
+            initDiagramControls();
         });
 
         function validarAccesoAdmin() {
@@ -577,6 +930,10 @@ LEFT JOIN vista_operarios op ON c.dni_operario = op.dni;
             const idx = idTab === 'tab-diagrama' ? 0 : (idTab === 'tab-explicacion' ? 1 : 2);
             document.querySelectorAll('.tab-btn')[idx].classList.add('active');
             document.getElementById(idTab).classList.add('active');
+
+            if (idTab === 'tab-diagrama') {
+                setTimeout(centrarDiagramaInicial, 50);
+            }
         }
 
         function copiarSQL() {
@@ -584,6 +941,374 @@ LEFT JOIN vista_operarios op ON c.dni_operario = op.dni;
             navigator.clipboard.writeText(texto).then(() => {
                 alert('¡Script SQL copiado al portapapeles!');
             });
+        }
+
+        // =========================================================================
+        // MOTOR DE ZOOM Y PAN PARA EL DIAGRAMA DE BASE DE DATOS
+        // =========================================================================
+
+        function applyTransform() {
+            const canvas = document.getElementById('diagram-canvas');
+            if (canvas) {
+                canvas.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+            }
+        }
+
+        function actualizarBadgeZoom() {
+            const badge = document.getElementById('zoom-level-badge');
+            if (badge) {
+                badge.textContent = `${Math.round(currentScale * 100)}%`;
+            }
+            const slider = document.getElementById('zoom-slider');
+            if (slider) {
+                slider.value = Math.round(currentScale * 100);
+            }
+        }
+
+        function onZoomSliderChange(val) {
+            const newScale = Math.min(Math.max(0.35, parseFloat(val) / 100), 4.0);
+            const viewport = document.getElementById('diagram-viewport');
+            if (!viewport) return;
+            const vRect = viewport.getBoundingClientRect();
+            const centerX = vRect.width / 2;
+            const centerY = vRect.height / 2;
+
+            translateX = centerX - (centerX - translateX) * (newScale / currentScale);
+            translateY = centerY - (centerY - translateY) * (newScale / currentScale);
+            currentScale = newScale;
+
+            applyTransform();
+            actualizarBadgeZoom();
+        }
+
+        function zoomDiagram(delta) {
+            const viewport = document.getElementById('diagram-viewport');
+            if (!viewport) return;
+            const vRect = viewport.getBoundingClientRect();
+            const centerX = vRect.width / 2;
+            const centerY = vRect.height / 2;
+
+            const newScale = Math.min(Math.max(0.35, currentScale + delta), 4.0);
+            translateX = centerX - (centerX - translateX) * (newScale / currentScale);
+            translateY = centerY - (centerY - translateY) * (newScale / currentScale);
+            currentScale = newScale;
+            applyTransform();
+            actualizarBadgeZoom();
+        }
+
+        function resetZoomDiagram() {
+            currentScale = 1.0;
+            const viewport = document.getElementById('diagram-viewport');
+            const svg = document.querySelector('#mermaid-container svg');
+            if (viewport && svg) {
+                fijarDimensionesRealesSvg(svg);
+                const vRect = viewport.getBoundingClientRect();
+                const natW = parseFloat(svg.style.width) || 1100;
+                const natH = parseFloat(svg.style.height) || 750;
+                translateX = (vRect.width - natW) / 2;
+                translateY = Math.max(20, (vRect.height - natH) / 2);
+            } else {
+                translateX = 0;
+                translateY = 0;
+            }
+            applyTransform();
+            actualizarBadgeZoom();
+        }
+
+        function fitDiagramToContainer() {
+            centrarDiagramaInicial();
+        }
+
+        function fijarDimensionesRealesSvg(svg) {
+            if (!svg) return;
+
+            let w = 0, h = 0;
+            if (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width > 0) {
+                w = svg.viewBox.baseVal.width;
+                h = svg.viewBox.baseVal.height;
+            } else if (svg.getBBox) {
+                try {
+                    const b = svg.getBBox();
+                    w = b.width;
+                    h = b.height;
+                } catch (e) {}
+            }
+
+            if (!w || w < 200) {
+                w = 1150;
+                h = 750;
+            }
+
+            const wPx = Math.round(w);
+            const hPx = Math.round(h);
+
+            svg.setAttribute('width', wPx);
+            svg.setAttribute('height', hPx);
+            svg.style.width = wPx + 'px';
+            svg.style.height = hPx + 'px';
+            svg.style.maxWidth = 'none';
+            svg.style.minWidth = wPx + 'px';
+            svg.style.minHeight = hPx + 'px';
+            svg.style.display = 'block';
+
+            const container = document.getElementById('mermaid-container');
+            if (container) {
+                container.style.width = wPx + 'px';
+                container.style.height = hPx + 'px';
+                container.style.maxWidth = 'none';
+            }
+        }
+
+        function centrarDiagramaInicial() {
+            const viewport = document.getElementById('diagram-viewport');
+            const svg = document.querySelector('#mermaid-container svg');
+            if (!viewport || !svg) return;
+
+            fijarDimensionesRealesSvg(svg);
+
+            const vRect = viewport.getBoundingClientRect();
+            const naturalWidth = parseFloat(svg.style.width) || 1100;
+            const naturalHeight = parseFloat(svg.style.height) || 750;
+
+            if (naturalWidth > 0 && naturalHeight > 0) {
+                const scaleX = (vRect.width - 60) / naturalWidth;
+                const scaleY = (vRect.height - 60) / naturalHeight;
+                currentScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.70), 1.2);
+
+                translateX = (vRect.width - (naturalWidth * currentScale)) / 2;
+                translateY = Math.max(20, (vRect.height - (naturalHeight * currentScale)) / 2);
+            } else {
+                currentScale = 1.0;
+                translateX = 30;
+                translateY = 30;
+            }
+
+            applyTransform();
+            actualizarBadgeZoom();
+        }
+
+        function obtenerBBoxDeTabla(svg, tableName) {
+            const tableUpper = tableName.trim().toUpperCase();
+
+            const allG = svg.querySelectorAll('g');
+            for (const g of allG) {
+                const id = (g.getAttribute('id') || '').toUpperCase();
+                const cls = (g.getAttribute('class') || '').toUpperCase();
+                if ((id.includes('ENTITY-') || cls.includes('ENTITY') || id.includes('NODE')) && id.includes(tableUpper)) {
+                    try {
+                        const b = g.getBBox();
+                        if (b.width > 20 && b.height > 20) return { elem: g, bbox: b };
+                    } catch(e) {}
+                }
+            }
+
+            const allTexts = svg.querySelectorAll('text');
+            for (const t of allTexts) {
+                if (t.textContent.trim().toUpperCase() === tableUpper) {
+                    let parent = t.parentElement;
+                    while (parent && parent !== svg) {
+                        try {
+                            const b = parent.getBBox();
+                            if (b.width > 60 && b.height > 60) {
+                                return { elem: parent, bbox: b };
+                            }
+                        } catch(e) {}
+                        parent = parent.parentElement;
+                    }
+                    try {
+                        return { elem: t, bbox: t.getBBox() };
+                    } catch(e) {}
+                }
+            }
+
+            return null;
+        }
+
+        function enfocarTablaEnDiagrama(tableName) {
+            if (!tableName) return;
+
+            const select = document.getElementById('select-focus-table');
+            if (select) select.value = tableName;
+
+            const svg = document.querySelector('#mermaid-container svg');
+            const viewport = document.getElementById('diagram-viewport');
+            if (!svg || !viewport) return;
+
+            fijarDimensionesRealesSvg(svg);
+
+            const result = obtenerBBoxDeTabla(svg, tableName);
+            const vRect = viewport.getBoundingClientRect();
+
+            if (result && result.bbox && result.bbox.width > 0) {
+                const bbox = result.bbox;
+                const targetElem = result.elem;
+
+                currentScale = 1.9;
+
+                const targetCenterX = bbox.x + (bbox.width / 2);
+                const targetCenterY = bbox.y + (bbox.height / 2);
+
+                translateX = (vRect.width / 2) - (targetCenterX * currentScale);
+                translateY = (vRect.height / 2) - (targetCenterY * currentScale);
+
+                applyTransform();
+                actualizarBadgeZoom();
+
+                if (targetElem) {
+                    targetElem.style.transition = 'filter 0.3s ease';
+                    targetElem.style.filter = 'drop-shadow(0 0 16px #00a896) drop-shadow(0 0 8px #028090)';
+                    setTimeout(() => {
+                        targetElem.style.filter = '';
+                    }, 3200);
+                }
+            } else {
+                currentScale = 1.6;
+                applyTransform();
+                actualizarBadgeZoom();
+            }
+        }
+
+        function vincularEventosTablasSvg() {
+            const svg = document.querySelector('#mermaid-container svg');
+            if (!svg) return;
+
+            const tableKeys = ['TIPO_IMPLEMENTO', 'IMPLEMENTO', 'ASIGNACION_CABECERA', 'ASIGNACION_DETALLE', 'VISTA_OPERARIOS'];
+            const allTexts = svg.querySelectorAll('text');
+
+            allTexts.forEach(t => {
+                const txt = t.textContent.trim().toUpperCase();
+                if (tableKeys.includes(txt)) {
+                    const res = obtenerBBoxDeTabla(svg, txt);
+                    const targetGroup = res ? res.elem : (t.closest('g') || t);
+
+                    targetGroup.style.cursor = 'pointer';
+
+                    if (!targetGroup.querySelector('title')) {
+                        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                        title.textContent = `Hacer Zoom a tabla ${txt}`;
+                        targetGroup.appendChild(title);
+                    }
+
+                    targetGroup.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        enfocarTablaEnDiagrama(txt);
+                    });
+                }
+            });
+        }
+
+        function toggleDiagramFullscreen() {
+            const viewport = document.getElementById('diagram-viewport');
+            const ico = document.getElementById('ico-fullscreen');
+            const txt = document.getElementById('txt-fullscreen');
+
+            isDiagramFullscreen = !isDiagramFullscreen;
+            viewport.classList.toggle('diagram-fullscreen-mode', isDiagramFullscreen);
+
+            if (isDiagramFullscreen) {
+                if (ico) ico.className = 'bx bx-collapse-alt';
+                if (txt) txt.textContent = 'Salir Pantalla Completa';
+                document.body.style.overflow = 'hidden';
+            } else {
+                if (ico) ico.className = 'bx bx-expand-alt';
+                if (txt) txt.textContent = 'Pantalla Completa';
+                document.body.style.overflow = '';
+            }
+
+            setTimeout(centrarDiagramaInicial, 120);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isDiagramFullscreen) {
+                toggleDiagramFullscreen();
+            }
+        });
+
+        function initDiagramControls() {
+            const viewport = document.getElementById('diagram-viewport');
+            const canvas = document.getElementById('diagram-canvas');
+            if (!viewport || !canvas) return;
+
+            viewport.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const delta = e.deltaY < 0 ? 0.20 : -0.20;
+                const newScale = Math.min(Math.max(0.35, currentScale + delta), 4.0);
+
+                translateX = mouseX - (mouseX - translateX) * (newScale / currentScale);
+                translateY = mouseY - (mouseY - translateY) * (newScale / currentScale);
+                currentScale = newScale;
+                applyTransform();
+                actualizarBadgeZoom();
+            }, { passive: false });
+
+            viewport.addEventListener('dblclick', (e) => {
+                if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const newScale = Math.min(currentScale + 0.45, 4.0);
+
+                translateX = mouseX - (mouseX - translateX) * (newScale / currentScale);
+                translateY = mouseY - (mouseY - translateY) * (newScale / currentScale);
+                currentScale = newScale;
+                applyTransform();
+                actualizarBadgeZoom();
+            });
+
+            viewport.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.floating-zoom-controls') || e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
+                isDragging = true;
+                viewport.style.cursor = 'grabbing';
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                applyTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    viewport.style.cursor = 'grab';
+                }
+            });
+
+            let lastTouchX = 0, lastTouchY = 0;
+            viewport.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    lastTouchX = e.touches[0].clientX - translateX;
+                    lastTouchY = e.touches[0].clientY - translateY;
+                }
+            }, { passive: true });
+
+            viewport.addEventListener('touchmove', (e) => {
+                if (isDragging && e.touches.length === 1) {
+                    translateX = e.touches[0].clientX - lastTouchX;
+                    translateY = e.touches[0].clientY - lastTouchY;
+                    applyTransform();
+                }
+            }, { passive: true });
+
+            viewport.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+
+            const checkSvgInterval = setInterval(() => {
+                const svg = document.querySelector('#mermaid-container svg');
+                if (svg) {
+                    clearInterval(checkSvgInterval);
+                    centrarDiagramaInicial();
+                    vincularEventosTablasSvg();
+                }
+            }, 180);
         }
     </script>
 </body>

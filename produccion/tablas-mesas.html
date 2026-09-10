@@ -35,6 +35,9 @@
                 <button class="btn-kiosk-toggle" id="btn-kiosk-mode" onclick="toggleTabletKioskMode()" title="Ocultar Menú/Header y ocupar todo el espacio web">
                     <i class='bx bx-fullscreen'></i> <span class="txt-kiosk">Modo Tablet</span>
                 </button>
+                <a href="diagrama-modelo-mesas.html" id="btn-ver-diagrama-bd" class="btn-safco" style="background: rgba(255,255,255,0.18); color: #ffffff; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); font-weight: 700; display: none;" title="Ver Diagrama de BD (Solo Administrador)">
+                    <i class='bx bx-sitemap'></i> Ver Diagrama BD
+                </a>
                 <button class="btn-safco btn-safco-primary" onclick="abrirModalNuevaMesa()">
                     <i class='bx bx-plus-circle'></i> Crear Nuevas Mesas
                 </button>
@@ -213,9 +216,15 @@
     </div>
 
     <!-- Scripts de Lógica y Datos -->
+    <script src="../js/shared.js"></script>
     <script src="js/produccion-data.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            if (typeof checkAuth === 'function') checkAuth();
+            const btnDiag = document.getElementById('btn-ver-diagrama-bd');
+            if (btnDiag && typeof isUserAdmin === 'function' && isUserAdmin()) {
+                btnDiag.style.display = 'inline-flex';
+            }
             renderTablaMesas();
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.action-menu-container')) {

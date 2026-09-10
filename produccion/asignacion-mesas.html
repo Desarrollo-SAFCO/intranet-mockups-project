@@ -122,6 +122,12 @@
                         <i class='bx bx-package'></i> Cajas
                     </button>
 
+                    <a href="diagrama-modelo-mesas.html" class="btn-vista" id="btn-ver-diagrama-bd"
+                        style="display: none; text-decoration: none; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.4); color: #fff;"
+                        title="Ver Diagrama de Base de Datos (Solo Administrador)">
+                        <i class='bx bx-sitemap'></i> Diagrama BD
+                    </a>
+
                     <!-- Botón ojo (solo en modo rendimiento) -->
                     <div id="filter-rendimiento-eye" style="display: none;">
                         <button class="btn-vista" style="padding: 0.5rem 0.6rem; min-width: unset;"
@@ -414,6 +420,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
+            const btnDiag = document.getElementById('btn-ver-diagrama-bd');
+            if (btnDiag && typeof isUserAdmin === 'function' && isUserAdmin()) {
+                btnDiag.style.display = 'inline-flex';
+            }
             renderMesas();
         });
 
