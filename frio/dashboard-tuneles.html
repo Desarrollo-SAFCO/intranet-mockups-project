@@ -1,0 +1,2705 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoreo de Túneles de Frío - SAFCO</title>
+    <!-- Styles base -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Iconos Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Chart.js para curva de temperatura ambiente -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --safco-teal-dark: #003830;
+            --safco-teal: #004b40;
+            --safco-teal-light: #0d9488;
+            --tunnel-bg: #f8fafc;
+            --state-en-proceso: #16a34a;
+            --state-proximo-cambio: #eab308;
+            --state-proceso-cambio: #f87171;
+            --state-proximo-salida: #f97316;
+            --state-accion-requerida: #dc2626;
+            --state-finalizado: #2563eb;
+            --state-disponible: #64748b;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Header Principal */
+        .header-safco {
+            background: #ffffff;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0.8rem 1.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .safco-header-logo {
+            height: 42px;
+            width: auto;
+            object-fit: contain;
+            display: inline-block;
+        }
+
+        .header-titles h1 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .header-titles p {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin: 0.15rem 0 0 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        /* Navigation Tabs in Header */
+        .nav-mode-tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            gap: 4px;
+        }
+
+        .nav-tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: 7px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab-btn:hover {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .nav-tab-btn.active {
+            background: #ffffff;
+            color: var(--safco-teal);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .live-clock-box {
+            text-align: right;
+            border-left: 1px solid #e2e8f0;
+            padding-left: 1.2rem;
+        }
+
+        .live-time {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.4rem;
+        }
+
+        .auto-refresh-tag {
+            font-size: 0.72rem;
+            color: #059669;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.35rem;
+            margin-top: 2px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Main Content Layout */
+        .main-dashboard-body {
+            flex: 1;
+            padding: 1.4rem 1.8rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .dashboard-views-container {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .section-subbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            background: white;
+            padding: 0.75rem 1.2rem;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-subbar-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tunnel Cards Grid (Vista General) */
+        .tunnel-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tunnel-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tunnel-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+
+        .tunnel-card.active-alert {
+            border: 1.5px solid #ef4444;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.15);
+        }
+
+        .tunnel-card.standby {
+            background: #fafbfc;
+            opacity: 0.92;
+        }
+
+        .tunnel-card-header {
+            padding: 1rem 1rem 0.6rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tunnel-title-block {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .tunnel-name-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .tunnel-process-code {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .product-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #6b21a8;
+            background: #faf5ff;
+            border: 1px solid #f3e8ff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+        }
+
+        /* Status Pills */
+        .status-strip {
+            padding: 0.45rem 1rem;
+            margin: 0.2rem 1rem 0.8rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-strip.en-proceso { background-color: var(--state-en-proceso); color: #ffffff; }
+        .status-strip.proximo-cambio { background-color: var(--state-proximo-cambio); color: #78350f; }
+        .status-strip.accion-requerida { background-color: var(--state-accion-requerida); color: #ffffff; animation: pulseAlert 1.6s infinite; }
+        .status-strip.proceso-cambio { background-color: #fca5a5; color: #991b1b; }
+        .status-strip.finalizado { background-color: var(--state-finalizado); color: #ffffff; }
+        .status-strip.disponible { background-color: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; }
+
+        @keyframes pulseAlert {
+            0% { opacity: 1; }
+            50% { opacity: 0.85; }
+            100% { opacity: 1; }
+        }
+
+        /* Metric Rows */
+        .tunnel-metrics-list {
+            padding: 0 1rem 1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .metric-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #334155;
+            padding: 0.18rem 0;
+            border-bottom: 1px dashed #f1f5f9;
+        }
+
+        .metric-label-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+        }
+
+        .metric-label-group i {
+            font-size: 1.1rem;
+            color: #64748b;
+        }
+
+        .metric-value-text {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 0.92rem;
+        }
+
+        .metric-value-text.temp-subzero { color: #2563eb; }
+
+        .card-alert-box {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 0.45rem 0.75rem;
+            margin: 0.3rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #dc2626;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .card-alert-count {
+            background: #dc2626;
+            color: white;
+            border-radius: 4px;
+            padding: 0.1rem 0.55rem;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .card-footer-action {
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--safco-teal);
+            transition: all 0.2s;
+        }
+
+        .tunnel-card:hover .card-footer-action {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        /* Sidebar Widgets */
+        .dashboard-sidebar {
+            width: 290px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .panel-widget {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            padding: 1.2rem;
+        }
+
+        .panel-widget-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 1rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .legend-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .legend-circle {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .summary-metric-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .summary-metric-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.85rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .summary-metric-left {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .summary-metric-badge {
+            border: 2px solid;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            padding: 0.1rem 0.65rem;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .summary-metric-badge.green { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+        .summary-metric-badge.red { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+        .summary-metric-badge.amber { border-color: #f59e0b; color: #d97706; background: #fffbeb; }
+        .summary-metric-badge.slate { border-color: #94a3b8; color: #64748b; background: #f8fafc; }
+
+        /* ============================================================== */
+        /* VISTA DETALLADA REDISEÑADA (LIMPIA, MODULAR, NO ABRUMADORA)   */
+        /* ============================================================== */
+        .view-detallada-wrap {
+            display: none;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .detailed-header-bar {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem 1.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .det-title-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-back-overview {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+
+        .btn-back-overview:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .detailed-tunnel-id {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tunnel-switcher-pills {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-tunnel-switch {
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-tunnel-switch.active {
+            background: var(--safco-teal);
+            color: white;
+            border-color: var(--safco-teal);
+        }
+
+        .btn-tunnel-switch:hover:not(.active) {
+            background: #e2e8f0;
+        }
+
+        /* BANDEJA EJECUTIVA (3 Tarjetas Esenciales en vez de saturar) */
+        .executive-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.2rem;
+        }
+
+        .exec-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .exec-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .exec-highlight-val {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+        }
+
+        .exec-badge-pill {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* MODULAR TABS / SLIDER EN EL DETALLE */
+        .detailed-module-tabs {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .det-tab-nav-btn {
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1.4rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .det-tab-nav-btn:hover {
+            color: #0f172a;
+        }
+
+        .det-tab-nav-btn.active {
+            color: var(--safco-teal);
+            border-bottom-color: var(--safco-teal);
+            background: white;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 -2px 6px rgba(0,0,0,0.02);
+        }
+
+        /* Paneles de Contenido Modular */
+        .det-module-panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.4rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            display: none;
+        }
+
+        #panelSubMamut {
+            padding: 0.5rem;
+        }
+
+        .det-module-panel.active {
+            display: block;
+        }
+
+        /* ESQUEMA FÍSICO DE TÚNEL MAMUT (24 PALLETS Y 12 SENSORES) */
+        .mamut-tunnel-diagram {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.4rem 0.4rem 0.3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .mamut-physical-tunnel-svg {
+            width: 100%;
+            height: auto;
+            min-height: 530px;
+            max-height: calc(100vh - 260px);
+            display: block;
+        }
+
+        .mamut-sensor-pin {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mamut-sensor-pin:hover {
+            filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.7)) !important;
+        }
+
+        .mamut-telemetry-subfooter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0.7rem 0.5rem 0.2rem;
+            margin-top: 0.4rem;
+            border-top: 1px solid #f1f5f9;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            font-size: 0.78rem;
+            color: #475569;
+        }
+
+        .mamut-subfooter-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .mamut-subfooter-item strong {
+            color: #0f172a;
+        }
+
+
+        /* VIEW 3: HISTORIAL BIGDATA FRÍO */
+        .view-bigdata-wrap { display: none; flex-direction: column; gap: 1.2rem; }
+        .bigdata-kpis-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+        .bigdata-kpi-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .kpi-big-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+        .kpi-big-icon.teal { background: #f0fdfa; color: #0d9488; }
+        .kpi-big-icon.blue { background: #eff6ff; color: #2563eb; }
+        .kpi-big-icon.amber { background: #fffbeb; color: #d97706; }
+        .kpi-big-icon.purple { background: #faf5ff; color: #9333ea; }
+
+        .kpi-big-text span { font-size: 0.75rem; color: #64748b; font-weight: 600; display: block; }
+        .kpi-big-text strong { font-size: 1.35rem; font-weight: 800; color: #0f172a; }
+
+        .bigdata-filters-bar {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem 1.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .filter-group-left { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+        .filter-input-search {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 0.45rem 0.8rem;
+            width: 240px;
+        }
+
+        .filter-input-search input { border: none; background: transparent; font-size: 0.85rem; color: #0f172a; outline: none; width: 100%; }
+        .filter-select {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 0.45rem 0.8rem;
+            font-size: 0.85rem;
+            color: #334155;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .table-responsive-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            overflow-x: auto;
+        }
+
+        .bigdata-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem; }
+        .bigdata-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.85rem 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .bigdata-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; white-space: nowrap; }
+        .bigdata-table tr:hover { background-color: #f8fafc; }
+
+        .btn-inspect-process {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--safco-teal);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.2s;
+        }
+
+        .btn-inspect-process:hover { background: var(--safco-teal); color: white; border-color: var(--safco-teal); }
+
+        /* FOOTER */
+        .safco-bottom-banner {
+            background: var(--safco-teal-dark);
+            color: #ffffff;
+            padding: 0.75rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.92rem;
+            font-weight: 600;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .bottom-tools-icons { display: flex; align-items: center; gap: 1.2rem; }
+        .btn-footer-tool {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.35rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .btn-footer-tool:hover { color: #ffffff; background: rgba(255, 255, 255, 0.1); }
+
+        /* PANTALLA COMPLETA: MANTIENE FONDO CLARO CORPORATIVO (NO MODO OSCURO) */
+        body.tv-mode-active {
+            background-color: #f1f5f9 !important;
+            color: #1e293b !important;
+        }
+
+        body.tv-mode-active .dashboard-container {
+            padding: 0;
+            max-width: 100vw;
+        }
+
+        body.tv-mode-active .header-safco {
+            background: #ffffff !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+        }
+
+        body.tv-mode-active .tunnel-card,
+        body.tv-mode-active .panel-widget,
+        body.tv-mode-active .detailed-header-bar,
+        body.tv-mode-active .exec-card,
+        body.tv-mode-active .det-module-panel {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #1e293b !important;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06) !important;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1400px) {
+            .tunnel-cards-grid { grid-template-columns: repeat(2, 1fr); }
+            .executive-kpi-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 900px) {
+            .main-dashboard-body { flex-direction: column; }
+            .dashboard-sidebar { width: 100%; }
+            .tunnel-cards-grid { grid-template-columns: 1fr; }
+            .bigdata-kpis-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    
+        /* CONTROL DE ROTACIÓN AUTOMÁTICA (SLIDE PARA MONITORES) */
+        .autoslide-control-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding-bottom: 0.35rem;
+        }
+
+        .autoslide-indicator-box {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 0.3rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .autoslide-pulse-dot {
+            width: 7px;
+            height: 7px;
+            background-color: var(--safco-teal);
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.8s infinite;
+        }
+
+        .autoslide-timer-track {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2.5px;
+            width: 100%;
+            background: #e2e8f0;
+        }
+
+        .autoslide-timer-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--safco-teal);
+            transition: width 0.1s linear;
+        }
+
+        .btn-autoslide-pause {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #475569;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-autoslide-pause:hover {
+            color: #0f172a;
+            border-color: var(--safco-teal);
+            background: #f8fafc;
+        }
+
+        /* Transición suave entre paneles */
+        @keyframes slideFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .det-module-panel.active {
+            display: block;
+            animation: slideFadeIn 0.3s ease-out;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        
+        <!-- Header Principal con Logo Real Safco -->
+        <header class="header-safco">
+            <div class="header-left">
+                <img src="../logo_sin_fondo.png" alt="SAFCO" class="safco-header-logo">
+                <div class="header-titles">
+                    <h1 id="pageMainTitle">SALA DE TÚNELES DE FRÍO – MONITOREO DE PLANTA</h1>
+                    <p id="pageMainSubtitle">Sistema de gestión visual de enfriamiento rápido y telemetría BigData</p>
+                </div>
+            </div>
+
+            <!-- Navegación entre vistas principales -->
+            <div class="nav-mode-tabs">
+                <button class="nav-tab-btn active" id="tabOverviewBtn" onclick="switchView('overview')">
+                    <i class='bx bx-grid-alt'></i> Vista General
+                </button>
+                <button class="nav-tab-btn" id="tabDetailBtn" onclick="switchView('detailed')">
+                    <i class='bx bx-zoom-in'></i> Vista Detallada
+                </button>
+                <button class="nav-tab-btn" id="tabBigdataBtn" onclick="switchView('bigdata')">
+                    <i class='bx bx-data'></i> Historial BigData (Excel)
+                </button>
+            </div>
+
+            <div class="header-right">
+                <div class="live-clock-box">
+                    <div class="live-time" id="clockDisplay"><i class='bx bx-time'></i> 28/09/2026 16:00:00</div>
+                    <div class="auto-refresh-tag">
+                        <span class="pulse-dot"></span> Telemetría activa
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Cuerpo del Dashboard -->
+        <div class="main-dashboard-body">
+
+            <!-- Contenedor de las Vistas Conmutables -->
+            <div class="dashboard-views-container">
+
+                <!-- ============================================== -->
+                <!-- VISTA 1: VISTA GENERAL (TÚNELES DE PLANTA)    -->
+                <!-- ============================================== -->
+                <div class="view-overview-wrap" id="viewOverview">
+                    
+                    <div class="section-subbar">
+                        <div class="section-subbar-title">
+                            <i class='bx bx-broadcast' style="color:var(--safco-teal); font-size:1.3rem;"></i>
+                            <span>ESTADO EN TIEMPO REAL POR TÚNEL FÍSICO</span>
+                        </div>
+                        <div style="font-size:0.8rem; color:#64748b; font-weight:600;">
+                            Datos enlazados con <strong style="color:var(--safco-teal);">reporte BigData Frio.xlsx</strong>
+                        </div>
+                    </div>
+
+                    <div class="tunnel-cards-grid">
+                        
+                        <!-- CARD 1: TÚNEL 06 (REAL EXCEL - PROCESO 284) -->
+                        <div class="tunnel-card active-alert" onclick="openTunnelDetail('TUNEL 06', 'PROCESO 284')">
+                            <div class="tunnel-card-header">
+                                <div class="tunnel-title-block">
+                                    <span class="tunnel-name-title">TÚNEL 06</span>
+                                    <span class="tunnel-process-code">| Proceso 284</span>
+                                </div>
+                                <div class="product-badge">
+                                    <i class='bx bxs-circle' style="color:#7e22ce;"></i> UVA
+                                </div>
+                            </div>
+                            
+                            <div class="status-strip accion-requerida">ACCIÓN REQUERIDA</div>
+
+                            <div class="tunnel-metrics-list">
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-wind'></i> Flujo actual</div>
+                                    <span class="metric-value-text">1 (Inicial)</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-thermometer'></i> T° Media inicio</div>
+                                    <span class="metric-value-text">11.65 °C</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-thermometer'></i> Pulpa final media</div>
+                                    <span class="metric-value-text">0.30 °C</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-thermometer'></i> T° ambiente mín.</div>
+                                    <span class="metric-value-text temp-subzero" style="color:#dc2626;">-0.2 °C</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-refresh'></i> T° retorno</div>
+                                    <span class="metric-value-text">6.8 °C</span>
+                                </div>
+
+                                <div class="card-alert-box">
+                                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                                        <i class='bx bxs-error-circle'></i>
+                                        <span>Cero ext: 19:49 hrs</span>
+                                    </div>
+                                    <span class="card-alert-count">ALERTA</span>
+                                </div>
+
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-time-five'></i> Cambio en</div>
+                                    <span class="metric-value-text" style="color:#dc2626; font-weight:800;">0 min (VENCIDO)</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-timer'></i> Permanencia total</div>
+                                    <span class="metric-value-text">1.00 h (60 min)</span>
+                                </div>
+                            </div>
+
+                            <div class="card-footer-action" style="background:#fef2f2; color:#dc2626;">
+                                <i class='bx bx-search-alt'></i> Ver Detalle (Alerta de Reversión)
+                            </div>
+                        </div>
+
+                        <!-- CARD 2: TÚNEL 02 (REAL EXCEL - PROCESO 250) -->
+                        <div class="tunnel-card" onclick="openTunnelDetail('TUNEL 02', 'PROCESO 250')">
+                            <div class="tunnel-card-header">
+                                <div class="tunnel-title-block">
+                                    <span class="tunnel-name-title">TÚNEL 02</span>
+                                    <span class="tunnel-process-code">| Proceso 250</span>
+                                </div>
+                                <div class="product-badge">
+                                    <i class='bx bxs-circle' style="color:#7e22ce;"></i> UVA
+                                </div>
+                            </div>
+                            
+                            <div class="status-strip proximo-cambio">PRÓXIMO A CAMBIO</div>
+
+                            <div class="tunnel-metrics-list">
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-wind'></i> Flujo actual</div>
+                                    <span class="metric-value-text">1 (Inicial)</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-thermometer'></i> T° Media inicio</div>
+                                    <span class="metric-value-text">18.83 °C</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-thermometer'></i> Pulpa final media</div>
+                                    <span class="metric-value-text">0.05 °C</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-thermometer'></i> T° ambiente mín.</div>
+                                    <span class="metric-value-text temp-subzero">-0.4 °C</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-refresh'></i> T° retorno</div>
+                                    <span class="metric-value-text">7.2 °C</span>
+                                </div>
+                                <div class="metric-row" style="margin-top: 0.5rem;">
+                                    <div class="metric-label-group"><i class='bx bx-time-five'></i> Cero exterior</div>
+                                    <span class="metric-value-text" style="color:#d97706;">17:36 hrs</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-timer'></i> Permanencia total</div>
+                                    <span class="metric-value-text">0.92 h (55 min)</span>
+                                </div>
+                            </div>
+
+                            <div class="card-footer-action">
+                                <i class='bx bx-search-alt'></i> Ver Vista Detallada
+                            </div>
+                        </div>
+
+                        <!-- CARD 3: TÚNEL 01 (DISPONIBLE / EN ESPERA) -->
+                        <div class="tunnel-card standby" onclick="alert('ℹ️ TÚNEL 01 se encuentra actualmente DISPONIBLE en la planta sin carga asignada.')">
+                            <div class="tunnel-card-header">
+                                <div class="tunnel-title-block">
+                                    <span class="tunnel-name-title" style="color:#64748b;">TÚNEL 01</span>
+                                    <span class="tunnel-process-code" style="color:#94a3b8;">| Inactivo</span>
+                                </div>
+                                <div class="product-badge" style="background:#f1f5f9; border-color:#e2e8f0; color:#64748b;">
+                                    SIN CARGA
+                                </div>
+                            </div>
+                            
+                            <div class="status-strip disponible">DISPONIBLE</div>
+
+                            <div class="tunnel-metrics-list" style="opacity:0.75;">
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-wind'></i> Estado ventilador</div>
+                                    <span class="metric-value-text" style="color:#64748b;">Apagado</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-grid-alt'></i> Capacidad bahía</div>
+                                    <span class="metric-value-text">24 Pallets</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-thermometer'></i> T° Reposo cámara</div>
+                                    <span class="metric-value-text">14.5 °C</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-info-circle'></i> Telemetría</div>
+                                    <span class="metric-value-text" style="color:#64748b;">En espera</span>
+                                </div>
+                                <div style="margin-top:auto; padding:0.8rem; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; text-align:center; font-size:0.78rem; color:#64748b;">
+                                    Túnel preparado para asignación de lote de uva
+                                </div>
+                            </div>
+
+                            <div class="card-footer-action" style="color:#64748b;">
+                                <i class='bx bx-plus-circle'></i> Asignar Proceso
+                            </div>
+                        </div>
+
+                        <!-- CARD 4: TÚNEL 03 (EN ESPERA DE CARGA / ESTIBA) -->
+                        <div class="tunnel-card standby" onclick="alert('ℹ️ TÚNEL 03 se encuentra en proceso de ESTIBA y llenado de pallets.')">
+                            <div class="tunnel-card-header">
+                                <div class="tunnel-title-block">
+                                    <span class="tunnel-name-title" style="color:#64748b;">TÚNEL 03</span>
+                                    <span class="tunnel-process-code" style="color:#94a3b8;">| Estiba</span>
+                                </div>
+                                <div class="product-badge" style="background:#f1f5f9; border-color:#e2e8f0; color:#64748b;">
+                                    ESTIBA
+                                </div>
+                            </div>
+                            
+                            <div class="status-strip disponible" style="background:#fffbeb; color:#b45309; border-color:#fde68a;">
+                                EN ESPERA DE CARGA
+                            </div>
+
+                            <div class="tunnel-metrics-list" style="opacity:0.75;">
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-wind'></i> Estado ventilador</div>
+                                    <span class="metric-value-text" style="color:#64748b;">Apagado</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-grid-alt'></i> Pallets ingresados</div>
+                                    <span class="metric-value-text" style="color:#b45309; font-weight:800;">12 / 24</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-thermometer'></i> T° Entrada pulpa</div>
+                                    <span class="metric-value-text">21.4 °C</span>
+                                </div>
+                                <div class="metric-row">
+                                    <div class="metric-label-group"><i class='bx bx-time'></i> Inicio estiba</div>
+                                    <span class="metric-value-text">Hace 20 min</span>
+                                </div>
+                                <div style="margin-top:auto; padding:0.8rem; background:#fffdf5; border-radius:8px; border:1px dashed #fcd34d; text-align:center; font-size:0.78rem; color:#92400e;">
+                                    Operadores completando llenado de cámara MAMUT
+                                </div>
+                            </div>
+
+                            <div class="card-footer-action" style="color:#b45309;">
+                                <i class='bx bx-time-five'></i> En llenado de pallets
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Banner de integración con Excel BigData -->
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.2rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                        <div style="display:flex; align-items:center; gap: 1rem;">
+                            <div style="background:#f0fdfa; color:var(--safco-teal); width:46px; height:46px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.6rem;">
+                                <i class='bx bx-file'></i>
+                            </div>
+                            <div>
+                                <h4 style="margin:0; font-size:0.95rem; color:#0f172a; font-weight:800;">Base de Datos Real: reporte BigData Frio.xlsx</h4>
+                                <p style="margin:0.2rem 0 0 0; font-size:0.8rem; color:#64748b;">35 procesos históricos reales de <strong>TUNEL 02</strong> (18 procesos) y <strong>TUNEL 06</strong> (17 procesos) cargados en la base analítica.</p>
+                            </div>
+                        </div>
+                        <button class="nav-tab-btn" onclick="switchView('bigdata')" style="background:var(--safco-teal); color:white; border:none; padding:0.6rem 1.2rem; border-radius:8px;">
+                            Explorar Todos los Procesos <i class='bx bx-right-arrow-alt'></i>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- ============================================== -->
+                <!-- VISTA 2: VISTA DETALLADA REDISEÑADA Y MODULAR  -->
+                <!-- ============================================== -->
+                <div class="view-detallada-wrap" id="viewDetailed">
+                    
+                    <!-- Barra de Navegación y Conmutador de Proceso -->
+                    <div class="detailed-header-bar">
+                        <div class="det-title-group">
+                            <button class="btn-back-overview" onclick="switchView('overview')">
+                                <i class='bx bx-arrow-back'></i> Volver
+                            </button>
+                            <div class="detailed-tunnel-id">
+                                <i class='bx bxs-circle' style="color:#7e22ce;"></i> 
+                                <span id="detTunnelHeaderTitle">TUNEL 06 | PROCESO 284 – UVA</span>
+                            </div>
+                        </div>
+
+                        <!-- Selector rápido -->
+                        <div class="tunnel-switcher-pills">
+                            <span style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Seleccionar Proceso:</span>
+                            <button class="btn-tunnel-switch active" id="btnSwitchT6_284" onclick="openTunnelDetail('TUNEL 06', 'PROCESO 284')">Túnel 06 (Proc 284)</button>
+                            <button class="btn-tunnel-switch" id="btnSwitchT6_283" onclick="openTunnelDetail('TUNEL 06', 'PROCESO 283')">Túnel 06 (Proc 283)</button>
+                            <button class="btn-tunnel-switch" id="btnSwitchT2_250" onclick="openTunnelDetail('TUNEL 02', 'PROCESO 250')">Túnel 02 (Proc 250)</button>
+                            <button class="btn-tunnel-switch" id="btnSwitchT2_253" onclick="openTunnelDetail('TUNEL 02', 'PROCESO 253')">Túnel 02 (Proc 253)</button>
+                            <button class="btn-tunnel-switch" onclick="switchView('bigdata')" style="color:var(--safco-teal);"><i class='bx bx-table'></i> Ver 35 Procesos</button>
+                        </div>
+
+                        <div id="detStatusBadgeTop" class="status-strip accion-requerida" style="margin:0; padding:0.4rem 1.2rem;">
+                            <i class='bx bxs-error'></i> ACCIÓN REQUERIDA
+                        </div>
+                    </div>
+
+                    <!-- 1. BANDEJA EJECUTIVA (SOLO LOS 3 DATOS CRÍTICOS PARA NO ABRUMAR) -->
+                    <div class="executive-kpi-grid">
+                        
+                        <!-- Card 1: Próxima Acción & Estado de Flujo -->
+                        <div class="exec-card" style="border-left: 4px solid #ef4444;">
+                            <div class="exec-card-header">
+                                <span><i class='bx bx-target-lock' style="color:#dc2626;"></i> Próxima Acción Operativa</span>
+                                <span class="exec-badge-pill" style="background:#fef2f2; color:#dc2626;">FLUJO 1</span>
+                            </div>
+                            <div class="exec-highlight-val" id="detNextActionHighlight" style="color:#dc2626; font-size:1.45rem; line-height:1.2;">
+                                Realizar cambio de flujo a reversión
+                            </div>
+                            <div style="font-size:0.82rem; color:#64748b; margin-top:0.4rem; display:flex; justify-content:space-between; align-items:center;">
+                                <span>Cero Ext: <strong id="lblCeroExtHighlight" style="color:#dc2626;">19:49 hrs</strong> (hace 15 min)</span>
+                                <button onclick="alert('✅ Conmutación de flujo a Reversión registrada en el sistema.')" style="background:#dc2626; color:white; border:none; padding:0.35rem 0.8rem; border-radius:6px; font-weight:700; font-size:0.75rem; cursor:pointer;">
+                                    Confirmar Reversión
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Pulpa Resumen (Calidad Comercial) -->
+                        <div class="exec-card" style="border-left: 4px solid var(--safco-teal);">
+                            <div class="exec-card-header">
+                                <span><i class='bx bx-detail' style="color:var(--safco-teal);"></i> Pulpa Final (Calidad)</span>
+                                <span class="exec-badge-pill" style="background:#f0fdf4; color:#16a34a;">EN RANGO</span>
+                            </div>
+                            <div class="exec-highlight-val" style="color:var(--safco-teal);">
+                                <span id="detPulpAvgHighlight">0.30 °C</span>
+                                <span style="font-size:0.9rem; color:#64748b; font-weight:600;">(Promedio)</span>
+                            </div>
+                            <div style="font-size:0.82rem; color:#475569; display:flex; gap:1.2rem; margin-top:0.4rem;">
+                                <span>Mín: <strong id="detPulpMinHighlight" style="color:#2563eb;">-0.2 °C</strong></span>
+                                <span>Máx: <strong id="detPulpMaxHighlight" style="color:#dc2626;">0.7 °C</strong></span>
+                                <span>Mediana: <strong id="detPulpMedHighlight">0.8 °C</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Tiempos y Ambiente -->
+                        <div class="exec-card" style="border-left: 4px solid #2563eb;">
+                            <div class="exec-card-header">
+                                <span><i class='bx bx-time' style="color:#2563eb;"></i> Tiempos y Ambiente</span>
+                                <span class="exec-badge-pill" style="background:#eff6ff; color:#2563eb;">1.00 H TOTAL</span>
+                            </div>
+                            <div class="exec-highlight-val" style="color:#0f172a;">
+                                <span id="detTempAmbHighlight">-0.2 °C</span>
+                                <span style="font-size:0.9rem; color:#64748b; font-weight:600;">(T° Mín. Ambiente)</span>
+                            </div>
+                            <div style="font-size:0.82rem; color:#475569; display:flex; justify-content:space-between; margin-top:0.4rem;">
+                                <span>Inicio: <strong id="detInicioHighlight">19:04 hrs</strong></span>
+                                <span>Fin: <strong id="detFinHighlight">20:04 hrs</strong></span>
+                                <span>Media: <strong id="detTempMediaAmbHighlight">2.75 °C</strong></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 2. PESTAÑAS MODULARES CON ROTACIÓN AUTOMÁTICA TIPO SLIDE -->
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #e2e8f0; margin-top:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+                        <div class="detailed-module-tabs" style="border-bottom:none; margin-top:0;">
+                            <button class="det-tab-nav-btn active" id="btnTabSubChart" onclick="onUserClickSubTab('chart')">
+                                <i class='bx bx-line-chart'></i> 1. Curva Térmica Ambiental
+                            </button>
+                            <button class="det-tab-nav-btn" id="btnTabSubMamut" onclick="onUserClickSubTab('mamut')">
+                                <i class='bx bx-cube-alt'></i> 2. Esquema MAMUT (12 Sensores)
+                            </button>
+                            <button class="det-tab-nav-btn" id="btnTabSubCriteria" onclick="onUserClickSubTab('criteria')">
+                                <i class='bx bx-check-shield'></i> 3. Criterios UVA & Hitos Excel
+                            </button>
+                        </div>
+
+                        <!-- Indicador y Control del Slide Automático para Monitores -->
+                        <div class="autoslide-control-bar">
+                            <div class="autoslide-indicator-box">
+                                <span class="autoslide-pulse-dot"></span>
+                                <span id="lblAutoSlideStatus">Slide Automático (7s)</span>
+                                <div class="autoslide-timer-track">
+                                    <div class="autoslide-timer-bar" id="autoSlideTimerBar"></div>
+                                </div>
+                            </div>
+                            <button class="btn-autoslide-pause" id="btnPauseAutoSlide" onclick="toggleAutoSlidePause()" title="Pausar / Reanudar Rotación Automática">
+                                <i class='bx bx-pause' id="iconAutoSlidePause"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PANEL A: Curva Térmica -->
+                    <div class="det-module-panel active" id="panelSubChart">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                            <div>
+                                <h4 style="margin:0; font-size:0.95rem; color:#0f172a; font-weight:800;">Evolución de la Temperatura de Cámara y Aire</h4>
+                                <p style="margin:0.2rem 0 0 0; font-size:0.78rem; color:#64748b;">Trazo térmico del lote con línea de umbral crítico de congelamiento (-1.5 °C)</p>
+                            </div>
+                            <span style="font-size:0.8rem; background:#f8fafc; border:1px solid #cbd5e1; padding:0.3rem 0.7rem; border-radius:6px; color:#475569; font-weight:600;">
+                                <i class='bx bx-info-circle'></i> Umbral Crítico: -1.5 °C
+                            </span>
+                        </div>
+                        <div style="position: relative; height: 320px; width: 100%;">
+                            <canvas id="ambientTempChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- PANEL B: Esquema MAMUT 12 Sensores con Paletas Reales y Sensores -->
+                    <div class="det-module-panel" id="panelSubMamut">
+                        <div class="mamut-tunnel-diagram">
+<svg class="mamut-physical-tunnel-svg" viewBox="0 0 980 480" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <!-- Filtros de Sombra Suave -->
+        <filter id="mDropShadow" x="-5%" y="-5%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+        </filter>
+        <filter id="mBadgeShadow" x="-10%" y="-10%" width="130%" height="130%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-opacity="0.22"/>
+        </filter>
+
+        <!-- Gradientes Industriales -->
+        <linearGradient id="mEvapGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1e293b"/>
+            <stop offset="30%" stop-color="#334155"/>
+            <stop offset="70%" stop-color="#475569"/>
+            <stop offset="100%" stop-color="#0f172a"/>
+        </linearGradient>
+
+        <linearGradient id="mPalletBoxGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.85"/>
+            <stop offset="35%" stop-color="#d97706"/>
+            <stop offset="100%" stop-color="#b45309"/>
+        </linearGradient>
+
+        <linearGradient id="mPlenumGrad" x1="1" y1="0" x2="0" y2="0">
+            <stop offset="0%" stop-color="#f0f9ff"/>
+            <stop offset="40%" stop-color="#e0f2fe"/>
+            <stop offset="100%" stop-color="#bae6fd"/>
+        </linearGradient>
+    </defs>
+
+    <!-- 0. ESTRUCTURA Y MUROS DEL TÚNEL MAMUT -->
+    <rect x="8" y="8" width="964" height="464" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+
+    <!-- Guías de Muro Perimetral de Túnel -->
+    <line x1="140" y1="62" x2="826" y2="62" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <text x="480" y="58" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle" letter-spacing="1">MURO LATERAL SUPERIOR (INYECCIÓN DE AIRE)</text>
+
+    <line x1="140" y1="418" x2="826" y2="418" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <text x="480" y="428" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle" letter-spacing="1">MURO LATERAL INFERIOR (INYECCIÓN DE AIRE)</text>
+
+    <!-- ============================================== -->
+    <!-- 1. UNIDAD EVAPORADORA / VENTILADORES (IZQ)     -->
+    <!-- ============================================== -->
+    <g id="evaporatorUnit" filter="url(#mDropShadow)">
+        <!-- Gabinete Metálico Principal -->
+        <rect x="94" y="52" width="38" height="376" rx="6" fill="url(#mEvapGrad)" stroke="#0f172a" stroke-width="2"/>
+        
+        <!-- Rejillas Serpentín Enfriador -->
+        <g stroke="#94a3b8" stroke-width="1.2" opacity="0.8">
+            <line x1="99" y1="60" x2="127" y2="60"/>
+            <line x1="99" y1="69" x2="127" y2="69"/>
+            <line x1="99" y1="78" x2="127" y2="78"/>
+            <line x1="99" y1="87" x2="127" y2="87"/>
+            <line x1="99" y1="96" x2="127" y2="96"/>
+            <line x1="99" y1="105" x2="127" y2="105"/>
+            <line x1="99" y1="114" x2="127" y2="114"/>
+            <line x1="99" y1="123" x2="127" y2="123"/>
+            <line x1="99" y1="132" x2="127" y2="132"/>
+            <line x1="99" y1="141" x2="127" y2="141"/>
+            <line x1="99" y1="150" x2="127" y2="150"/>
+            <line x1="99" y1="159" x2="127" y2="159"/>
+            <line x1="99" y1="168" x2="127" y2="168"/>
+            <line x1="99" y1="177" x2="127" y2="177"/>
+            <line x1="99" y1="186" x2="127" y2="186"/>
+            <line x1="99" y1="195" x2="127" y2="195"/>
+            <line x1="99" y1="204" x2="127" y2="204"/>
+            <line x1="99" y1="213" x2="127" y2="213"/>
+            <line x1="99" y1="222" x2="127" y2="222"/>
+            <line x1="99" y1="231" x2="127" y2="231"/>
+            <line x1="99" y1="240" x2="127" y2="240"/>
+            <line x1="99" y1="249" x2="127" y2="249"/>
+            <line x1="99" y1="258" x2="127" y2="258"/>
+            <line x1="99" y1="267" x2="127" y2="267"/>
+            <line x1="99" y1="276" x2="127" y2="276"/>
+            <line x1="99" y1="285" x2="127" y2="285"/>
+            <line x1="99" y1="294" x2="127" y2="294"/>
+            <line x1="99" y1="303" x2="127" y2="303"/>
+            <line x1="99" y1="312" x2="127" y2="312"/>
+            <line x1="99" y1="321" x2="127" y2="321"/>
+            <line x1="99" y1="330" x2="127" y2="330"/>
+            <line x1="99" y1="339" x2="127" y2="339"/>
+            <line x1="99" y1="348" x2="127" y2="348"/>
+            <line x1="99" y1="357" x2="127" y2="357"/>
+            <line x1="99" y1="366" x2="127" y2="366"/>
+            <line x1="99" y1="375" x2="127" y2="375"/>
+            <line x1="99" y1="384" x2="127" y2="384"/>
+            <line x1="99" y1="393" x2="127" y2="393"/>
+            <line x1="99" y1="402" x2="127" y2="402"/>
+            <line x1="99" y1="411" x2="127" y2="411"/>
+        </g>
+
+        <!-- Ventilador 1 (Superior) -->
+        <circle cx="113" cy="120" r="13" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+        <path d="M 113 109 L 113 131 M 102 120 L 124 120" stroke="#38bdf8" stroke-width="2"/>
+        <circle cx="113" cy="120" r="4.5" fill="#38bdf8"/>
+
+        <!-- Ventilador 2 (Inferior) -->
+        <circle cx="113" cy="360" r="13" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+        <path d="M 113 349 L 113 371 M 102 360 L 124 360" stroke="#38bdf8" stroke-width="2"/>
+        <circle cx="113" cy="360" r="4.5" fill="#38bdf8"/>
+
+        <text x="113" y="240" font-family="system-ui, sans-serif" font-size="9.5" font-weight="900" fill="#94a3b8" text-anchor="middle" transform="rotate(-90 113 240)" letter-spacing="2">EVAPORADOR INDUSTRIAL</text>
+    </g>
+
+    <!-- TELEMETRÍA IZQUIERDA: VEN (Presión) y RET (T° Retorno) -->
+    <!-- VEN: 1 mmca -->
+    <g id="boxVenPresion" filter="url(#mDropShadow)">
+        <rect x="18" y="70" width="66" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="51" y="86" font-family="system-ui, sans-serif" font-size="10" font-weight="800" fill="#64748b" text-anchor="middle">VEN</text>
+        <text x="51" y="103" font-family="system-ui, sans-serif" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle" id="valVenPresion">1 mmca</text>
+    </g>
+
+    <!-- RET: 11.0 °C -->
+    <g id="boxRetTemp" filter="url(#mDropShadow)">
+        <rect x="18" y="370" width="66" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="51" y="386" font-family="system-ui, sans-serif" font-size="10" font-weight="800" fill="#64748b" text-anchor="middle">RET</text>
+        <text x="51" y="403" font-family="system-ui, sans-serif" font-size="13" font-weight="900" fill="#b45309" text-anchor="middle" id="valRetTemp">11.0 °C</text>
+    </g>
+
+    <!-- ============================================== -->
+    <!-- 2. PASILLO CENTRAL / PLÉNUM DE SUCCIÓN        -->
+    <!-- ============================================== -->
+    <rect x="136" y="194" width="692" height="92" rx="4" fill="url(#mPlenumGrad)" stroke="#7dd3fc" stroke-width="1.2" stroke-dasharray="6,4"/>
+    
+    <!-- Flechas de succión hacia el evaporador -->
+    <g stroke="#0284c7" stroke-width="2" fill="none" opacity="0.8" stroke-linecap="round">
+        <!-- Flecha Succión Izquierda -->
+        <path d="M 175 240 L 140 240 M 148 234 L 140 240 L 148 246"/>
+        <path d="M 330 240 L 295 240 M 303 234 L 295 240 L 303 246"/>
+        <path d="M 520 240 L 485 240 M 493 234 L 485 240 L 493 246"/>
+        <path d="M 710 240 L 675 240 M 683 234 L 675 240 L 683 246"/>
+    </g>
+    <text x="480" y="244" font-family="system-ui, sans-serif" font-size="10" font-weight="900" fill="#0369a1" text-anchor="middle" letter-spacing="1.5">
+        PASILLO CENTRAL – PLÉNUM DE SUCCIÓN DE AIRE (12 PARES DE PALLETS)
+    </text>
+
+    <!-- ============================================== -->
+    <!-- 3. HILERAS DE PALLETS (24 PALLETS REALES)      -->
+    <!-- ============================================== -->
+
+        <!-- BAHÍA 1 (SUPERIOR): Pallets 01 y 02 -->
+        <g id="bay_up_1" filter="url(#mDropShadow)">
+            <!-- Pallet Exterior 01 -->
+            <rect x="150" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <!-- Tablillas de Pallet y Cajas de Uva -->
+            <line x1="185" y1="70" x2="185" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="220" y1="70" x2="220" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="150" y1="97" x2="254" y2="97" stroke="#78350f" stroke-width="1"/>
+            <!-- Zunchos Negros Industriales -->
+            <line x1="168" y1="70" x2="168" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="236" y1="70" x2="236" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="202" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 01</text>
+            <text x="202" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+
+            <!-- Pallet Interior 02 -->
+            <rect x="150" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="185" y1="130" x2="185" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="220" y1="130" x2="220" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="150" y1="157" x2="254" y2="157" stroke="#78350f" stroke-width="1"/>
+            <line x1="168" y1="130" x2="168" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="236" y1="130" x2="236" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="202" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 02</text>
+            <text x="202" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+        </g>
+
+        <!-- BAHÍA 1 (INFERIOR): Pallets 13 y 14 -->
+        <g id="bay_dn_1" filter="url(#mDropShadow)">
+            <!-- Pallet Interior 13 -->
+            <rect x="150" y="296" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="185" y1="296" x2="185" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="220" y1="296" x2="220" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="150" y1="323" x2="254" y2="323" stroke="#78350f" stroke-width="1"/>
+            <line x1="168" y1="296" x2="168" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="236" y1="296" x2="236" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="202" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 13</text>
+            <text x="202" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+
+            <!-- Pallet Exterior 14 -->
+            <rect x="150" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="185" y1="356" x2="185" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="220" y1="356" x2="220" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="150" y1="383" x2="254" y2="383" stroke="#78350f" stroke-width="1"/>
+            <line x1="168" y1="356" x2="168" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="236" y1="356" x2="236" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="202" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 14</text>
+            <text x="202" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+        </g>
+
+        <!-- BAHÍA 2 (SUPERIOR): Pallets 03 y 04 -->
+        <g id="bay_up_2" filter="url(#mDropShadow)">
+            <!-- Pallet Exterior 03 -->
+            <rect x="262" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <!-- Tablillas de Pallet y Cajas de Uva -->
+            <line x1="297" y1="70" x2="297" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="332" y1="70" x2="332" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="262" y1="97" x2="366" y2="97" stroke="#78350f" stroke-width="1"/>
+            <!-- Zunchos Negros Industriales -->
+            <line x1="280" y1="70" x2="280" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="348" y1="70" x2="348" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="314" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 03</text>
+            <text x="314" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+
+            <!-- Pallet Interior 04 -->
+            <rect x="262" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="297" y1="130" x2="297" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="332" y1="130" x2="332" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="262" y1="157" x2="366" y2="157" stroke="#78350f" stroke-width="1"/>
+            <line x1="280" y1="130" x2="280" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="348" y1="130" x2="348" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="314" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 04</text>
+            <text x="314" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+        </g>
+
+        <!-- BAHÍA 2 (INFERIOR): Pallets 15 y 16 -->
+        <g id="bay_dn_2" filter="url(#mDropShadow)">
+            <!-- Pallet Interior 15 -->
+            <rect x="262" y="296" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="297" y1="296" x2="297" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="332" y1="296" x2="332" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="262" y1="323" x2="366" y2="323" stroke="#78350f" stroke-width="1"/>
+            <line x1="280" y1="296" x2="280" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="348" y1="296" x2="348" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="314" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 15</text>
+            <text x="314" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+
+            <!-- Pallet Exterior 16 -->
+            <rect x="262" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="297" y1="356" x2="297" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="332" y1="356" x2="332" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="262" y1="383" x2="366" y2="383" stroke="#78350f" stroke-width="1"/>
+            <line x1="280" y1="356" x2="280" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="348" y1="356" x2="348" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="314" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 16</text>
+            <text x="314" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+        </g>
+
+        <!-- BAHÍA 3 (SUPERIOR): Pallets 05 y 06 -->
+        <g id="bay_up_3" filter="url(#mDropShadow)">
+            <!-- Pallet Exterior 05 -->
+            <rect x="374" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <!-- Tablillas de Pallet y Cajas de Uva -->
+            <line x1="409" y1="70" x2="409" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="444" y1="70" x2="444" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="374" y1="97" x2="478" y2="97" stroke="#78350f" stroke-width="1"/>
+            <!-- Zunchos Negros Industriales -->
+            <line x1="392" y1="70" x2="392" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="460" y1="70" x2="460" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="426" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 05</text>
+            <text x="426" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+
+            <!-- Pallet Interior 06 -->
+            <rect x="374" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="409" y1="130" x2="409" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="444" y1="130" x2="444" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="374" y1="157" x2="478" y2="157" stroke="#78350f" stroke-width="1"/>
+            <line x1="392" y1="130" x2="392" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="460" y1="130" x2="460" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="426" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 06</text>
+            <text x="426" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+        </g>
+
+        <!-- BAHÍA 3 (INFERIOR): Pallets 17 y 18 -->
+        <g id="bay_dn_3" filter="url(#mDropShadow)">
+            <!-- Pallet Interior 17 -->
+            <rect x="374" y="296" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="409" y1="296" x2="409" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="444" y1="296" x2="444" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="374" y1="323" x2="478" y2="323" stroke="#78350f" stroke-width="1"/>
+            <line x1="392" y1="296" x2="392" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="460" y1="296" x2="460" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="426" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 17</text>
+            <text x="426" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+
+            <!-- Pallet Exterior 18 -->
+            <rect x="374" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="409" y1="356" x2="409" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="444" y1="356" x2="444" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="374" y1="383" x2="478" y2="383" stroke="#78350f" stroke-width="1"/>
+            <line x1="392" y1="356" x2="392" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="460" y1="356" x2="460" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="426" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 18</text>
+            <text x="426" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+        </g>
+
+        <!-- BAHÍA 4 (SUPERIOR): Pallets 07 y 08 -->
+        <g id="bay_up_4" filter="url(#mDropShadow)">
+            <!-- Pallet Exterior 07 -->
+            <rect x="486" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <!-- Tablillas de Pallet y Cajas de Uva -->
+            <line x1="521" y1="70" x2="521" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="556" y1="70" x2="556" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="486" y1="97" x2="590" y2="97" stroke="#78350f" stroke-width="1"/>
+            <!-- Zunchos Negros Industriales -->
+            <line x1="504" y1="70" x2="504" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="572" y1="70" x2="572" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="538" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 07</text>
+            <text x="538" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+
+            <!-- Pallet Interior 08 -->
+            <rect x="486" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="521" y1="130" x2="521" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="556" y1="130" x2="556" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="486" y1="157" x2="590" y2="157" stroke="#78350f" stroke-width="1"/>
+            <line x1="504" y1="130" x2="504" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="572" y1="130" x2="572" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="538" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 08</text>
+            <text x="538" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+        </g>
+
+        <!-- BAHÍA 4 (INFERIOR): Pallets 19 y 20 -->
+        <g id="bay_dn_4" filter="url(#mDropShadow)">
+            <!-- Pallet Interior 19 -->
+            <rect x="486" y="296" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="521" y1="296" x2="521" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="556" y1="296" x2="556" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="486" y1="323" x2="590" y2="323" stroke="#78350f" stroke-width="1"/>
+            <line x1="504" y1="296" x2="504" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="572" y1="296" x2="572" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="538" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 19</text>
+            <text x="538" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+
+            <!-- Pallet Exterior 20 -->
+            <rect x="486" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="521" y1="356" x2="521" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="556" y1="356" x2="556" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="486" y1="383" x2="590" y2="383" stroke="#78350f" stroke-width="1"/>
+            <line x1="504" y1="356" x2="504" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="572" y1="356" x2="572" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="538" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 20</text>
+            <text x="538" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+        </g>
+
+        <!-- BAHÍA 5 (SUPERIOR): Pallets 09 y 10 -->
+        <g id="bay_up_5" filter="url(#mDropShadow)">
+            <!-- Pallet Exterior 09 -->
+            <rect x="598" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <!-- Tablillas de Pallet y Cajas de Uva -->
+            <line x1="633" y1="70" x2="633" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="668" y1="70" x2="668" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="598" y1="97" x2="702" y2="97" stroke="#78350f" stroke-width="1"/>
+            <!-- Zunchos Negros Industriales -->
+            <line x1="616" y1="70" x2="616" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="684" y1="70" x2="684" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="650" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 09</text>
+            <text x="650" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+
+            <!-- Pallet Interior 10 -->
+            <rect x="598" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="633" y1="130" x2="633" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="668" y1="130" x2="668" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="598" y1="157" x2="702" y2="157" stroke="#78350f" stroke-width="1"/>
+            <line x1="616" y1="130" x2="616" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="684" y1="130" x2="684" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="650" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 10</text>
+            <text x="650" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+        </g>
+
+        <!-- BAHÍA 5 (INFERIOR): Pallets 21 y 22 -->
+        <g id="bay_dn_5" filter="url(#mDropShadow)">
+            <!-- Pallet Interior 21 -->
+            <rect x="598" y="296" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="633" y1="296" x2="633" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="668" y1="296" x2="668" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="598" y1="323" x2="702" y2="323" stroke="#78350f" stroke-width="1"/>
+            <line x1="616" y1="296" x2="616" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="684" y1="296" x2="684" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="650" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 21</text>
+            <text x="650" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+
+            <!-- Pallet Exterior 22 -->
+            <rect x="598" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="633" y1="356" x2="633" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="668" y1="356" x2="668" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="598" y1="383" x2="702" y2="383" stroke="#78350f" stroke-width="1"/>
+            <line x1="616" y1="356" x2="616" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="684" y1="356" x2="684" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="650" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 22</text>
+            <text x="650" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+        </g>
+
+        <!-- BAHÍA 6 (SUPERIOR): Pallets 11 y 12 -->
+        <g id="bay_up_6" filter="url(#mDropShadow)">
+            <!-- Pallet Exterior 11 -->
+            <rect x="710" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <!-- Tablillas de Pallet y Cajas de Uva -->
+            <line x1="745" y1="70" x2="745" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="780" y1="70" x2="780" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="710" y1="97" x2="814" y2="97" stroke="#78350f" stroke-width="1"/>
+            <!-- Zunchos Negros Industriales -->
+            <line x1="728" y1="70" x2="728" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="796" y1="70" x2="796" y2="124" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="762" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 11</text>
+            <text x="762" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+
+            <!-- Pallet Interior 12 -->
+            <rect x="710" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="745" y1="130" x2="745" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="780" y1="130" x2="780" y2="184" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="710" y1="157" x2="814" y2="157" stroke="#78350f" stroke-width="1"/>
+            <line x1="728" y1="130" x2="728" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="796" y1="130" x2="796" y2="184" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="762" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 12</text>
+            <text x="762" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+        </g>
+
+        <!-- BAHÍA 6 (INFERIOR): Pallets 23 y 24 -->
+        <g id="bay_dn_6" filter="url(#mDropShadow)">
+            <!-- Pallet Interior 23 -->
+            <rect x="710" y="296" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="745" y1="296" x2="745" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="780" y1="296" x2="780" y2="350" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="710" y1="323" x2="814" y2="323" stroke="#78350f" stroke-width="1"/>
+            <line x1="728" y1="296" x2="728" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="796" y1="296" x2="796" y2="350" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="762" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 23</text>
+            <text x="762" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+
+            <!-- Pallet Exterior 24 -->
+            <rect x="710" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
+            <line x1="745" y1="356" x2="745" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="780" y1="356" x2="780" y2="410" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="710" y1="383" x2="814" y2="383" stroke="#78350f" stroke-width="1"/>
+            <line x1="728" y1="356" x2="728" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <line x1="796" y1="356" x2="796" y2="410" stroke="#1e293b" stroke-width="1.8"/>
+            <text x="762" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 24</text>
+            <text x="762" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+        </g>
+
+    <!-- ============================================== -->
+    <!-- 4. PARED FONDO DE TÚNEL Y TELEMETRÍA DERECHA   -->
+    <!-- ============================================== -->
+    <rect x="828" y="52" width="14" height="376" rx="4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+
+    <!-- PAL: 1 mmca -->
+    <g id="boxPalPresion" filter="url(#mDropShadow)">
+        <rect x="852" y="70" width="68" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="886" y="86" font-family="system-ui, sans-serif" font-size="10" font-weight="800" fill="#64748b" text-anchor="middle">PAL</text>
+        <text x="886" y="103" font-family="system-ui, sans-serif" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle" id="valPalPresion">1 mmca</text>
+    </g>
+
+    <!-- AMB: -0.2 °C -->
+    <g id="boxAmbTemp" filter="url(#mDropShadow)">
+        <rect x="852" y="370" width="68" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="886" y="386" font-family="system-ui, sans-serif" font-size="10" font-weight="800" fill="#64748b" text-anchor="middle">AMB</text>
+        <text x="886" y="403" font-family="system-ui, sans-serif" font-size="13" font-weight="900" fill="#dc2626" text-anchor="middle" id="valAmbTunnel">-0.2 °C</text>
+    </g>
+
+    <!-- ============================================== -->
+    <!-- 5. LOS 12 SENSORES MAMUT (AGUJAS DE PULPA)     -->
+    <!-- ============================================== -->
+
+        <!-- SENSOR S08: Hilera Superior Exterior - Bahía 1 (Frontal) -->
+        <g class="mamut-sensor-pin" id="pin_S08" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S08: Hilera Superior Exterior - Bahía 1 (Frontal)</title>
+            <line x1="202" y1="36" x2="202" y2="86" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="202" cy="86" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="169" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="182" cy="36" r="9" fill="#0284c7"/>
+            <text x="182" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S08</text>
+            <text x="210" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS08">0.7 °C</text>
+        </g>
+
+        <!-- SENSOR S10: Hilera Superior Exterior - Bahía 3 (Media) -->
+        <g class="mamut-sensor-pin" id="pin_S10" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S10: Hilera Superior Exterior - Bahía 3 (Media)</title>
+            <line x1="426" y1="36" x2="426" y2="86" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="426" cy="86" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="393" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="406" cy="36" r="9" fill="#0284c7"/>
+            <text x="406" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S10</text>
+            <text x="434" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS10">0.5 °C</text>
+        </g>
+
+        <!-- SENSOR S12: Hilera Superior Exterior - Bahía 6 (Fondo) -->
+        <g class="mamut-sensor-pin" id="pin_S12" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S12: Hilera Superior Exterior - Bahía 6 (Fondo)</title>
+            <line x1="762" y1="36" x2="762" y2="86" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="762" cy="86" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="729" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="742" cy="36" r="9" fill="#0284c7"/>
+            <text x="742" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S12</text>
+            <text x="770" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS12">0.3 °C</text>
+        </g>
+
+        <!-- SENSOR S07: Hilera Superior Interior - Bahía 1 (Frontal) -->
+        <g class="mamut-sensor-pin" id="pin_S07" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S07: Hilera Superior Interior - Bahía 1 (Frontal)</title>
+            <line x1="202" y1="216" x2="202" y2="168" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="202" cy="168" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="169" y="204" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="182" cy="216" r="9" fill="#1e3a8a"/>
+            <text x="182" y="219.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S07</text>
+            <text x="210" y="220" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS07">0.6 °C</text>
+        </g>
+
+        <!-- SENSOR S09: Hilera Superior Interior - Bahía 3 (Media) -->
+        <g class="mamut-sensor-pin" id="pin_S09" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S09: Hilera Superior Interior - Bahía 3 (Media)</title>
+            <line x1="426" y1="216" x2="426" y2="168" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="426" cy="168" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="393" y="204" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="406" cy="216" r="9" fill="#1e3a8a"/>
+            <text x="406" y="219.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S09</text>
+            <text x="434" y="220" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS09">0.4 °C</text>
+        </g>
+
+        <!-- SENSOR S11: Hilera Superior Interior - Bahía 6 (Fondo) -->
+        <g class="mamut-sensor-pin" id="pin_S11" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S11: Hilera Superior Interior - Bahía 6 (Fondo)</title>
+            <line x1="762" y1="216" x2="762" y2="168" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="762" cy="168" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="729" y="204" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="742" cy="216" r="9" fill="#1e3a8a"/>
+            <text x="742" y="219.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S11</text>
+            <text x="770" y="220" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS11">0.3 °C</text>
+        </g>
+
+        <!-- SENSOR S01: Hilera Inferior Interior - Bahía 1 (Frontal) -->
+        <g class="mamut-sensor-pin" id="pin_S01" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S01: Hilera Inferior Interior - Bahía 1 (Frontal)</title>
+            <line x1="202" y1="264" x2="202" y2="312" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="202" cy="312" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="169" y="252" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="182" cy="264" r="9" fill="#1e3a8a"/>
+            <text x="182" y="267.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S01</text>
+            <text x="210" y="268" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS01">0.4 °C</text>
+        </g>
+
+        <!-- SENSOR S03: Hilera Inferior Interior - Bahía 3 (Media) -->
+        <g class="mamut-sensor-pin" id="pin_S03" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S03: Hilera Inferior Interior - Bahía 3 (Media)</title>
+            <line x1="426" y1="264" x2="426" y2="312" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="426" cy="312" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="393" y="252" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="406" cy="264" r="9" fill="#1e3a8a"/>
+            <text x="406" y="267.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S03</text>
+            <text x="434" y="268" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS03">0.2 °C</text>
+        </g>
+
+        <!-- SENSOR S05: Hilera Inferior Interior - Bahía 6 (Fondo) -->
+        <g class="mamut-sensor-pin" id="pin_S05" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S05: Hilera Inferior Interior - Bahía 6 (Fondo)</title>
+            <line x1="762" y1="264" x2="762" y2="312" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="762" cy="312" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="729" y="252" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="742" cy="264" r="9" fill="#1e3a8a"/>
+            <text x="742" y="267.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S05</text>
+            <text x="770" y="268" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS05">0.1 °C</text>
+        </g>
+
+        <!-- SENSOR S02: Hilera Inferior Exterior - Bahía 1 (Frontal) -->
+        <g class="mamut-sensor-pin" id="pin_S02" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S02: Hilera Inferior Exterior - Bahía 1 (Frontal)</title>
+            <line x1="202" y1="444" x2="202" y2="394" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="202" cy="394" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="169" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="182" cy="444" r="9" fill="#0284c7"/>
+            <text x="182" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S02</text>
+            <text x="210" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS02">-0.2 °C</text>
+        </g>
+
+        <!-- SENSOR S04: Hilera Inferior Exterior - Bahía 3 (Media) -->
+        <g class="mamut-sensor-pin" id="pin_S04" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S04: Hilera Inferior Exterior - Bahía 3 (Media)</title>
+            <line x1="426" y1="444" x2="426" y2="394" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="426" cy="394" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="393" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="406" cy="444" r="9" fill="#0284c7"/>
+            <text x="406" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S04</text>
+            <text x="434" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS04">0.0 °C</text>
+        </g>
+
+        <!-- SENSOR S06: Hilera Inferior Exterior - Bahía 6 (Fondo) -->
+        <g class="mamut-sensor-pin" id="pin_S06" filter="url(#mBadgeShadow)" style="cursor:pointer;">
+            <title>S06: Hilera Inferior Exterior - Bahía 6 (Fondo)</title>
+            <line x1="762" y1="444" x2="762" y2="394" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="762" cy="394" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="729" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="742" cy="444" r="9" fill="#0284c7"/>
+            <text x="742" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S06</text>
+            <text x="770" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS06">0.2 °C</text>
+        </g>
+</svg>
+                            
+                            <!-- Barra de Estado y Condiciones Técnicas -->
+                            <div class="mamut-telemetry-subfooter">
+                                <div class="mamut-subfooter-item">
+                                    <span style="width:11px; height:11px; background:#1e3a8a; border-radius:50%; display:inline-block;"></span>
+                                    <span><strong>Internos</strong> (Pasillo)</span>
+                                </div>
+                                <div class="mamut-subfooter-item">
+                                    <span style="width:11px; height:11px; background:#0284c7; border-radius:50%; display:inline-block;"></span>
+                                    <span><strong>Externos</strong> (Pared)</span>
+                                </div>
+                                <div class="mamut-subfooter-item">
+                                    <i class='bx bx-wind' style="color:#0284c7; font-size:1.1rem;"></i>
+                                    <span>Presión Ventilador (VEN): <strong>1 mmca</strong></span>
+                                </div>
+                                <div class="mamut-subfooter-item">
+                                    <i class='bx bx-thermometer' style="color:#b45309; font-size:1.1rem;"></i>
+                                    <span>T° Retorno (RET): <strong id="lblMamutRet">11.0 °C</strong></span>
+                                </div>
+                                <div class="mamut-subfooter-item">
+                                    <i class='bx bx-layer' style="color:#059669; font-size:1.1rem;"></i>
+                                    <span>Diferencial (PAL): <strong>1 mmca</strong></span>
+                                </div>
+                                <div class="mamut-subfooter-item">
+                                    <i class='bx bx-tachometer' style="color:#dc2626; font-size:1.1rem;"></i>
+                                    <span>T° Fondo (AMB): <strong id="lblMamutAmb">-0.2 °C</strong></span>
+                                </div>
+                                <div class="mamut-subfooter-item" style="color:var(--safco-teal); font-weight:800;">
+                                    <i class='bx bx-check-circle'></i>
+                                    <span>24 Pallets (Estiba Doble)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL C: Criterios & Hitos Excel -->
+                    <div class="det-module-panel" id="panelSubCriteria">
+                        <h4 style="margin:0 0 0.8rem 0; font-size:0.95rem; color:#0f172a; font-weight:800;">Cumplimiento de Criterios Técnicos para Uva</h4>
+                        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:1rem;">
+                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem;">
+                                <strong style="display:block; font-size:0.85rem; color:#0f172a; margin-bottom:0.5rem;">Criterios de Cambio de Flujo:</strong>
+                                <ul style="margin:0; padding-left:1.2rem; font-size:0.82rem; color:#334155; display:flex; flex-direction:column; gap:0.4rem;">
+                                    <li><strong>1ra Pulpa Exterior en 0 °C:</strong> <span id="critHora1Ext" style="color:#dc2626; font-weight:800;">19:49 hrs</span></li>
+                                    <li><strong>3 Sensores Exterior en 0 °C:</strong> <span id="critHora3Ext" style="color:#64748b;">No alcanzado</span></li>
+                                    <li><strong>1ra Pulpa Interior en 0 °C:</strong> <span id="critHora1Int" style="color:#059669; font-weight:800;">19:59 hrs</span></li>
+                                </ul>
+                            </div>
+                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem;">
+                                <strong style="display:block; font-size:0.85rem; color:#0f172a; margin-bottom:0.5rem;">Criterios de Salida y Calidad:</strong>
+                                <ul style="margin:0; padding-left:1.2rem; font-size:0.82rem; color:#334155; display:flex; flex-direction:column; gap:0.4rem;">
+                                    <li><strong>Rango permitido final:</strong> -1.0 °C a +0.5 °C</li>
+                                    <li><strong>Estado del lote:</strong> <span style="color:#059669; font-weight:800;">CUMPLE RANGO (0.30 °C Promedio)</span></li>
+                                    <li><strong>T° Ingreso fruta:</strong> <span id="lblTempIngresoFruta">19.4 °C (Máx) / 11.65 °C (Media)</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ============================================== -->
+                <!-- VISTA 3: HISTORIAL BIGDATA FRÍO (EXCEL)        -->
+                <!-- ============================================== -->
+                <div class="view-bigdata-wrap" id="viewBigdata">
+                    
+                    <div class="bigdata-kpis-grid">
+                        <div class="bigdata-kpi-card">
+                            <div class="kpi-big-icon teal"><i class='bx bx-archive'></i></div>
+                            <div class="kpi-big-text">
+                                <span>Procesos Registrados (Excel)</span>
+                                <strong>35</strong>
+                            </div>
+                        </div>
+                        <div class="bigdata-kpi-card">
+                            <div class="kpi-big-icon blue"><i class='bx bx-timer'></i></div>
+                            <div class="kpi-big-text">
+                                <span>Permanencia Promedio</span>
+                                <strong>1.31 h</strong>
+                            </div>
+                        </div>
+                        <div class="bigdata-kpi-card">
+                            <div class="kpi-big-icon amber"><i class='bx bx-thermometer'></i></div>
+                            <div class="kpi-big-text">
+                                <span>T° Mínima Histórica</span>
+                                <strong>-0.8 °C</strong>
+                            </div>
+                        </div>
+                        <div class="bigdata-kpi-card">
+                            <div class="kpi-big-icon purple"><i class='bx bx-check-double'></i></div>
+                            <div class="kpi-big-text">
+                                <span>T° Final Media Pulpa</span>
+                                <strong>+0.28 °C</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bigdata-filters-bar">
+                        <div class="filter-group-left">
+                            <div class="filter-input-search">
+                                <i class='bx bx-search'></i>
+                                <input type="text" id="bigdataSearchInput" placeholder="Buscar por N° de Proceso..." oninput="filterBigDataTable()">
+                            </div>
+                            
+                            <select class="filter-select" id="filterZonaSelect" onchange="filterBigDataTable()">
+                                <option value="ALL">Todas las Zonas (Túneles)</option>
+                                <option value="TUNEL 02">TUNEL 02 (18 procesos)</option>
+                                <option value="TUNEL 06">TUNEL 06 (17 procesos)</option>
+                            </select>
+
+                            <button class="btn-tunnel-switch" onclick="resetBigdataFilters()" style="padding:0.45rem 0.8rem;">
+                                <i class='bx bx-reset'></i> Limpiar
+                            </button>
+                        </div>
+
+                        <div style="font-size:0.82rem; color:#64748b; font-weight:700;">
+                            Mostrando <span id="lblCountVisible" style="color:var(--safco-teal); font-weight:800;">35</span> de 35 registros
+                        </div>
+                    </div>
+
+                    <div class="table-responsive-card">
+                        <table class="bigdata-table">
+                            <thead>
+                                <tr>
+                                    <th>Proceso</th>
+                                    <th>Zona / Túnel</th>
+                                    <th>Inicio Proceso</th>
+                                    <th>Fin Proceso</th>
+                                    <th>Permanencia</th>
+                                    <th>T° Inicio (Max/Med)</th>
+                                    <th>T° Proceso (Mín/Med)</th>
+                                    <th>Pulpa Final (Mín/Med)</th>
+                                    <th>1ra Pulpa Ext 0°C</th>
+                                    <th>1ra Pulpa Int 0°C</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bigdataTbody"></tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Panel Lateral Permanente (Leyenda & Resumen) -->
+            <aside class="dashboard-sidebar">
+                
+                <div class="panel-widget">
+                    <div class="panel-widget-title">
+                        <span>LEYENDA DE ESTADOS</span>
+                        <i class='bx bx-palette'></i>
+                    </div>
+                    <ul class="legend-list">
+                        <li class="legend-item"><span class="legend-circle" style="background-color: var(--state-en-proceso);"></span><span>EN PROCESO</span></li>
+                        <li class="legend-item"><span class="legend-circle" style="background-color: var(--state-proximo-cambio);"></span><span>PRÓXIMO A CAMBIO</span></li>
+                        <li class="legend-item"><span class="legend-circle" style="background-color: var(--state-proceso-cambio);"></span><span>EN PROCESO DE CAMBIO</span></li>
+                        <li class="legend-item"><span class="legend-circle" style="background-color: var(--state-proximo-salida);"></span><span>PRÓXIMO A SALIDA</span></li>
+                        <li class="legend-item"><span class="legend-circle" style="background-color: var(--state-accion-requerida);"></span><span>ACCIÓN REQUERIDA</span></li>
+                        <li class="legend-item"><span class="legend-circle" style="background-color: var(--state-finalizado);"></span><span>FINALIZADO</span></li>
+                        <li class="legend-item"><span class="legend-circle" style="background-color: var(--state-disponible);"></span><span>DISPONIBLE / EN ESPERA</span></li>
+                    </ul>
+                </div>
+
+                <div class="panel-widget" id="sidebarSummaryWidget">
+                    <div class="panel-widget-title">
+                        <span>RESUMEN DE PLANTA</span>
+                        <i class='bx bx-stats'></i>
+                    </div>
+                    
+                    <div class="summary-metric-list">
+                        <div class="summary-metric-card">
+                            <div class="summary-metric-left">
+                                <i class='bx bx-check-circle' style="color:#16a34a;"></i>
+                                <span>2 túneles en enfriamiento</span>
+                            </div>
+                            <div class="summary-metric-badge green">2</div>
+                        </div>
+
+                        <div class="summary-metric-card">
+                            <div class="summary-metric-left">
+                                <i class='bx bx-error' style="color:#dc2626;"></i>
+                                <span>Acción requerida (Reversión)</span>
+                            </div>
+                            <div class="summary-metric-badge red">1</div>
+                        </div>
+
+                        <div class="summary-metric-card">
+                            <div class="summary-metric-left">
+                                <i class='bx bx-sync' style="color:#f59e0b;"></i>
+                                <span>Próximo a cambio</span>
+                            </div>
+                            <div class="summary-metric-badge amber">1</div>
+                        </div>
+
+                        <div class="summary-metric-card">
+                            <div class="summary-metric-left">
+                                <i class='bx bx-pause-circle' style="color:#64748b;"></i>
+                                <span>Túneles disponibles/espera</span>
+                            </div>
+                            <div class="summary-metric-badge slate">2</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón de Pantalla Completa con fondo claro -->
+                <div class="panel-widget" style="background:#f0fdfa; border-color:#ccfbf1;">
+                    <div style="display:flex; align-items:center; gap:0.6rem; color:var(--safco-teal); margin-bottom:0.5rem;">
+                        <i class='bx bx-fullscreen' style="font-size:1.5rem;"></i>
+                        <strong style="font-size:0.9rem;">Pantalla Completa</strong>
+                    </div>
+                    <p style="font-size:0.76rem; color:#475569; margin:0 0 0.8rem 0; line-height:1.4;">
+                        Maximizar la visualización para monitores de la sala de control manteniendo el fondo claro.
+                    </p>
+                    <button onclick="toggleTvMode()" style="width:100%; background:var(--safco-teal); color:white; border:none; padding:0.55rem; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+                        <i class='bx bx-fullscreen'></i> Alternar Pantalla Completa
+                    </button>
+                </div>
+
+            </aside>
+
+        </div>
+
+        <footer class="safco-bottom-banner">
+            <div>SAFCO – Enfriamiento controlado, calidad asegurada.</div>
+            <div class="bottom-tools-icons">
+                <button class="btn-footer-tool" title="Alternar Pantalla Completa" onclick="toggleTvMode()"><i class='bx bx-fullscreen'></i></button>
+                <button class="btn-footer-tool" title="Alarma Sonora" onclick="alert('Alarma sonora configurada.')"><i class='bx bx-bell'></i></button>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Cargar Datos de Excel exportados a JS -->
+    <script src="bigdata-frio.js"></script>
+
+    <script>
+        let currentView = 'overview';
+        let ambientChartInstance = null;
+        let isTvMode = false;
+
+        // Base de Datos Estructurada de Procesos Reales de Planta
+        const REAL_PROCESS_DATA = {
+            'TUNEL 06 - PROCESO 284': {
+                zona: 'TUNEL 06',
+                proceso: 'PROCESO 284',
+                estado: 'ACCIÓN REQUERIDA',
+                inicio: '19:04 hrs',
+                fin: '20:04 hrs',
+                duracion: '1.00 h (60 min)',
+                flujo: '1 (INICIAL)',
+                tMinProc: '-0.2 °C',
+                tMedProc: '2.75 °C',
+                tMaxIni: '19.4 °C',
+                tMedIni: '11.65 °C',
+                pulpMax: '0.7 °C',
+                pulpAvg: '0.30 °C',
+                pulpMin: '-0.2 °C',
+                pulpMediana: '0.8 °C',
+                hora1Ext: '19:49 hrs',
+                hora3Ext: 'No alcanzado',
+                hora1Int: '19:59 hrs',
+                actionRequired: true,
+                nextAction: 'Realizar cambio de flujo a reversión',
+                chartData: [2.5, 1.8, 1.2, 0.6, 0.2, -0.1, -0.2, -0.2, -0.2, -0.2, -0.2]
+            },
+            'TUNEL 06 - PROCESO 283': {
+                zona: 'TUNEL 06',
+                proceso: 'PROCESO 283',
+                estado: 'FINALIZADO',
+                inicio: '16:19 hrs',
+                fin: '17:09 hrs',
+                duracion: '0.83 h (50 min)',
+                flujo: '2 (REVERSIÓN)',
+                tMinProc: '-0.3 °C',
+                tMedProc: '4.28 °C',
+                tMaxIni: '19.5 °C',
+                tMedIni: '15.11 °C',
+                pulpMax: '0.8 °C',
+                pulpAvg: '0.25 °C',
+                pulpMin: '-0.3 °C',
+                pulpMediana: '1.5 °C',
+                hora1Ext: '16:54 hrs',
+                hora3Ext: '17:04 hrs',
+                hora1Int: '17:09 hrs',
+                actionRequired: false,
+                nextAction: 'Lote finalizado en rango óptimo',
+                chartData: [4.2, 3.1, 2.0, 1.1, 0.4, -0.1, -0.3, -0.3, -0.2, -0.3, -0.3]
+            },
+            'TUNEL 02 - PROCESO 250': {
+                zona: 'TUNEL 02',
+                proceso: 'PROCESO 250',
+                estado: 'PRÓXIMO A CAMBIO',
+                inicio: '17:06 hrs',
+                fin: '18:01 hrs',
+                duracion: '0.92 h (55 min)',
+                flujo: '1 (INICIAL)',
+                tMinProc: '-0.4 °C',
+                tMedProc: '4.28 °C',
+                tMaxIni: '25.1 °C',
+                tMedIni: '18.83 °C',
+                pulpMax: '0.9 °C',
+                pulpAvg: '0.05 °C',
+                pulpMin: '-0.4 °C',
+                pulpMediana: '1.0 °C',
+                hora1Ext: '17:36 hrs',
+                hora3Ext: '17:51 hrs',
+                hora1Int: '17:36 hrs',
+                actionRequired: false,
+                nextAction: 'Preparar reversión de flujo en 5 min',
+                chartData: [4.5, 3.4, 2.2, 1.3, 0.5, 0.0, -0.3, -0.4, -0.4, -0.4, -0.4]
+            },
+            'TUNEL 02 - PROCESO 253': {
+                zona: 'TUNEL 02',
+                proceso: 'PROCESO 253',
+                estado: 'FINALIZADO',
+                inicio: '20:51 hrs',
+                fin: '21:56 hrs',
+                duracion: '1.08 h (65 min)',
+                flujo: '2 (REVERSIÓN)',
+                tMinProc: '-0.8 °C',
+                tMedProc: '2.44 °C',
+                tMaxIni: '22.4 °C',
+                tMedIni: '11.92 °C',
+                pulpMax: '0.3 °C',
+                pulpAvg: '-0.11 °C',
+                pulpMin: '-0.3 °C',
+                pulpMediana: '0.3 °C',
+                hora1Ext: '21:11 hrs',
+                hora3Ext: '21:11 hrs',
+                hora1Int: '21:06 hrs',
+                actionRequired: false,
+                nextAction: 'Lote finalizado en calidad de exportación',
+                chartData: [2.8, 1.9, 1.0, 0.2, -0.4, -0.7, -0.8, -0.8, -0.8, -0.8, -0.8]
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initLiveClock();
+            initChart();
+            renderBigDataTable();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === 'bigdata') {
+                switchView('bigdata');
+            }
+        });
+
+        function initLiveClock() {
+            const clockEl = document.getElementById("clockDisplay");
+            function updateClock() {
+                const now = new Date();
+                const day = String(now.getDate()).padStart(2, '0');
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const year = now.getFullYear();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                clockEl.innerHTML = `<i class='bx bx-time'></i> ${day}/${month}/${year} ${h}:${m}:${s}`;
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function switchView(viewName) {
+            currentView = viewName;
+            document.getElementById("viewOverview").style.display = (viewName === 'overview') ? 'block' : 'none';
+            document.getElementById("viewDetailed").style.display = (viewName === 'detailed') ? 'flex' : 'none';
+            document.getElementById("viewBigdata").style.display = (viewName === 'bigdata') ? 'flex' : 'none';
+
+            document.getElementById("tabOverviewBtn").classList.toggle("active", viewName === 'overview');
+            document.getElementById("tabDetailBtn").classList.toggle("active", viewName === 'detailed');
+            document.getElementById("tabBigdataBtn").classList.toggle("active", viewName === 'bigdata');
+
+            // Iniciar o detener rotación automática según la vista
+            if (viewName === 'detailed') {
+                startDetailAutoSlide();
+            } else {
+                stopDetailAutoSlide();
+            }
+        }
+
+        // LÓGICA DE ROTACIÓN AUTOMÁTICA TIPO SLIDE PARA MONITORES DESATENDIDOS
+        const SUB_TABS = ['chart', 'mamut', 'criteria'];
+        let currentSubTabIndex = 0;
+        let autoSlideProgressInterval = null;
+        let isAutoSlidePaused = false;
+        const SLIDE_DURATION_MS = 7000;
+        let slideElapsedMs = 0;
+
+        function startDetailAutoSlide() {
+            stopDetailAutoSlide();
+            if (isAutoSlidePaused) return;
+
+            slideElapsedMs = 0;
+            const timerBar = document.getElementById("autoSlideTimerBar");
+            const updateStepMs = 100;
+
+            autoSlideProgressInterval = setInterval(() => {
+                if (isAutoSlidePaused) return;
+                slideElapsedMs += updateStepMs;
+                const pct = Math.min(100, (slideElapsedMs / SLIDE_DURATION_MS) * 100);
+                if (timerBar) timerBar.style.width = pct + "%";
+
+                if (slideElapsedMs >= SLIDE_DURATION_MS) {
+                    slideElapsedMs = 0;
+                    nextSubTab();
+                }
+            }, updateStepMs);
+        }
+
+        function stopDetailAutoSlide() {
+            if (autoSlideProgressInterval) {
+                clearInterval(autoSlideProgressInterval);
+                autoSlideProgressInterval = null;
+            }
+            const timerBar = document.getElementById("autoSlideTimerBar");
+            if (timerBar) timerBar.style.width = "0%";
+        }
+
+        function nextSubTab() {
+            currentSubTabIndex = (currentSubTabIndex + 1) % SUB_TABS.length;
+            switchDetailSubTab(SUB_TABS[currentSubTabIndex]);
+        }
+
+        function switchDetailSubTab(tabName) {
+            currentSubTabIndex = SUB_TABS.indexOf(tabName);
+            if (currentSubTabIndex === -1) currentSubTabIndex = 0;
+
+            document.getElementById("panelSubChart").classList.toggle("active", tabName === 'chart');
+            document.getElementById("panelSubMamut").classList.toggle("active", tabName === 'mamut');
+            document.getElementById("panelSubCriteria").classList.toggle("active", tabName === 'criteria');
+
+            document.getElementById("btnTabSubChart").classList.toggle("active", tabName === 'chart');
+            document.getElementById("btnTabSubMamut").classList.toggle("active", tabName === 'mamut');
+            document.getElementById("btnTabSubCriteria").classList.toggle("active", tabName === 'criteria');
+
+            if (tabName === 'chart' && ambientChartInstance) {
+                ambientChartInstance.resize();
+            }
+        }
+
+        function onUserClickSubTab(tabName) {
+            switchDetailSubTab(tabName);
+            slideElapsedMs = 0;
+            const timerBar = document.getElementById("autoSlideTimerBar");
+            if (timerBar) timerBar.style.width = "0%";
+        }
+
+        function toggleAutoSlidePause() {
+            isAutoSlidePaused = !isAutoSlidePaused;
+            const icon = document.getElementById("iconAutoSlidePause");
+            const lbl = document.getElementById("lblAutoSlideStatus");
+            const btn = document.getElementById("btnPauseAutoSlide");
+
+            if (isAutoSlidePaused) {
+                if (icon) icon.className = "bx bx-play";
+                if (lbl) lbl.textContent = "Slide Pausado";
+                if (btn) btn.title = "Reanudar Slide Automático";
+                stopDetailAutoSlide();
+            } else {
+                if (icon) icon.className = "bx bx-pause";
+                if (lbl) lbl.textContent = "Slide Automático (7s)";
+                if (btn) btn.title = "Pausar Slide Automático";
+                startDetailAutoSlide();
+            }
+        }
+
+        function openTunnelDetail(zona, proceso) {
+            // Actualizar botones rápidos de conmutación
+            document.querySelectorAll('.btn-tunnel-switch').forEach(b => b.classList.remove('active'));
+            if (zona === 'TUNEL 06' && proceso === 'PROCESO 284') document.getElementById('btnSwitchT6_284')?.classList.add('active');
+            if (zona === 'TUNEL 06' && proceso === 'PROCESO 283') document.getElementById('btnSwitchT6_283')?.classList.add('active');
+            if (zona === 'TUNEL 02' && proceso === 'PROCESO 250') document.getElementById('btnSwitchT2_250')?.classList.add('active');
+            if (zona === 'TUNEL 02' && proceso === 'PROCESO 253') document.getElementById('btnSwitchT2_253')?.classList.add('active');
+
+            const key = `${zona} - ${proceso}`;
+            const item = REAL_PROCESS_DATA[key];
+            if (item) {
+                applyProcessToDetail(item);
+            } else if (typeof BIGDATA_FRIO_RECORDS !== 'undefined') {
+                const found = BIGDATA_FRIO_RECORDS.find(r => r.zona === zona && (r.proceso === proceso || r.proceso_raw.includes(proceso)));
+                if (found) applyExcelRowToDetail(found);
+            }
+            switchDetailSubTab('chart');
+            switchView('detailed');
+        }
+
+        function applyProcessToDetail(data) {
+            document.getElementById("detTunnelHeaderTitle").textContent = `${data.zona} | ${data.proceso} – UVA`;
+            
+            const badgeTop = document.getElementById("detStatusBadgeTop");
+            badgeTop.className = `status-strip ${getStatusClass(data.estado)}`;
+            badgeTop.innerHTML = data.actionRequired ? `<i class='bx bxs-error'></i> ${data.estado}` : data.estado;
+
+            // Highlight Cards
+            document.getElementById("detNextActionHighlight").textContent = data.nextAction;
+            document.getElementById("lblCeroExtHighlight").textContent = data.hora1Ext;
+
+            document.getElementById("detPulpAvgHighlight").textContent = `${data.pulpAvg} °C`;
+            document.getElementById("detPulpMinHighlight").textContent = `${data.pulpMin} °C`;
+            document.getElementById("detPulpMaxHighlight").textContent = `${data.pulpMax} °C`;
+            document.getElementById("detPulpMedHighlight").textContent = `${data.pulpMediana} °C`;
+
+            document.getElementById("detTempAmbHighlight").textContent = `${data.tMinProc} °C`;
+            document.getElementById("detInicioHighlight").textContent = data.inicio;
+            document.getElementById("detFinHighlight").textContent = data.fin;
+            document.getElementById("detTempMediaAmbHighlight").textContent = `${data.tMedProc} °C`;
+
+            // Criteria Panel
+            document.getElementById("critHora1Ext").textContent = data.hora1Ext;
+            document.getElementById("critHora3Ext").textContent = data.hora3Ext;
+            document.getElementById("critHora1Int").textContent = data.hora1Int;
+            document.getElementById("lblTempIngresoFruta").textContent = `${data.tMaxIni} (Máx) / ${data.tMedIni} (Media)`;
+
+            // MAMUT Sensors mapping
+            const base = parseFloat(data.pulpAvg) || 0.3;
+            document.getElementById("valS08").textContent = `${(base + 0.4).toFixed(1)} °C`;
+            document.getElementById("valS10").textContent = `${(base + 0.2).toFixed(1)} °C`;
+            document.getElementById("valS12").textContent = `${(base).toFixed(1)} °C`;
+            document.getElementById("valS07").textContent = `${(base + 0.3).toFixed(1)} °C`;
+            document.getElementById("valS09").textContent = `${(base + 0.1).toFixed(1)} °C`;
+            document.getElementById("valS11").textContent = `${(base).toFixed(1)} °C`;
+            document.getElementById("valS01").textContent = `${(base + 0.1).toFixed(1)} °C`;
+            document.getElementById("valS03").textContent = `${(base - 0.1).toFixed(1)} °C`;
+            document.getElementById("valS05").textContent = `${(base - 0.2).toFixed(1)} °C`;
+            document.getElementById("valS02").textContent = `${data.pulpMin} °C`;
+            document.getElementById("valS04").textContent = `${(base - 0.3).toFixed(1)} °C`;
+            document.getElementById("valS06").textContent = `${(base - 0.1).toFixed(1)} °C`;
+
+            // Telemetría adicional de Túnel MAMUT
+            const elAmb = document.getElementById("valAmbTunnel");
+            if (elAmb) elAmb.textContent = `${data.tMinProc} °C`;
+            const elLblAmb = document.getElementById("lblMamutAmb");
+            if (elLblAmb) elLblAmb.textContent = `${data.tMinProc} °C`;
+
+            const calcRet = (parseFloat(data.tMedProc) + 8.5).toFixed(1) + ' °C';
+            const elRet = document.getElementById("valRetTemp");
+            if (elRet) elRet.textContent = calcRet;
+            const elLblRet = document.getElementById("lblMamutRet");
+            if (elLblRet) elLblRet.textContent = calcRet;
+
+            updateChartData(data.chartData);
+        }
+
+        function applyExcelRowToDetail(row) {
+            const dur = row.horas_permanencia ? `${row.horas_permanencia} h` : '1.0 h';
+            const item = {
+                zona: row.zona,
+                proceso: row.proceso,
+                estado: 'FINALIZADO',
+                inicio: row.inicio ? row.inicio.split(' ')[1] + ' hrs' : '—',
+                fin: row.fin ? row.fin.split(' ')[1] + ' hrs' : '—',
+                duracion: `${dur} (Total)`,
+                flujo: row.hora_1ra_pulpa_ext_cero ? '2 (REVERSIÓN)' : '1 (INICIAL)',
+                tMinProc: row.temp_min_proceso !== null ? row.temp_min_proceso : -0.2,
+                tMedProc: row.temp_media_proceso !== null ? row.temp_media_proceso : 2.5,
+                tMaxIni: row.temp_max_inicio !== null ? `${row.temp_max_inicio} °C` : '—',
+                tMedIni: row.temp_media_inicio !== null ? `${row.temp_media_inicio} °C` : '—',
+                pulpMax: row.temp_max_fin !== null ? row.temp_max_fin : 0.7,
+                pulpAvg: row.temp_media_fin !== null ? row.temp_media_fin : 0.3,
+                pulpMin: row.temp_min_fin !== null ? row.temp_min_fin : -0.2,
+                pulpMediana: row.temp_mediana_pulpa !== null ? row.temp_mediana_pulpa : 0.5,
+                hora1Ext: row.hora_1ra_pulpa_ext_cero ? row.hora_1ra_pulpa_ext_cero.split(' ')[1] + ' hrs' : 'No registrado',
+                hora3Ext: row.hora_3_sensores_ext_cero ? row.hora_3_sensores_ext_cero.split(' ')[1] + ' hrs' : 'No registrado',
+                hora1Int: row.hora_1ra_pulpa_int_cero ? row.hora_1ra_pulpa_int_cero.split(' ')[1] + ' hrs' : 'No registrado',
+                actionRequired: false,
+                nextAction: 'Lote histórico completado según reporte BigData',
+                chartData: [3.0, 2.2, 1.5, 0.8, 0.2, -0.1, -0.2, -0.3, -0.2, -0.3, -0.3]
+            };
+            applyProcessToDetail(item);
+        }
+
+        function getStatusClass(status) {
+            const s = (status || '').toUpperCase();
+            if (s.includes('ACCIÓN REQUERIDA') || s.includes('ACCION REQUERIDA')) return 'accion-requerida';
+            if (s.includes('PRÓXIMO A CAMBIO')) return 'proximo-cambio';
+            if (s.includes('FINALIZADO')) return 'finalizado';
+            return 'en-proceso';
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('ambientTempChart').getContext('2d');
+            const hours = ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00'];
+            
+            ambientChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours,
+                    datasets: [
+                        {
+                            label: 'T° Ambiente (°C)',
+                            data: [2.5, 1.8, 1.2, 0.6, 0.2, -0.1, -0.2, -0.2, -0.2, -0.2, -0.2],
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220, 38, 38, 0.08)',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#dc2626',
+                            pointRadius: 4,
+                            fill: true,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Umbral Crítico (-1.5 °C)',
+                            data: Array(11).fill(-1.5),
+                            borderColor: '#ef4444',
+                            borderWidth: 1.5,
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: -2.0,
+                            max: 4.0,
+                            ticks: { callback: v => v + ' °C', font: { size: 10, weight: '600' } },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: { ticks: { font: { size: 10, weight: '600' } }, grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: '600' } } }
+                    }
+                }
+            });
+        }
+
+        function updateChartData(newData) {
+            if (!ambientChartInstance) return;
+            ambientChartInstance.data.datasets[0].data = newData;
+            ambientChartInstance.update();
+        }
+
+        function renderBigDataTable() {
+            if (typeof BIGDATA_FRIO_RECORDS === 'undefined') return;
+            const tbody = document.getElementById("bigdataTbody");
+            tbody.innerHTML = "";
+
+            BIGDATA_FRIO_RECORDS.forEach((row, index) => {
+                const tr = document.createElement("tr");
+                const horas = row.horas_permanencia ? `${row.horas_permanencia} h` : '—';
+                const tMaxIni = row.temp_max_inicio !== null ? `${row.temp_max_inicio}°` : '—';
+                const tMedIni = row.temp_media_inicio !== null ? `${row.temp_media_inicio}°` : '—';
+                const tMinProc = row.temp_min_proceso !== null ? `${row.temp_min_proceso}°` : '—';
+                const tMedProc = row.temp_media_proceso !== null ? `${row.temp_media_proceso}°` : '—';
+                const tMinFin = row.temp_min_fin !== null ? `${row.temp_min_fin}°` : '—';
+                const tMedFin = row.temp_media_fin !== null ? `${row.temp_media_fin}°` : '—';
+                const hExtCero = row.hora_1ra_pulpa_ext_cero ? row.hora_1ra_pulpa_ext_cero.split(' ')[1] : '—';
+                const hIntCero = row.hora_1ra_pulpa_int_cero ? row.hora_1ra_pulpa_int_cero.split(' ')[1] : '—';
+
+                tr.innerHTML = `
+                    <td><strong>${row.proceso}</strong></td>
+                    <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:20px; font-weight:800; font-size:0.75rem;">${row.zona}</span></td>
+                    <td>${row.inicio || '—'}</td>
+                    <td>${row.fin || '—'}</td>
+                    <td><strong>${horas}</strong></td>
+                    <td>${tMaxIni} / ${tMedIni}</td>
+                    <td><span style="color:#2563eb; font-weight:700;">${tMinProc}</span> / ${tMedProc}</td>
+                    <td>${tMinFin} / <strong style="color:#0d9488;">${tMedFin}</strong></td>
+                    <td>${hExtCero !== '—' ? `<span style="color:#059669; font-weight:700;">${hExtCero}</span>` : '<span style="color:#94a3b8;">N/A</span>'}</td>
+                    <td>${hIntCero !== '—' ? `<span style="color:#059669; font-weight:700;">${hIntCero}</span>` : '<span style="color:#94a3b8;">N/A</span>'}</td>
+                    <td>
+                        <button class="btn-inspect-process" onclick="inspectRowFromTable(${index})">
+                            <i class='bx bx-zoom-in'></i> Inspeccionar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterBigDataTable() {
+            const query = (document.getElementById("bigdataSearchInput").value || "").toLowerCase();
+            const zona = document.getElementById("filterZonaSelect").value;
+            const rows = document.querySelectorAll("#bigdataTbody tr");
+            let count = 0;
+
+            rows.forEach((tr, idx) => {
+                const item = BIGDATA_FRIO_RECORDS[idx];
+                if (!item) return;
+                const matchQuery = item.proceso.toLowerCase().includes(query) || (item.proceso_raw || "").toLowerCase().includes(query);
+                const matchZona = (zona === 'ALL') || (item.zona === zona);
+
+                if (matchQuery && matchZona) {
+                    tr.style.display = "";
+                    count++;
+                } else {
+                    tr.style.display = "none";
+                }
+            });
+            document.getElementById("lblCountVisible").textContent = count;
+        }
+
+        function resetBigdataFilters() {
+            document.getElementById("bigdataSearchInput").value = "";
+            document.getElementById("filterZonaSelect").value = "ALL";
+            filterBigDataTable();
+        }
+
+        function inspectRowFromTable(idx) {
+            const item = BIGDATA_FRIO_RECORDS[idx];
+            if (item) {
+                applyExcelRowToDetail(item);
+                switchView('detailed');
+            }
+        }
+
+        function toggleTvMode() {
+            isTvMode = !isTvMode;
+            document.body.classList.toggle("tv-mode-active", isTvMode);
+            if (isTvMode && document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else if (!isTvMode && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+    </script>
+</body>
+</html>
