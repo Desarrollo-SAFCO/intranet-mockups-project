@@ -59,7 +59,7 @@ function applyRolePermissions() {
     try {
         const data = JSON.parse(sessionData);
         user = (data.user || "admin").toLowerCase();
-        scope = data.scope || (user === "produccion" ? "PRODUCCION" : (user === "calidad" ? "CALIDAD" : "ALL"));
+        scope = data.scope || (user === "produccion" ? "PRODUCCION" : (user === "calidad" ? "CALIDAD" : (user === "frio" || user === "ana.rodriguez" ? "FRIO" : "ALL")));
 
         const displayEl = document.getElementById("displayUser");
         if (displayEl) displayEl.textContent = data.user.toUpperCase();
@@ -79,6 +79,8 @@ function applyRolePermissions() {
             item.style.display = (mod === 'PRODUCCION') ? '' : 'none';
         } else if (scope === 'CALIDAD' || user === 'calidad') {
             item.style.display = (mod === 'CALIDAD') ? '' : 'none';
+        } else if (scope === 'FRIO' || user === 'frio' || user === 'ana.rodriguez') {
+            item.style.display = (mod === 'FRIO') ? '' : 'none';
         } else {
             item.style.display = ''; // Admin ve todo
         }
@@ -106,6 +108,10 @@ function applyRolePermissions() {
             if (!currentSrc.includes('/calidad/')) {
                 iframe.src = "calidad/asignacion-implementos.html";
             }
+        } else if (scope === 'FRIO' || user === 'frio' || user === 'ana.rodriguez') {
+            if (!currentSrc.includes('/frio/')) {
+                iframe.src = "frio/dashboard-tuneles.html";
+            }
         }
     }
 }
@@ -115,10 +121,11 @@ function changeSimulatedUser(username) {
     const USER_CONFIG_MAP = {
         "produccion": { role: 'Jefe de Producción', area: 'PRODUCCION', scope: 'PRODUCCION' },
         "calidad": { role: 'Inspector de Calidad', area: 'CALIDAD', scope: 'CALIDAD' },
+        "frio": { role: 'Supervisor de Frío', area: 'FRIO Y DESPACHO', scope: 'FRIO' },
+        "ana.rodriguez": { role: 'Supervisor de Frío', area: 'FRIO Y DESPACHO', scope: 'FRIO' },
         "admin": { role: 'Administrador General', area: 'SISTEMAS', scope: 'ALL' },
         "alex.quintanilla": { role: 'Jefe de Sistemas', area: 'SISTEMAS', scope: 'ALL' },
         "carlos.mendoza": { role: 'Jefe de Seguridad', area: 'SEGURIDAD', scope: 'ALL' },
-        "ana.rodriguez": { role: 'Supervisor de Frío', area: 'FRIO Y DESPACHO', scope: 'ALL' },
         "luis.zarat": { role: 'Analista de RRHH', area: 'RECURSOS HUMANOS', scope: 'ALL' }
     };
     
@@ -141,6 +148,8 @@ function changeSimulatedUser(username) {
             iframe.src = "produccion/asignacion-mesas.html";
         } else if (config.scope === 'CALIDAD') {
             iframe.src = "calidad/asignacion-implementos.html";
+        } else if (config.scope === 'FRIO') {
+            iframe.src = "frio/dashboard-tuneles.html";
         } else {
             iframe.src = "dashboard.html";
         }

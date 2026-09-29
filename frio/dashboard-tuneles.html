@@ -25,93 +25,101 @@
             --state-disponible: #64748b;
         }
 
-        body {
-            background-color: #f1f5f9;
-            font-family: 'Open Sans', sans-serif;
+        html, body {
+            height: 100vh;
+            max-height: 100vh;
             margin: 0;
             padding: 0;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            font-family: 'Open Sans', sans-serif;
             color: #1e293b;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
         }
 
         .dashboard-container {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            height: 100vh;
+            max-height: 100vh;
             width: 100%;
+            overflow: hidden;
         }
 
-        /* Header Principal */
+        /* Header Principal Compacto */
         .header-safco {
             background: #ffffff;
-            border-bottom: 2px solid #e2e8f0;
-            padding: 0.8rem 1.8rem;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: 0.35rem 1.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            position: sticky;
-            top: 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            flex-shrink: 0;
             z-index: 100;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 1.2rem;
+            gap: 0.8rem;
         }
 
         .safco-header-logo {
-            height: 42px;
+            height: 32px;
             width: auto;
             object-fit: contain;
             display: inline-block;
         }
 
         .header-titles h1 {
-            font-size: 1.3rem;
+            font-size: 1.05rem;
             font-weight: 800;
             color: #0f172a;
             margin: 0;
             letter-spacing: -0.3px;
+            line-height: 1.2;
         }
 
         .header-titles p {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             color: #64748b;
-            margin: 0.15rem 0 0 0;
+            margin: 0;
+            line-height: 1.2;
         }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 1.2rem;
+            gap: 0.8rem;
         }
 
         /* Navigation Tabs in Header */
         .nav-mode-tabs {
             display: flex;
             background: #f1f5f9;
-            padding: 4px;
-            border-radius: 10px;
+            padding: 2px;
+            border-radius: 8px;
             border: 1px solid #cbd5e1;
-            gap: 4px;
+            gap: 2px;
         }
 
         .nav-tab-btn {
             background: transparent;
             border: none;
-            padding: 0.45rem 0.9rem;
-            border-radius: 7px;
-            font-size: 0.82rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.76rem;
             font-weight: 700;
             color: #475569;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.35rem;
             transition: all 0.2s ease;
         }
 
@@ -129,33 +137,33 @@
         .live-clock-box {
             text-align: right;
             border-left: 1px solid #e2e8f0;
-            padding-left: 1.2rem;
+            padding-left: 0.8rem;
         }
 
         .live-time {
-            font-size: 1.15rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: #0f172a;
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 0.4rem;
+            gap: 0.3rem;
         }
 
         .auto-refresh-tag {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             color: #059669;
             font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 0.35rem;
-            margin-top: 2px;
+            gap: 0.3rem;
+            margin-top: 1px;
         }
 
         .pulse-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             background-color: #10b981;
             border-radius: 50%;
             display: inline-block;
@@ -172,34 +180,44 @@
         /* Main Content Layout */
         .main-dashboard-body {
             flex: 1;
-            padding: 1.4rem 1.8rem;
+            min-height: 0;
+            height: calc(100vh - 46px - 26px);
+            max-height: calc(100vh - 46px - 26px);
+            padding: 0.35rem 0.75rem;
             display: flex;
-            gap: 1.5rem;
+            gap: 0.6rem;
+            overflow: hidden;
         }
 
         .dashboard-views-container {
             flex: 1;
             min-width: 0;
+            min-height: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .section-subbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             background: white;
-            padding: 0.75rem 1.2rem;
-            border-radius: 10px;
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
             border: 1px solid #e2e8f0;
+            flex-shrink: 0;
         }
 
         .section-subbar-title {
-            font-size: 0.9rem;
+            font-size: 0.82rem;
             font-weight: 800;
             color: #0f172a;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         /* Tunnel Cards Grid (Vista General) */
@@ -383,30 +401,34 @@
             color: #0f172a;
         }
 
-        /* Sidebar Widgets */
+        /* Sidebar Widgets Compacto */
         .dashboard-sidebar {
-            width: 290px;
+            width: 250px;
             display: flex;
             flex-direction: column;
-            gap: 1.2rem;
+            gap: 0.45rem;
+            flex-shrink: 0;
+            overflow-y: auto;
+            max-height: 100%;
         }
 
         .panel-widget {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-            padding: 1.2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            padding: 0.5rem 0.7rem;
+            flex-shrink: 0;
         }
 
         .panel-widget-title {
-            font-size: 0.9rem;
+            font-size: 0.76rem;
             font-weight: 800;
             color: #0f172a;
-            margin: 0 0 1rem 0;
+            margin: 0 0 0.35rem 0;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
             border-bottom: 1px solid #f1f5f9;
             display: flex;
             align-items: center;
@@ -419,21 +441,22 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            gap: 0.65rem;
+            gap: 0.22rem;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
-            font-size: 0.8rem;
+            gap: 0.4rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: #334155;
+            line-height: 1.15;
         }
 
         .legend-circle {
-            width: 14px;
-            height: 14px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             display: inline-block;
             flex-shrink: 0;
@@ -442,36 +465,37 @@
         .summary-metric-list {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.3rem;
         }
 
         .summary-metric-card {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.65rem 0.85rem;
+            padding: 0.3rem 0.5rem;
             background: #f8fafc;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid #e2e8f0;
         }
 
         .summary-metric-left {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            font-size: 0.82rem;
+            gap: 0.35rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: #334155;
         }
 
         .summary-metric-badge {
-            border: 2px solid;
-            border-radius: 6px;
-            font-size: 1.1rem;
+            border: 1.5px solid;
+            border-radius: 5px;
+            font-size: 0.82rem;
             font-weight: 800;
-            padding: 0.1rem 0.65rem;
-            min-width: 32px;
+            padding: 0.05rem 0.4rem;
+            min-width: 22px;
             text-align: center;
+            line-height: 1.15;
         }
 
         .summary-metric-badge.green { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
@@ -480,45 +504,50 @@
         .summary-metric-badge.slate { border-color: #94a3b8; color: #64748b; background: #f8fafc; }
 
         /* ============================================================== */
-        /* VISTA DETALLADA REDISEÑADA (LIMPIA, MODULAR, NO ABRUMADORA)   */
+        /* VISTA DETALLADA REDISEÑADA (COMPACTA, MODULAR, FULLSCREEN FIT)*/
         /* ============================================================== */
         .view-detallada-wrap {
             display: none;
             flex-direction: column;
-            gap: 1.2rem;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+            max-height: 100%;
+            gap: 0.3rem;
+            overflow: hidden;
         }
 
         .detailed-header-bar {
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1rem 1.4rem;
+            border-radius: 8px;
+            padding: 0.3rem 0.75rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            flex-wrap: wrap;
-            gap: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            flex-shrink: 0;
+            gap: 0.5rem;
         }
 
         .det-title-group {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.6rem;
         }
 
         .btn-back-overview {
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
-            padding: 0.45rem 0.85rem;
-            border-radius: 8px;
-            font-size: 0.82rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
             font-weight: 700;
             color: #334155;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.3rem;
             transition: all 0.2s;
         }
 
@@ -528,27 +557,27 @@
         }
 
         .detailed-tunnel-id {
-            font-size: 1.25rem;
+            font-size: 0.95rem;
             font-weight: 800;
             color: #0f172a;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.35rem;
         }
 
         .tunnel-switcher-pills {
             display: flex;
-            gap: 0.4rem;
+            gap: 0.3rem;
             align-items: center;
             flex-wrap: wrap;
         }
 
         .btn-tunnel-switch {
-            padding: 0.35rem 0.75rem;
-            border-radius: 6px;
+            padding: 0.22rem 0.5rem;
+            border-radius: 5px;
             border: 1px solid #e2e8f0;
             background: #f8fafc;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: #475569;
             cursor: pointer;
@@ -565,19 +594,20 @@
             background: #e2e8f0;
         }
 
-        /* BANDEJA EJECUTIVA (3 Tarjetas Esenciales en vez de saturar) */
+        /* BANDEJA EJECUTIVA (3 Tarjetas Esenciales Compactas) */
         .executive-kpi-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 1.2rem;
+            gap: 0.5rem;
+            flex-shrink: 0;
         }
 
         .exec-card {
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1.2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border-radius: 8px;
+            padding: 0.35rem 0.65rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -587,8 +617,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 0.8rem;
-            font-size: 0.8rem;
+            margin-bottom: 0.1rem;
+            font-size: 0.7rem;
             font-weight: 800;
             color: #64748b;
             text-transform: uppercase;
@@ -596,45 +626,44 @@
         }
 
         .exec-highlight-val {
-            font-size: 2.2rem;
+            font-size: 1.15rem;
             font-weight: 800;
             color: #0f172a;
-            line-height: 1;
-            margin-bottom: 0.5rem;
+            line-height: 1.15;
+            margin-bottom: 0.1rem;
             display: flex;
             align-items: baseline;
-            gap: 0.4rem;
+            gap: 0.3rem;
         }
 
         .exec-badge-pill {
-            font-size: 0.75rem;
+            font-size: 0.66rem;
             font-weight: 700;
-            padding: 0.25rem 0.6rem;
-            border-radius: 20px;
+            padding: 0.12rem 0.45rem;
+            border-radius: 12px;
             display: inline-block;
         }
 
         /* MODULAR TABS / SLIDER EN EL DETALLE */
         .detailed-module-tabs {
             display: flex;
-            border-bottom: 2px solid #e2e8f0;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+            border-bottom: none;
+            gap: 0.3rem;
+            margin-top: 0;
         }
 
         .det-tab-nav-btn {
             background: transparent;
             border: none;
-            padding: 0.75rem 1.4rem;
-            font-size: 0.88rem;
+            padding: 0.3rem 0.75rem;
+            font-size: 0.76rem;
             font-weight: 700;
             color: #64748b;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
+            border-bottom: 2px solid transparent;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.35rem;
             transition: all 0.2s;
         }
 
@@ -646,7 +675,7 @@
             color: var(--safco-teal);
             border-bottom-color: var(--safco-teal);
             background: white;
-            border-radius: 8px 8px 0 0;
+            border-radius: 6px 6px 0 0;
             box-shadow: 0 -2px 6px rgba(0,0,0,0.02);
         }
 
@@ -654,42 +683,71 @@
         .det-module-panel {
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1.4rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border-radius: 8px;
+            padding: 0.35rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
             display: none;
+            flex: 1 1 0%;
+            min-height: 0;
+            height: 100%;
+            overflow: hidden;
         }
 
         #panelSubMamut {
-            padding: 0.5rem;
+            padding: 0.2rem;
+            overflow: hidden;
+            height: 100%;
+            min-height: 0;
         }
 
-        .det-module-panel.active {
-            display: block;
+        .det-module-panel.active,
+        #panelSubMamut.active {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 1 0%;
+            min-height: 0;
+            height: 100%;
         }
 
-        /* ESQUEMA FÍSICO DE TÚNEL MAMUT (24 PALLETS Y 12 SENSORES) */
+        /* ESQUEMA FÍSICO DE TÚNEL MAMUT (24 PALLETS Y 12 SENSORES - AJUSTE PERFECTO 100% PANTALLA) */
         .mamut-tunnel-diagram {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 0.4rem 0.4rem 0.3rem;
+            border-radius: 8px;
+            padding: 0.2rem 0.35rem 0.15rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
             width: 100%;
+            flex: 1 1 0%;
+            min-height: 0;
+            height: 100%;
             box-sizing: border-box;
+            overflow: hidden;
+            justify-content: space-between;
+        }
+
+        .mamut-svg-wrapper {
+            position: relative;
+            flex: 1 1 0%;
+            min-height: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
         }
 
         .mamut-physical-tunnel-svg {
             width: 100%;
-            height: auto;
-            min-height: 530px;
-            max-height: calc(100vh - 260px);
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
             display: block;
+            object-fit: contain;
         }
 
         .mamut-sensor-pin {
@@ -706,28 +764,34 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            padding: 0.7rem 0.5rem 0.2rem;
-            margin-top: 0.4rem;
+            padding: 0.2rem 0.35rem 0.05rem;
+            margin-top: 0.15rem;
             border-top: 1px solid #f1f5f9;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            font-size: 0.78rem;
+            flex-shrink: 0;
+            gap: 0.45rem;
+            font-size: 0.7rem;
             color: #475569;
         }
 
         .mamut-subfooter-item {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.35rem;
         }
 
         .mamut-subfooter-item strong {
             color: #0f172a;
         }
 
-
         /* VIEW 3: HISTORIAL BIGDATA FRÍO */
-        .view-bigdata-wrap { display: none; flex-direction: column; gap: 1.2rem; }
+        .view-bigdata-wrap {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            gap: 0.6rem;
+        }
         .bigdata-kpis-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
         .bigdata-kpi-card {
             background: white;
@@ -827,32 +891,34 @@
 
         .btn-inspect-process:hover { background: var(--safco-teal); color: white; border-color: var(--safco-teal); }
 
-        /* FOOTER */
+        /* FOOTER COMPACTO */
         .safco-bottom-banner {
             background: var(--safco-teal-dark);
             color: #ffffff;
-            padding: 0.75rem 2rem;
+            padding: 0.25rem 1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.92rem;
+            font-size: 0.74rem;
             font-weight: 600;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            min-height: 24px;
         }
 
-        .bottom-tools-icons { display: flex; align-items: center; gap: 1.2rem; }
+        .bottom-tools-icons { display: flex; align-items: center; gap: 0.8rem; }
         .btn-footer-tool {
             background: transparent;
             border: none;
             color: #94a3b8;
-            font-size: 1.35rem;
+            font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 4px;
-            border-radius: 6px;
+            padding: 2px;
+            border-radius: 4px;
         }
 
         .btn-footer-tool:hover { color: #ffffff; background: rgba(255, 255, 255, 0.1); }
@@ -861,17 +927,59 @@
         body.tv-mode-active {
             background-color: #f1f5f9 !important;
             color: #1e293b !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            overflow: hidden !important;
         }
 
         body.tv-mode-active .dashboard-container {
-            padding: 0;
-            max-width: 100vw;
+            padding: 0 !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            overflow: hidden !important;
+        }
+
+        body.tv-mode-active .main-dashboard-body {
+            height: calc(100vh - 42px - 24px) !important;
+            max-height: calc(100vh - 42px - 24px) !important;
+            padding: 0.2rem 0.6rem !important;
+            gap: 0.5rem !important;
+            overflow: hidden !important;
         }
 
         body.tv-mode-active .header-safco {
             background: #ffffff !important;
             border-bottom: 2px solid #e2e8f0 !important;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+            padding: 0.2rem 0.8rem !important;
+        }
+
+        body.tv-mode-active .detailed-header-bar {
+            padding: 0.2rem 0.5rem !important;
+        }
+
+        body.tv-mode-active .executive-kpi-grid {
+            gap: 0.35rem !important;
+        }
+
+        body.tv-mode-active .exec-card {
+            padding: 0.2rem 0.45rem !important;
+        }
+
+        body.tv-mode-active .exec-highlight-val {
+            font-size: 1.05rem !important;
+            margin-bottom: 0.05rem !important;
+        }
+
+        body.tv-mode-active .mamut-tunnel-diagram {
+            padding: 0.15rem 0.3rem 0.1rem !important;
+        }
+
+        body.tv-mode-active .mamut-telemetry-subfooter {
+            padding: 0.1rem 0.3rem 0.02rem !important;
+            font-size: 0.65rem !important;
         }
 
         body.tv-mode-active .tunnel-card,
@@ -982,7 +1090,8 @@
         }
 
         .det-module-panel.active {
-            display: block;
+            display: flex !important;
+            flex-direction: column !important;
             animation: slideFadeIn 0.3s ease-out;
         }
 
@@ -1293,37 +1402,37 @@
                         </div>
                     </div>
 
-                    <!-- 1. BANDEJA EJECUTIVA (SOLO LOS 3 DATOS CRÍTICOS PARA NO ABRUMAR) -->
+                    <!-- 1. BANDEJA EJECUTIVA (SOLO LOS 3 DATOS CRÍTICOS COMPACTOS) -->
                     <div class="executive-kpi-grid">
                         
                         <!-- Card 1: Próxima Acción & Estado de Flujo -->
-                        <div class="exec-card" style="border-left: 4px solid #ef4444;">
+                        <div class="exec-card" style="border-left: 3.5px solid #ef4444;">
                             <div class="exec-card-header">
                                 <span><i class='bx bx-target-lock' style="color:#dc2626;"></i> Próxima Acción Operativa</span>
                                 <span class="exec-badge-pill" style="background:#fef2f2; color:#dc2626;">FLUJO 1</span>
                             </div>
-                            <div class="exec-highlight-val" id="detNextActionHighlight" style="color:#dc2626; font-size:1.45rem; line-height:1.2;">
+                            <div class="exec-highlight-val" id="detNextActionHighlight" style="color:#dc2626; font-size:1.15rem; line-height:1.2;">
                                 Realizar cambio de flujo a reversión
                             </div>
-                            <div style="font-size:0.82rem; color:#64748b; margin-top:0.4rem; display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-size:0.75rem; color:#64748b; margin-top:0.15rem; display:flex; justify-content:space-between; align-items:center;">
                                 <span>Cero Ext: <strong id="lblCeroExtHighlight" style="color:#dc2626;">19:49 hrs</strong> (hace 15 min)</span>
-                                <button onclick="alert('✅ Conmutación de flujo a Reversión registrada en el sistema.')" style="background:#dc2626; color:white; border:none; padding:0.35rem 0.8rem; border-radius:6px; font-weight:700; font-size:0.75rem; cursor:pointer;">
+                                <button onclick="alert('✅ Conmutación de flujo a Reversión registrada en el sistema.')" style="background:#dc2626; color:white; border:none; padding:0.2rem 0.55rem; border-radius:5px; font-weight:700; font-size:0.72rem; cursor:pointer;">
                                     Confirmar Reversión
                                 </button>
                             </div>
                         </div>
 
                         <!-- Card 2: Pulpa Resumen (Calidad Comercial) -->
-                        <div class="exec-card" style="border-left: 4px solid var(--safco-teal);">
+                        <div class="exec-card" style="border-left: 3.5px solid var(--safco-teal);">
                             <div class="exec-card-header">
                                 <span><i class='bx bx-detail' style="color:var(--safco-teal);"></i> Pulpa Final (Calidad)</span>
                                 <span class="exec-badge-pill" style="background:#f0fdf4; color:#16a34a;">EN RANGO</span>
                             </div>
                             <div class="exec-highlight-val" style="color:var(--safco-teal);">
                                 <span id="detPulpAvgHighlight">0.30 °C</span>
-                                <span style="font-size:0.9rem; color:#64748b; font-weight:600;">(Promedio)</span>
+                                <span style="font-size:0.8rem; color:#64748b; font-weight:600;">(Promedio)</span>
                             </div>
-                            <div style="font-size:0.82rem; color:#475569; display:flex; gap:1.2rem; margin-top:0.4rem;">
+                            <div style="font-size:0.75rem; color:#475569; display:flex; gap:0.8rem; margin-top:0.15rem;">
                                 <span>Mín: <strong id="detPulpMinHighlight" style="color:#2563eb;">-0.2 °C</strong></span>
                                 <span>Máx: <strong id="detPulpMaxHighlight" style="color:#dc2626;">0.7 °C</strong></span>
                                 <span>Mediana: <strong id="detPulpMedHighlight">0.8 °C</strong></span>
@@ -1331,16 +1440,16 @@
                         </div>
 
                         <!-- Card 3: Tiempos y Ambiente -->
-                        <div class="exec-card" style="border-left: 4px solid #2563eb;">
+                        <div class="exec-card" style="border-left: 3.5px solid #2563eb;">
                             <div class="exec-card-header">
                                 <span><i class='bx bx-time' style="color:#2563eb;"></i> Tiempos y Ambiente</span>
                                 <span class="exec-badge-pill" style="background:#eff6ff; color:#2563eb;">1.00 H TOTAL</span>
                             </div>
                             <div class="exec-highlight-val" style="color:#0f172a;">
                                 <span id="detTempAmbHighlight">-0.2 °C</span>
-                                <span style="font-size:0.9rem; color:#64748b; font-weight:600;">(T° Mín. Ambiente)</span>
+                                <span style="font-size:0.8rem; color:#64748b; font-weight:600;">(T° Mín. Ambiente)</span>
                             </div>
-                            <div style="font-size:0.82rem; color:#475569; display:flex; justify-content:space-between; margin-top:0.4rem;">
+                            <div style="font-size:0.75rem; color:#475569; display:flex; justify-content:space-between; margin-top:0.15rem;">
                                 <span>Inicio: <strong id="detInicioHighlight">19:04 hrs</strong></span>
                                 <span>Fin: <strong id="detFinHighlight">20:04 hrs</strong></span>
                                 <span>Media: <strong id="detTempMediaAmbHighlight">2.75 °C</strong></span>
@@ -1350,10 +1459,10 @@
                     </div>
 
                     <!-- 2. PESTAÑAS MODULARES CON ROTACIÓN AUTOMÁTICA TIPO SLIDE -->
-                    <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #e2e8f0; margin-top:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; flex-shrink:0; gap:0.5rem;">
                         <div class="detailed-module-tabs" style="border-bottom:none; margin-top:0;">
                             <button class="det-tab-nav-btn active" id="btnTabSubChart" onclick="onUserClickSubTab('chart')">
-                                <i class='bx bx-line-chart'></i> 1. Curva Térmica Ambiental
+                                <i class='bx bx-line-chart'></i> 1. Curva Térmica
                             </button>
                             <button class="det-tab-nav-btn" id="btnTabSubMamut" onclick="onUserClickSubTab('mamut')">
                                 <i class='bx bx-cube-alt'></i> 2. Esquema MAMUT (12 Sensores)
@@ -1380,16 +1489,16 @@
 
                     <!-- PANEL A: Curva Térmica -->
                     <div class="det-module-panel active" id="panelSubChart">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-shrink:0;">
                             <div>
-                                <h4 style="margin:0; font-size:0.95rem; color:#0f172a; font-weight:800;">Evolución de la Temperatura de Cámara y Aire</h4>
-                                <p style="margin:0.2rem 0 0 0; font-size:0.78rem; color:#64748b;">Trazo térmico del lote con línea de umbral crítico de congelamiento (-1.5 °C)</p>
+                                <h4 style="margin:0; font-size:0.85rem; color:#0f172a; font-weight:800;">Evolución de la Temperatura de Cámara y Aire</h4>
+                                <p style="margin:0.1rem 0 0 0; font-size:0.72rem; color:#64748b;">Trazo térmico del lote con línea de umbral crítico de congelamiento (-1.5 °C)</p>
                             </div>
-                            <span style="font-size:0.8rem; background:#f8fafc; border:1px solid #cbd5e1; padding:0.3rem 0.7rem; border-radius:6px; color:#475569; font-weight:600;">
+                            <span style="font-size:0.72rem; background:#f8fafc; border:1px solid #cbd5e1; padding:0.2rem 0.5rem; border-radius:5px; color:#475569; font-weight:600;">
                                 <i class='bx bx-info-circle'></i> Umbral Crítico: -1.5 °C
                             </span>
                         </div>
-                        <div style="position: relative; height: 320px; width: 100%;">
+                        <div style="position: relative; flex: 1; min-height: 0; width: 100%;">
                             <canvas id="ambientTempChart"></canvas>
                         </div>
                     </div>
@@ -1397,7 +1506,8 @@
                     <!-- PANEL B: Esquema MAMUT 12 Sensores con Paletas Reales y Sensores -->
                     <div class="det-module-panel" id="panelSubMamut">
                         <div class="mamut-tunnel-diagram">
-<svg class="mamut-physical-tunnel-svg" viewBox="0 0 980 480" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                            <div class="mamut-svg-wrapper">
+<svg class="mamut-physical-tunnel-svg" viewBox="0 0 980 480" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <!-- Filtros de Sombra Suave -->
         <filter id="mDropShadow" x="-5%" y="-5%" width="120%" height="120%">
@@ -1429,14 +1539,14 @@
     </defs>
 
     <!-- 0. ESTRUCTURA Y MUROS DEL TÚNEL MAMUT -->
-    <rect x="8" y="8" width="964" height="464" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+    <rect x="8" y="8" width="964" height="464" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
 
-    <!-- Guías de Muro Perimetral de Túnel -->
+    <!-- Guías de Muro Perimetral de Túnel (Texto ubicado en zona despejada sin interferir con agujas) -->
     <line x1="140" y1="62" x2="826" y2="62" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
-    <text x="480" y="58" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle" letter-spacing="1">MURO LATERAL SUPERIOR (INYECCIÓN DE AIRE)</text>
+    <text x="594" y="58" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#94a3b8" text-anchor="middle" letter-spacing="1">MURO LATERAL SUPERIOR (INYECCIÓN DE AIRE)</text>
 
     <line x1="140" y1="418" x2="826" y2="418" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
-    <text x="480" y="428" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle" letter-spacing="1">MURO LATERAL INFERIOR (INYECCIÓN DE AIRE)</text>
+    <text x="594" y="428" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#94a3b8" text-anchor="middle" letter-spacing="1">MURO LATERAL INFERIOR (INYECCIÓN DE AIRE)</text>
 
     <!-- ============================================== -->
     <!-- 1. UNIDAD EVAPORADORA / VENTILADORES (IZQ)     -->
@@ -1520,37 +1630,44 @@
     <!-- ============================================== -->
     <!-- 2. PASILLO CENTRAL / PLÉNUM DE SUCCIÓN        -->
     <!-- ============================================== -->
-    <rect x="136" y="194" width="692" height="92" rx="4" fill="url(#mPlenumGrad)" stroke="#7dd3fc" stroke-width="1.2" stroke-dasharray="6,4"/>
+    <rect x="136" y="194" width="692" height="92" rx="6" fill="url(#mPlenumGrad)" stroke="#7dd3fc" stroke-width="1.2" stroke-dasharray="6,4"/>
     
-    <!-- Flechas de succión hacia el evaporador -->
-    <g stroke="#0284c7" stroke-width="2" fill="none" opacity="0.8" stroke-linecap="round">
-        <!-- Flecha Succión Izquierda -->
-        <path d="M 175 240 L 140 240 M 148 234 L 140 240 L 148 246"/>
-        <path d="M 330 240 L 295 240 M 303 234 L 295 240 L 303 246"/>
-        <path d="M 520 240 L 485 240 M 493 234 L 485 240 L 493 246"/>
-        <path d="M 710 240 L 675 240 M 683 234 L 675 240 L 683 246"/>
+    <!-- Flechas de succión hacia el evaporador en zonas libres -->
+    <g stroke="#0284c7" stroke-width="2" fill="none" opacity="0.85" stroke-linecap="round">
+        <!-- Entrada inmediata al evaporador -->
+        <path d="M 172 240 L 140 240 M 148 234 L 140 240 L 148 246"/>
+        <!-- Flujo en Bahía 2 (despejada de sensores) -->
+        <path d="M 345 240 L 285 240 M 295 234 L 285 240 L 295 246"/>
+        <text x="315" y="233" font-family="system-ui, sans-serif" font-size="7.5" font-weight="800" fill="#0369a1" text-anchor="middle" stroke="none">FLUJO AIRE</text>
+        <!-- Transición en Bahía 5 -->
+        <path d="M 700 240 L 660 240 M 670 234 L 660 240 L 670 246"/>
     </g>
-    <text x="480" y="244" font-family="system-ui, sans-serif" font-size="10" font-weight="900" fill="#0369a1" text-anchor="middle" letter-spacing="1.5">
-        PASILLO CENTRAL – PLÉNUM DE SUCCIÓN DE AIRE (12 PARES DE PALLETS)
-    </text>
+
+    <!-- Título del plénum en Bahía 4-5 (Espacio amplio completamente libre de sensores) -->
+    <g opacity="0.95">
+        <text x="556" y="236" font-family="system-ui, sans-serif" font-size="9.5" font-weight="900" fill="#0369a1" text-anchor="middle" letter-spacing="1.2">
+            PASILLO CENTRAL – PLÉNUM DE SUCCIÓN DE AIRE
+        </text>
+        <text x="556" y="250" font-family="system-ui, sans-serif" font-size="8" font-weight="700" fill="#0284c7" text-anchor="middle" letter-spacing="0.5">
+            12 PARES DE PALLETS (24 TOTAL) – ENFRIAMIENTO RÁPIDO
+        </text>
+    </g>
 
     <!-- ============================================== -->
     <!-- 3. HILERAS DE PALLETS (24 PALLETS REALES)      -->
     <!-- ============================================== -->
 
-        <!-- BAHÍA 1 (SUPERIOR): Pallets 01 y 02 -->
+        <!-- BAHÍA 1 (SUPERIOR): Pallets 01 y 02 (Texto alineado a la izquierda para dejar libre la aguja derecha) -->
         <g id="bay_up_1" filter="url(#mDropShadow)">
             <!-- Pallet Exterior 01 -->
             <rect x="150" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
-            <!-- Tablillas de Pallet y Cajas de Uva -->
             <line x1="185" y1="70" x2="185" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="220" y1="70" x2="220" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="150" y1="97" x2="254" y2="97" stroke="#78350f" stroke-width="1"/>
-            <!-- Zunchos Negros Industriales -->
             <line x1="168" y1="70" x2="168" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="236" y1="70" x2="236" y2="124" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="202" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 01</text>
-            <text x="202" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+            <text x="188" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 01</text>
+            <text x="188" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
 
             <!-- Pallet Interior 02 -->
             <rect x="150" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
@@ -1559,8 +1676,8 @@
             <line x1="150" y1="157" x2="254" y2="157" stroke="#78350f" stroke-width="1"/>
             <line x1="168" y1="130" x2="168" y2="184" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="236" y1="130" x2="236" y2="184" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="202" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 02</text>
-            <text x="202" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+            <text x="188" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 02</text>
+            <text x="188" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
         </g>
 
         <!-- BAHÍA 1 (INFERIOR): Pallets 13 y 14 -->
@@ -1572,8 +1689,8 @@
             <line x1="150" y1="323" x2="254" y2="323" stroke="#78350f" stroke-width="1"/>
             <line x1="168" y1="296" x2="168" y2="350" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="236" y1="296" x2="236" y2="350" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="202" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 13</text>
-            <text x="202" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+            <text x="188" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 13</text>
+            <text x="188" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
 
             <!-- Pallet Exterior 14 -->
             <rect x="150" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
@@ -1582,19 +1699,17 @@
             <line x1="150" y1="383" x2="254" y2="383" stroke="#78350f" stroke-width="1"/>
             <line x1="168" y1="356" x2="168" y2="410" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="236" y1="356" x2="236" y2="410" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="202" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 14</text>
-            <text x="202" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+            <text x="188" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 14</text>
+            <text x="188" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
         </g>
 
         <!-- BAHÍA 2 (SUPERIOR): Pallets 03 y 04 -->
         <g id="bay_up_2" filter="url(#mDropShadow)">
             <!-- Pallet Exterior 03 -->
             <rect x="262" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
-            <!-- Tablillas de Pallet y Cajas de Uva -->
             <line x1="297" y1="70" x2="297" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="332" y1="70" x2="332" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="262" y1="97" x2="366" y2="97" stroke="#78350f" stroke-width="1"/>
-            <!-- Zunchos Negros Industriales -->
             <line x1="280" y1="70" x2="280" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="348" y1="70" x2="348" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <text x="314" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 03</text>
@@ -1634,19 +1749,17 @@
             <text x="314" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
         </g>
 
-        <!-- BAHÍA 3 (SUPERIOR): Pallets 05 y 06 -->
+        <!-- BAHÍA 3 (SUPERIOR): Pallets 05 y 06 (Aguja S10 y S09 a la derecha, texto a la izquierda) -->
         <g id="bay_up_3" filter="url(#mDropShadow)">
             <!-- Pallet Exterior 05 -->
             <rect x="374" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
-            <!-- Tablillas de Pallet y Cajas de Uva -->
             <line x1="409" y1="70" x2="409" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="444" y1="70" x2="444" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="374" y1="97" x2="478" y2="97" stroke="#78350f" stroke-width="1"/>
-            <!-- Zunchos Negros Industriales -->
             <line x1="392" y1="70" x2="392" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="460" y1="70" x2="460" y2="124" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="426" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 05</text>
-            <text x="426" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+            <text x="412" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 05</text>
+            <text x="412" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
 
             <!-- Pallet Interior 06 -->
             <rect x="374" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
@@ -1655,8 +1768,8 @@
             <line x1="374" y1="157" x2="478" y2="157" stroke="#78350f" stroke-width="1"/>
             <line x1="392" y1="130" x2="392" y2="184" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="460" y1="130" x2="460" y2="184" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="426" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 06</text>
-            <text x="426" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+            <text x="412" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 06</text>
+            <text x="412" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
         </g>
 
         <!-- BAHÍA 3 (INFERIOR): Pallets 17 y 18 -->
@@ -1668,8 +1781,8 @@
             <line x1="374" y1="323" x2="478" y2="323" stroke="#78350f" stroke-width="1"/>
             <line x1="392" y1="296" x2="392" y2="350" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="460" y1="296" x2="460" y2="350" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="426" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 17</text>
-            <text x="426" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+            <text x="412" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 17</text>
+            <text x="412" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
 
             <!-- Pallet Exterior 18 -->
             <rect x="374" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
@@ -1678,19 +1791,17 @@
             <line x1="374" y1="383" x2="478" y2="383" stroke="#78350f" stroke-width="1"/>
             <line x1="392" y1="356" x2="392" y2="410" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="460" y1="356" x2="460" y2="410" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="426" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 18</text>
-            <text x="426" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+            <text x="412" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 18</text>
+            <text x="412" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
         </g>
 
         <!-- BAHÍA 4 (SUPERIOR): Pallets 07 y 08 -->
         <g id="bay_up_4" filter="url(#mDropShadow)">
             <!-- Pallet Exterior 07 -->
             <rect x="486" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
-            <!-- Tablillas de Pallet y Cajas de Uva -->
             <line x1="521" y1="70" x2="521" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="556" y1="70" x2="556" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="486" y1="97" x2="590" y2="97" stroke="#78350f" stroke-width="1"/>
-            <!-- Zunchos Negros Industriales -->
             <line x1="504" y1="70" x2="504" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="572" y1="70" x2="572" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <text x="538" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 07</text>
@@ -1734,11 +1845,9 @@
         <g id="bay_up_5" filter="url(#mDropShadow)">
             <!-- Pallet Exterior 09 -->
             <rect x="598" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
-            <!-- Tablillas de Pallet y Cajas de Uva -->
             <line x1="633" y1="70" x2="633" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="668" y1="70" x2="668" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="598" y1="97" x2="702" y2="97" stroke="#78350f" stroke-width="1"/>
-            <!-- Zunchos Negros Industriales -->
             <line x1="616" y1="70" x2="616" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="684" y1="70" x2="684" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <text x="650" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 09</text>
@@ -1778,19 +1887,17 @@
             <text x="650" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
         </g>
 
-        <!-- BAHÍA 6 (SUPERIOR): Pallets 11 y 12 -->
+        <!-- BAHÍA 6 (SUPERIOR): Pallets 11 y 12 (Aguja S12 y S11 a la derecha, texto a la izquierda) -->
         <g id="bay_up_6" filter="url(#mDropShadow)">
             <!-- Pallet Exterior 11 -->
             <rect x="710" y="70" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
-            <!-- Tablillas de Pallet y Cajas de Uva -->
             <line x1="745" y1="70" x2="745" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="780" y1="70" x2="780" y2="124" stroke="#78350f" stroke-width="1" stroke-dasharray="3,2"/>
             <line x1="710" y1="97" x2="814" y2="97" stroke="#78350f" stroke-width="1"/>
-            <!-- Zunchos Negros Industriales -->
             <line x1="728" y1="70" x2="728" y2="124" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="796" y1="70" x2="796" y2="124" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="762" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 11</text>
-            <text x="762" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+            <text x="748" y="92" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 11</text>
+            <text x="748" y="114" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
 
             <!-- Pallet Interior 12 -->
             <rect x="710" y="130" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
@@ -1799,8 +1906,8 @@
             <line x1="710" y1="157" x2="814" y2="157" stroke="#78350f" stroke-width="1"/>
             <line x1="728" y1="130" x2="728" y2="184" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="796" y1="130" x2="796" y2="184" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="762" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 12</text>
-            <text x="762" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+            <text x="748" y="152" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 12</text>
+            <text x="748" y="174" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
         </g>
 
         <!-- BAHÍA 6 (INFERIOR): Pallets 23 y 24 -->
@@ -1812,8 +1919,8 @@
             <line x1="710" y1="323" x2="814" y2="323" stroke="#78350f" stroke-width="1"/>
             <line x1="728" y1="296" x2="728" y2="350" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="796" y1="296" x2="796" y2="350" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="762" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 23</text>
-            <text x="762" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
+            <text x="748" y="318" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 23</text>
+            <text x="748" y="340" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pasillo Int)</text>
 
             <!-- Pallet Exterior 24 -->
             <rect x="710" y="356" width="104" height="54" rx="4" fill="url(#mPalletBoxGrad)" stroke="#78350f" stroke-width="1.5"/>
@@ -1822,8 +1929,8 @@
             <line x1="710" y1="383" x2="814" y2="383" stroke="#78350f" stroke-width="1"/>
             <line x1="728" y1="356" x2="728" y2="410" stroke="#1e293b" stroke-width="1.8"/>
             <line x1="796" y1="356" x2="796" y2="410" stroke="#1e293b" stroke-width="1.8"/>
-            <text x="762" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 24</text>
-            <text x="762" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
+            <text x="748" y="378" font-family="system-ui, sans-serif" font-size="9" font-weight="800" fill="#451a03" text-anchor="middle">PALLET 24</text>
+            <text x="748" y="400" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#78350f" text-anchor="middle">Uva (Pared Ext)</text>
         </g>
 
     <!-- ============================================== -->
@@ -1852,135 +1959,136 @@
         <!-- SENSOR S08: Hilera Superior Exterior - Bahía 1 (Frontal) -->
         <g class="mamut-sensor-pin" id="pin_S08" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S08: Hilera Superior Exterior - Bahía 1 (Frontal)</title>
-            <line x1="202" y1="36" x2="202" y2="86" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="202" cy="86" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-            <rect x="169" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
-            <circle cx="182" cy="36" r="9" fill="#0284c7"/>
-            <text x="182" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S08</text>
-            <text x="210" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS08">0.7 °C</text>
+            <line x1="228" y1="48" x2="228" y2="88" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="228" cy="88" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="195" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="208" cy="36" r="9" fill="#0284c7"/>
+            <text x="208" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S08</text>
+            <text x="236" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS08">0.7 °C</text>
         </g>
 
         <!-- SENSOR S10: Hilera Superior Exterior - Bahía 3 (Media) -->
         <g class="mamut-sensor-pin" id="pin_S10" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S10: Hilera Superior Exterior - Bahía 3 (Media)</title>
-            <line x1="426" y1="36" x2="426" y2="86" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="426" cy="86" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-            <rect x="393" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
-            <circle cx="406" cy="36" r="9" fill="#0284c7"/>
-            <text x="406" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S10</text>
-            <text x="434" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS10">0.5 °C</text>
+            <line x1="452" y1="48" x2="452" y2="88" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="452" cy="88" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="419" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="432" cy="36" r="9" fill="#0284c7"/>
+            <text x="432" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S10</text>
+            <text x="460" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS10">0.5 °C</text>
         </g>
 
         <!-- SENSOR S12: Hilera Superior Exterior - Bahía 6 (Fondo) -->
         <g class="mamut-sensor-pin" id="pin_S12" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S12: Hilera Superior Exterior - Bahía 6 (Fondo)</title>
-            <line x1="762" y1="36" x2="762" y2="86" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="762" cy="86" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-            <rect x="729" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
-            <circle cx="742" cy="36" r="9" fill="#0284c7"/>
-            <text x="742" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S12</text>
-            <text x="770" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS12">0.3 °C</text>
+            <line x1="788" y1="48" x2="788" y2="88" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="788" cy="88" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="755" y="24" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="768" cy="36" r="9" fill="#0284c7"/>
+            <text x="768" y="39.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S12</text>
+            <text x="796" y="40" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS12">0.3 °C</text>
         </g>
 
         <!-- SENSOR S07: Hilera Superior Interior - Bahía 1 (Frontal) -->
         <g class="mamut-sensor-pin" id="pin_S07" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S07: Hilera Superior Interior - Bahía 1 (Frontal)</title>
-            <line x1="202" y1="216" x2="202" y2="168" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="202" cy="168" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
-            <rect x="169" y="204" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
-            <circle cx="182" cy="216" r="9" fill="#1e3a8a"/>
-            <text x="182" y="219.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S07</text>
-            <text x="210" y="220" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS07">0.6 °C</text>
+            <line x1="228" y1="202" x2="228" y2="162" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="228" cy="162" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="195" y="202" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="208" cy="214" r="9" fill="#1e3a8a"/>
+            <text x="208" y="217.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S07</text>
+            <text x="236" y="218" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS07">0.6 °C</text>
         </g>
 
         <!-- SENSOR S09: Hilera Superior Interior - Bahía 3 (Media) -->
         <g class="mamut-sensor-pin" id="pin_S09" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S09: Hilera Superior Interior - Bahía 3 (Media)</title>
-            <line x1="426" y1="216" x2="426" y2="168" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="426" cy="168" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
-            <rect x="393" y="204" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
-            <circle cx="406" cy="216" r="9" fill="#1e3a8a"/>
-            <text x="406" y="219.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S09</text>
-            <text x="434" y="220" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS09">0.4 °C</text>
+            <line x1="452" y1="202" x2="452" y2="162" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="452" cy="162" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="419" y="202" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="432" cy="214" r="9" fill="#1e3a8a"/>
+            <text x="432" y="217.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S09</text>
+            <text x="460" y="218" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS09">0.4 °C</text>
         </g>
 
         <!-- SENSOR S11: Hilera Superior Interior - Bahía 6 (Fondo) -->
         <g class="mamut-sensor-pin" id="pin_S11" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S11: Hilera Superior Interior - Bahía 6 (Fondo)</title>
-            <line x1="762" y1="216" x2="762" y2="168" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="762" cy="168" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
-            <rect x="729" y="204" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
-            <circle cx="742" cy="216" r="9" fill="#1e3a8a"/>
-            <text x="742" y="219.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S11</text>
-            <text x="770" y="220" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS11">0.3 °C</text>
+            <line x1="788" y1="202" x2="788" y2="162" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="788" cy="162" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="755" y="202" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="768" cy="214" r="9" fill="#1e3a8a"/>
+            <text x="768" y="217.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S11</text>
+            <text x="796" y="218" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS11">0.3 °C</text>
         </g>
 
         <!-- SENSOR S01: Hilera Inferior Interior - Bahía 1 (Frontal) -->
         <g class="mamut-sensor-pin" id="pin_S01" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S01: Hilera Inferior Interior - Bahía 1 (Frontal)</title>
-            <line x1="202" y1="264" x2="202" y2="312" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="202" cy="312" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
-            <rect x="169" y="252" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
-            <circle cx="182" cy="264" r="9" fill="#1e3a8a"/>
-            <text x="182" y="267.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S01</text>
-            <text x="210" y="268" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS01">0.4 °C</text>
+            <line x1="228" y1="278" x2="228" y2="318" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="228" cy="318" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="195" y="254" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="208" cy="266" r="9" fill="#1e3a8a"/>
+            <text x="208" y="269.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S01</text>
+            <text x="236" y="270" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS01">0.4 °C</text>
         </g>
 
         <!-- SENSOR S03: Hilera Inferior Interior - Bahía 3 (Media) -->
         <g class="mamut-sensor-pin" id="pin_S03" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S03: Hilera Inferior Interior - Bahía 3 (Media)</title>
-            <line x1="426" y1="264" x2="426" y2="312" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="426" cy="312" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
-            <rect x="393" y="252" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
-            <circle cx="406" cy="264" r="9" fill="#1e3a8a"/>
-            <text x="406" y="267.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S03</text>
-            <text x="434" y="268" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS03">0.2 °C</text>
+            <line x1="452" y1="278" x2="452" y2="318" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="452" cy="318" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="419" y="254" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="432" cy="266" r="9" fill="#1e3a8a"/>
+            <text x="432" y="269.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S03</text>
+            <text x="460" y="270" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS03">0.2 °C</text>
         </g>
 
         <!-- SENSOR S05: Hilera Inferior Interior - Bahía 6 (Fondo) -->
         <g class="mamut-sensor-pin" id="pin_S05" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S05: Hilera Inferior Interior - Bahía 6 (Fondo)</title>
-            <line x1="762" y1="264" x2="762" y2="312" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="762" cy="312" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
-            <rect x="729" y="252" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
-            <circle cx="742" cy="264" r="9" fill="#1e3a8a"/>
-            <text x="742" y="267.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S05</text>
-            <text x="770" y="268" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS05">0.1 °C</text>
+            <line x1="788" y1="278" x2="788" y2="318" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="788" cy="318" r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+            <rect x="755" y="254" width="66" height="24" rx="12" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <circle cx="768" cy="266" r="9" fill="#1e3a8a"/>
+            <text x="768" y="269.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S05</text>
+            <text x="796" y="270" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS05">0.1 °C</text>
         </g>
 
         <!-- SENSOR S02: Hilera Inferior Exterior - Bahía 1 (Frontal) -->
         <g class="mamut-sensor-pin" id="pin_S02" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S02: Hilera Inferior Exterior - Bahía 1 (Frontal)</title>
-            <line x1="202" y1="444" x2="202" y2="394" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="202" cy="394" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-            <rect x="169" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
-            <circle cx="182" cy="444" r="9" fill="#0284c7"/>
-            <text x="182" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S02</text>
-            <text x="210" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS02">-0.2 °C</text>
+            <line x1="228" y1="432" x2="228" y2="392" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="228" cy="392" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="195" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="208" cy="444" r="9" fill="#0284c7"/>
+            <text x="208" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S02</text>
+            <text x="236" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS02">-0.2 °C</text>
         </g>
 
         <!-- SENSOR S04: Hilera Inferior Exterior - Bahía 3 (Media) -->
         <g class="mamut-sensor-pin" id="pin_S04" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S04: Hilera Inferior Exterior - Bahía 3 (Media)</title>
-            <line x1="426" y1="444" x2="426" y2="394" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="426" cy="394" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-            <rect x="393" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
-            <circle cx="406" cy="444" r="9" fill="#0284c7"/>
-            <text x="406" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S04</text>
-            <text x="434" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS04">0.0 °C</text>
+            <line x1="452" y1="432" x2="452" y2="392" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="452" cy="392" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="419" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="432" cy="444" r="9" fill="#0284c7"/>
+            <text x="432" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S04</text>
+            <text x="460" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS04">0.0 °C</text>
         </g>
 
         <!-- SENSOR S06: Hilera Inferior Exterior - Bahía 6 (Fondo) -->
         <g class="mamut-sensor-pin" id="pin_S06" filter="url(#mBadgeShadow)" style="cursor:pointer;">
             <title>S06: Hilera Inferior Exterior - Bahía 6 (Fondo)</title>
-            <line x1="762" y1="444" x2="762" y2="394" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="762" cy="394" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-            <rect x="729" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
-            <circle cx="742" cy="444" r="9" fill="#0284c7"/>
-            <text x="742" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S06</text>
-            <text x="770" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS06">0.2 °C</text>
+            <line x1="788" y1="432" x2="788" y2="392" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="788" cy="392" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+            <rect x="755" y="432" width="66" height="24" rx="12" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="768" cy="444" r="9" fill="#0284c7"/>
+            <text x="768" y="447.5" font-family="system-ui, sans-serif" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">S06</text>
+            <text x="796" y="448" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle" id="valS06">0.2 °C</text>
         </g>
 </svg>
+                            </div>
                             
                             <!-- Barra de Estado y Condiciones Técnicas -->
                             <div class="mamut-telemetry-subfooter">
@@ -2186,15 +2294,13 @@
                 </div>
 
                 <!-- Botón de Pantalla Completa con fondo claro -->
-                <div class="panel-widget" style="background:#f0fdfa; border-color:#ccfbf1;">
-                    <div style="display:flex; align-items:center; gap:0.6rem; color:var(--safco-teal); margin-bottom:0.5rem;">
-                        <i class='bx bx-fullscreen' style="font-size:1.5rem;"></i>
-                        <strong style="font-size:0.9rem;">Pantalla Completa</strong>
+                <div class="panel-widget" style="background:#f0fdfa; border-color:#ccfbf1; padding:0.45rem 0.65rem;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; color:var(--safco-teal); margin-bottom:0.35rem;">
+                        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; display:flex; align-items:center; gap:0.35rem;">
+                            <i class='bx bx-fullscreen' style="font-size:1.1rem;"></i> Pantalla Completa
+                        </span>
                     </div>
-                    <p style="font-size:0.76rem; color:#475569; margin:0 0 0.8rem 0; line-height:1.4;">
-                        Maximizar la visualización para monitores de la sala de control manteniendo el fondo claro.
-                    </p>
-                    <button onclick="toggleTvMode()" style="width:100%; background:var(--safco-teal); color:white; border:none; padding:0.55rem; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+                    <button onclick="toggleTvMode()" style="width:100%; background:var(--safco-teal); color:white; border:none; padding:0.35rem 0.6rem; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.35rem;">
                         <i class='bx bx-fullscreen'></i> Alternar Pantalla Completa
                     </button>
                 </div>
@@ -2325,7 +2431,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('view') === 'bigdata') {
                 switchView('bigdata');
+            } else if (urlParams.get('view') === 'detailed') {
+                switchView('detailed');
             }
+
+            window.addEventListener('resize', () => {
+                if (ambientChartInstance && currentView === 'detailed') {
+                    ambientChartInstance.resize();
+                }
+            });
         });
 
         function initLiveClock() {
@@ -2356,6 +2470,7 @@
 
             // Iniciar o detener rotación automática según la vista
             if (viewName === 'detailed') {
+                if (ambientChartInstance) setTimeout(() => ambientChartInstance.resize(), 50);
                 startDetailAutoSlide();
             } else {
                 stopDetailAutoSlide();
@@ -2468,6 +2583,13 @@
             switchView('detailed');
         }
 
+        function formatTemp(val) {
+            if (val === null || val === undefined) return '—';
+            let s = String(val).trim();
+            s = s.replace(/(°\s*C|\s*°)+/gi, '').trim();
+            return `${s} °C`;
+        }
+
         function applyProcessToDetail(data) {
             document.getElementById("detTunnelHeaderTitle").textContent = `${data.zona} | ${data.proceso} – UVA`;
             
@@ -2479,15 +2601,15 @@
             document.getElementById("detNextActionHighlight").textContent = data.nextAction;
             document.getElementById("lblCeroExtHighlight").textContent = data.hora1Ext;
 
-            document.getElementById("detPulpAvgHighlight").textContent = `${data.pulpAvg} °C`;
-            document.getElementById("detPulpMinHighlight").textContent = `${data.pulpMin} °C`;
-            document.getElementById("detPulpMaxHighlight").textContent = `${data.pulpMax} °C`;
-            document.getElementById("detPulpMedHighlight").textContent = `${data.pulpMediana} °C`;
+            document.getElementById("detPulpAvgHighlight").textContent = formatTemp(data.pulpAvg);
+            document.getElementById("detPulpMinHighlight").textContent = formatTemp(data.pulpMin);
+            document.getElementById("detPulpMaxHighlight").textContent = formatTemp(data.pulpMax);
+            document.getElementById("detPulpMedHighlight").textContent = formatTemp(data.pulpMediana);
 
-            document.getElementById("detTempAmbHighlight").textContent = `${data.tMinProc} °C`;
+            document.getElementById("detTempAmbHighlight").textContent = formatTemp(data.tMinProc);
             document.getElementById("detInicioHighlight").textContent = data.inicio;
             document.getElementById("detFinHighlight").textContent = data.fin;
-            document.getElementById("detTempMediaAmbHighlight").textContent = `${data.tMedProc} °C`;
+            document.getElementById("detTempMediaAmbHighlight").textContent = formatTemp(data.tMedProc);
 
             // Criteria Panel
             document.getElementById("critHora1Ext").textContent = data.hora1Ext;
@@ -2506,15 +2628,15 @@
             document.getElementById("valS01").textContent = `${(base + 0.1).toFixed(1)} °C`;
             document.getElementById("valS03").textContent = `${(base - 0.1).toFixed(1)} °C`;
             document.getElementById("valS05").textContent = `${(base - 0.2).toFixed(1)} °C`;
-            document.getElementById("valS02").textContent = `${data.pulpMin} °C`;
+            document.getElementById("valS02").textContent = formatTemp(data.pulpMin);
             document.getElementById("valS04").textContent = `${(base - 0.3).toFixed(1)} °C`;
             document.getElementById("valS06").textContent = `${(base - 0.1).toFixed(1)} °C`;
 
             // Telemetría adicional de Túnel MAMUT
             const elAmb = document.getElementById("valAmbTunnel");
-            if (elAmb) elAmb.textContent = `${data.tMinProc} °C`;
+            if (elAmb) elAmb.textContent = formatTemp(data.tMinProc);
             const elLblAmb = document.getElementById("lblMamutAmb");
-            if (elLblAmb) elLblAmb.textContent = `${data.tMinProc} °C`;
+            if (elLblAmb) elLblAmb.textContent = formatTemp(data.tMinProc);
 
             const calcRet = (parseFloat(data.tMedProc) + 8.5).toFixed(1) + ' °C';
             const elRet = document.getElementById("valRetTemp");

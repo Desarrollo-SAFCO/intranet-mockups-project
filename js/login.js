@@ -97,6 +97,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     validPasswords: ["calidad2026", "123456", "calidad123"],
                     roleObj: { user: 'calidad', role: 'Inspector de Calidad', area: 'CALIDAD', scope: 'CALIDAD' }
                 },
+                "frio": {
+                    validPasswords: ["frio2026", "123456", "frio123"],
+                    roleObj: { user: 'frio', role: 'Supervisor de Frío', area: 'FRIO', scope: 'FRIO' }
+                },
+                "ana.rodriguez": {
+                    validPasswords: ["frio2026", "123456", "ana2026"],
+                    roleObj: { user: 'ana.rodriguez', role: 'Supervisor de Frío', area: 'FRIO', scope: 'FRIO' }
+                },
                 "admin": {
                     validPasswords: ["admin2026", "123456", "admin123"],
                     roleObj: { user: 'admin', role: 'Administrador General', area: 'SISTEMAS', scope: 'ALL' }
